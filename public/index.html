@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fantasy Hockey Draft Game Theory Co-Pilot</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+  <!-- Top Navigation & Draft Status Header -->
+  <header class="top-nav">
+    <div class="brand-section">
+      <div class="brand-title">
+        <span>🏒 Draft Co-Pilot</span>
+      </div>
+      <div id="status-badge" class="status-badge waiting">Loading...</div>
+    </div>
+
+    <div class="draft-controls">
+      <div class="control-group">
+        <label>Current Pick</label>
+        <div class="pick-stepper">
+          <button class="btn-icon" id="btn-dec-pick" title="Previous Pick">-</button>
+          <span class="pick-number-display" id="disp-current-pick">1</span>
+          <button class="btn-icon" id="btn-inc-pick" title="Next Pick">+</button>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label>My Slot</label>
+        <select id="select-slot">
+          <option value="1">1</option>
+          <option value="2">2</option>
+          <option value="3">3</option>
+          <option value="4">4</option>
+          <option value="5" selected>5</option>
+          <option value="6">6</option>
+          <option value="7">7</option>
+          <option value="8">8</option>
+          <option value="9">9</option>
+          <option value="10">10</option>
+          <option value="11">11</option>
+          <option value="12">12</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Teams</label>
+        <select id="select-teams">
+          <option value="6">6</option>
+          <option value="8" selected>8</option>
+          <option value="10">10</option>
+          <option value="12">12</option>
+          <option value="14">14</option>
+          <option value="16">16</option>
+        </select>
+      </div>
+
+      <div class="control-group">
+        <label>Next Turn</label>
+        <span class="next-pick-display" id="disp-next-turn">Pick #5</span>
+      </div>
+    </div>
+
+    <div class="nav-actions">
+      <button class="btn-header btn-undo" id="btn-undo-pick" title="Revert the most recent pick">
+        ↩ Undo Pick
+      </button>
+      <button class="btn-header" id="btn-open-sync" title="Yahoo Draft Sync & Settings">
+        ⚡ Yahoo Sync
+      </button>
+      <button class="btn-header" id="btn-reset-draft" title="Reset entire draft board" style="color: var(--red);">
+        Reset
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Grid Workspace -->
+  <div class="app-container">
+    <div class="main-board-area">
+
+      <!-- On The Clock Decision Protocol Dock -->
+      <section class="decision-dock">
+        <div id="live-banner" class="live-direction-banner banner-waiting">
+          <div>
+            <div id="banner-headline" class="direction-headline">Analyzing draft board...</div>
+            <div id="banner-subtext" class="direction-subtext">Initializing game-theory valuations...</div>
+          </div>
+          <div id="banner-quick-action"></div>
+        </div>
+
+        <div class="dock-columns">
+          <!-- Step-by-Step Ranked Shortlist -->
+          <div class="shortlist-box">
+            <div class="box-header">
+              <span>🎯 Step-by-Step Short List (On The Clock)</span>
+              <span id="shortlist-count" style="font-size: 10px; color: var(--text-dim);">Top Targets</span>
+            </div>
+            <div class="shortlist-items" id="shortlist-container">
+              <!-- Rendered dynamically -->
+            </div>
+          </div>
+
+          <!-- Secondary Column: Game Theory Trade-off Comparator & Safe Sleepers -->
+          <div class="secondary-box">
+            <div class="comparator-box">
+              <div class="box-header">
+                <span>⚖️ Game Theory Trade-Off (A vs B)</span>
+              </div>
+              <div class="comparator-inputs">
+                <select id="compare-player-a"><option value="">Select Sleeper (A)...</option></select>
+                <select id="compare-player-b"><option value="">Select Imminent (B)...</option></select>
+              </div>
+              <div class="comparator-result" id="comparator-verdict">
+                Select any two players to calculate the mathematical threshold $P(A) > \frac{\text{Loss}_B}{\text{Loss}_A}$.
+              </div>
+            </div>
+
+            <div class="safe-sleepers-box">
+              <div class="box-header">
+                <span>🛡️ Safe Sleepers (Let Fall - High Survival)</span>
+              </div>
+              <div class="sleeper-pills" id="safe-sleepers-container">
+                <!-- Rendered dynamically -->
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Table Toolbar -->
+      <div class="table-toolbar">
+        <div style="display: flex; align-items: center; gap: 10px;">
+          <input type="text" id="filter-search" class="search-input" placeholder="🔍 Search player or team...">
+          <div class="filter-chips" id="pos-chips">
+            <button class="filter-chip active" data-pos="ALL">ALL</button>
+            <button class="filter-chip" data-pos="C">C</button>
+            <button class="filter-chip" data-pos="LW">LW</button>
+            <button class="filter-chip" data-pos="RW">RW</button>
+            <button class="filter-chip" data-pos="D">D</button>
+            <button class="filter-chip" data-pos="G">G</button>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 16px;">
+          <label class="toggle-group">
+            <input type="checkbox" id="toggle-hide-drafted"> Hide Drafted
+          </label>
+          <span id="player-count-display" style="font-size: 11px; color: var(--text-dim); font-family: var(--font-mono);">806 players</span>
+        </div>
+      </div>
+
+      <!-- Main Interactive Board Table -->
+      <div class="table-scroll">
+        <table class="draft-table" id="board-table">
+          <thead>
+            <tr>
+              <th style="width: 35px;">#</th>
+              <th>Player</th>
+              <th>Pos</th>
+              <th>Action</th>
+              <th class="num">P(Surv)</th>
+              <th class="num" title="Diminished by 35% if position is full">Adj VORP</th>
+              <th class="num">VORP</th>
+              <th class="num" title="Drop-off to next available at position">Cliff</th>
+              <th class="num">ADP</th>
+              <th class="num" title="ADP - VORP Rank (arbitrage discount)">Delta</th>
+              <th class="num">FP</th>
+              <th style="text-align: center; width: 110px;">Draft</th>
+            </tr>
+          </thead>
+          <tbody id="board-tbody">
+            <!-- Table rows rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+
+    <!-- Right Sidebar: Roster & Pick History -->
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <h3>
+          <span>My Roster</span>
+          <span id="roster-total-count" style="font-family: var(--font-mono); color: var(--accent);">0 / 18</span>
+        </h3>
+        <div class="roster-grid">
+          <div class="roster-card" id="card-pos-c">
+            <div class="roster-card-header">
+              <span>Center (C)</span>
+              <span class="count" id="count-c">0 / 4</span>
+            </div>
+            <div class="roster-dim-warn" id="warn-c"></div>
+          </div>
+          <div class="roster-card" id="card-pos-lw">
+            <div class="roster-card-header">
+              <span>Left Wing (LW)</span>
+              <span class="count" id="count-lw">0 / 4</span>
+            </div>
+            <div class="roster-dim-warn" id="warn-lw"></div>
+          </div>
+          <div class="roster-card" id="card-pos-rw">
+            <div class="roster-card-header">
+              <span>Right Wing (RW)</span>
+              <span class="count" id="count-rw">0 / 4</span>
+            </div>
+            <div class="roster-dim-warn" id="warn-rw"></div>
+          </div>
+          <div class="roster-card" id="card-pos-d">
+            <div class="roster-card-header">
+              <span>Defense (D)</span>
+              <span class="count" id="count-d">0 / 4</span>
+            </div>
+            <div class="roster-dim-warn" id="warn-d"></div>
+          </div>
+          <div class="roster-card" id="card-pos-g">
+            <div class="roster-card-header">
+              <span>Goalie (G)</span>
+              <span class="count" id="count-g">0 / 2</span>
+            </div>
+            <div class="roster-dim-warn" id="warn-g"></div>
+          </div>
+          <div class="roster-card">
+            <div class="roster-card-header">
+              <span>Total VORP</span>
+              <span class="vorp-total-stat" id="stat-total-vorp">0.0</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sidebar-section" style="padding-bottom: 4px;">
+        <h3>
+          <span>Draft History</span>
+          <span id="history-total-picks" style="font-size: 10px; color: var(--text-dim);">0 picks</span>
+        </h3>
+      </div>
+      <div class="pick-history-feed" id="history-feed">
+        <!-- Pick entries rendered dynamically -->
+      </div>
+
+      <div class="sync-status-footer">
+        <div>
+          <span class="sync-dot" id="sync-indicator"></span>
+          <span id="sync-status-text">Live Sync: Active</span>
+        </div>
+        <span style="font-family: var(--font-mono); color: var(--text-dim);">Port 3333</span>
+      </div>
+    </aside>
+  </div>
+
+  <!-- Yahoo Sync Setup Modal -->
+  <div id="sync-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:var(--panel); border:1px solid var(--panel-border); border-radius:8px; width:520px; max-width:90%; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 style="font-size:16px; font-weight:700;">⚡ Live Yahoo Draft Auto-Sync</h2>
+        <button id="btn-close-sync-modal" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">&times;</button>
+      </div>
+
+      <p style="font-size:12px; color:var(--text-muted); margin-bottom:12px;">
+        Connect your Yahoo Live Draft Room to automatically sync drafted players with zero clicks:
+      </p>
+
+      <div style="background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:12px; margin-bottom:14px;">
+        <div style="font-weight:700; margin-bottom:6px; color:var(--accent);">Option 1: One-Click Bookmarklet (Easiest)</div>
+        <div style="font-size:11px; color:var(--text-muted); margin-bottom:8px;">
+          Drag this button directly to your browser's Bookmarks bar, or copy the code. In your live Yahoo Draft Room tab, click the bookmark!
+        </div>
+        <a id="bookmarklet-link" href="#" style="display:inline-block; background:var(--accent-dark); color:#fff; padding:6px 12px; border-radius:4px; text-decoration:none; font-weight:bold; font-size:12px;">
+          🏒 Sync Yahoo Draft
+        </a>
+      </div>
+
+      <div style="background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:12px; margin-bottom:14px;">
+        <div style="font-weight:700; margin-bottom:6px; color:var(--purple);">Option 2: Chrome Extension / Tampermonkey</div>
+        <div style="font-size:11px; color:var(--text-muted);">
+          The scripts are located in <code style="color:var(--yellow);">/Volumes/ExtSSD160/scripts/Hockey/yahoo-sync/</code>. Load the unpacked extension in Chrome (<code style="color:var(--yellow);">chrome://extensions</code>) for fully automatic hands-free syncing.
+        </div>
+      </div>
+
+      <div style="text-align:right;">
+        <button id="btn-modal-done" class="btn-header" style="display:inline-block;">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="js/valuation.js"></script>
+  <script src="js/gametheory.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "currentPick": 1,
+  "slot": 5,
+  "teams": 8,
+  "stdDev": 7,
+  "rosterLimits": {
+    "C": 4,
+    "LW": 4,
+    "RW": 4,
+    "D": 4,
+    "G": 2
+  },
+  "drafted": {},
+  "mine": {},
+  "pickHistory": []
+}
