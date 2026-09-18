@@ -99,7 +99,7 @@
    * Multi-position players use the most favorable open slot.
    */
   function getDiminishingMultiplier(positions, myRosterCounts, limits) {
-    limits = limits || { C: 4, LW: 4, RW: 4, D: 4, G: 2 };
+    limits = limits || { C: 3, F: 5, D: 4, G: 2 };
     if (!positions || !positions.length) return 1.0;
 
     var bestMultiplier = 0.0;
@@ -193,7 +193,7 @@
     var draftedSet = options.drafted || {};
     var mineSet = options.mine || {};
     var rosterCounts = options.rosterCounts || { C: 0, LW: 0, RW: 0, D: 0, G: 0 };
-    var rosterLimits = options.rosterLimits || { C: 4, LW: 4, RW: 4, D: 4, G: 2 };
+    var rosterLimits = options.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
 
     var onTheClock = isMyTurn(currentPick, slot, teams);
     var targetTurn = onTheClock

@@ -1,16 +1,15 @@
 {
   "meta": {
     "season": "2026-27",
-    "source": "Google Sheet Enhanced Master",
+    "source": "Google Sheet Enhanced Master (C and F league)",
     "count": 820
   },
   "config": {
     "league": {
       "teams": 8,
       "slots": {
-        "C": 2,
-        "LW": 2,
-        "RW": 2,
+        "C": 3,
+        "F": 5,
         "D": 4,
         "G": 2,
         "BN": 4
@@ -30,6 +29,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C1",
       "prnk": "C1",
       "vorp": 239.99,
@@ -53,6 +56,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C2",
       "prnk": "C2",
       "vorp": 229.15,
@@ -74,8 +81,12 @@
       "n": "Nikita Kucherov",
       "t": "TBL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW1",
       "prnk": "R1",
       "vorp": 219.72,
@@ -99,6 +110,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D1",
       "prnk": "D1",
       "vorp": 205.75,
@@ -122,6 +137,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D2",
       "prnk": "D2",
       "vorp": 189.95,
@@ -144,8 +163,13 @@
       "t": "EDM",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C3",
       "prnk": "C3 L1",
       "vorp": 183.89,
@@ -169,6 +193,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D3",
       "prnk": "D3",
       "vorp": 183.09,
@@ -192,6 +220,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C3",
       "prnk": "C4",
       "vorp": 182.7,
@@ -215,6 +247,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D4",
       "prnk": "D4",
       "vorp": 178.43,
@@ -236,8 +272,12 @@
       "n": "David Pastrnak",
       "t": "BOS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW2",
       "prnk": "R2",
       "vorp": 152.06,
@@ -261,6 +301,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D5",
       "prnk": "D5",
       "vorp": 149.8,
@@ -282,8 +326,12 @@
       "n": "Kirill Kaprizov",
       "t": "MIN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW1",
       "prnk": "L2",
       "vorp": 143.66,
@@ -305,9 +353,13 @@
       "n": "Jason Robertson",
       "t": "DAL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW3",
       "prnk": "L3 R3",
       "vorp": 140.09,
@@ -331,6 +383,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D6",
       "prnk": "D6",
       "vorp": 134.72,
@@ -354,6 +410,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C4",
       "prnk": "C5",
       "vorp": 129.94,
@@ -377,6 +437,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D7",
       "prnk": "D7",
       "vorp": 129.68,
@@ -400,6 +464,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D8",
       "prnk": "D8",
       "vorp": 125.73,
@@ -421,8 +489,12 @@
       "n": "Martin Necas",
       "t": "COL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW4",
       "prnk": "R4",
       "vorp": 124.59,
@@ -446,6 +518,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C5",
       "prnk": "C6",
       "vorp": 123.59,
@@ -468,8 +544,13 @@
       "t": "NJD",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C5",
       "prnk": "C7 L4",
       "vorp": 119.33,
@@ -493,6 +574,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C5",
       "prnk": "C8",
       "vorp": 116.9,
@@ -515,8 +600,13 @@
       "t": "DAL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW5",
       "prnk": "C9 R5",
       "vorp": 115.69,
@@ -538,9 +628,13 @@
       "n": "Matt Boldy",
       "t": "MIN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW5",
       "prnk": "L5 R6",
       "vorp": 115.15,
@@ -564,6 +658,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D9",
       "prnk": "D9",
       "vorp": 112.49,
@@ -587,6 +685,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D9",
       "prnk": "D10",
       "vorp": 112.28,
@@ -609,8 +711,13 @@
       "t": "TOR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW5",
       "prnk": "C10 R7",
       "vorp": 111.46,
@@ -634,6 +741,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D9",
       "prnk": "D11",
       "vorp": 109.89,
@@ -655,8 +766,12 @@
       "n": "Kyle Connor",
       "t": "WPG",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW2",
       "prnk": "L6",
       "vorp": 104.99,
@@ -678,8 +793,12 @@
       "n": "Artemi Panarin",
       "t": "LAK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW2",
       "prnk": "L7",
       "vorp": 98.93,
@@ -701,9 +820,13 @@
       "n": "Mikko Rantanen",
       "t": "DAL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW6",
       "prnk": "L8 R8",
       "vorp": 98.83,
@@ -727,6 +850,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D10",
       "prnk": "D12",
       "vorp": 96.67,
@@ -750,6 +877,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D10",
       "prnk": "D13",
       "vorp": 96.05,
@@ -773,6 +904,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D10",
       "prnk": "D14",
       "vorp": 95.85,
@@ -795,8 +930,13 @@
       "t": "BUF",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW6",
       "prnk": "C11 R9",
       "vorp": 95.13,
@@ -820,6 +960,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D10",
       "prnk": "D15",
       "vorp": 94.96,
@@ -843,6 +987,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D10",
       "prnk": "D16",
       "vorp": 93.16,
@@ -866,6 +1014,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C6",
       "prnk": "C12",
       "vorp": 92.67,
@@ -889,6 +1041,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D10",
       "prnk": "D17",
       "vorp": 91.28,
@@ -910,9 +1066,13 @@
       "n": "Cole Caufield",
       "t": "MTL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW7",
       "prnk": "L9 R10",
       "vorp": 91.16,
@@ -934,8 +1094,12 @@
       "n": "Sam Reinhart",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW7",
       "prnk": "R11",
       "vorp": 90.65,
@@ -957,8 +1121,12 @@
       "n": "Filip Forsberg",
       "t": "NSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW3",
       "prnk": "L10",
       "vorp": 89.66,
@@ -982,6 +1150,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D10",
       "prnk": "D18",
       "vorp": 88.06,
@@ -1003,9 +1175,13 @@
       "n": "Jake Guentzel",
       "t": "TBL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW7",
       "prnk": "L11 R12",
       "vorp": 87.71,
@@ -1027,9 +1203,13 @@
       "n": "Clayton Keller",
       "t": "UTA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW7",
       "prnk": "L12 R13",
       "vorp": 87.54,
@@ -1052,9 +1232,14 @@
       "t": "VGK",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW7",
       "prnk": "C14 L14 R14",
       "vorp": 86.54,
@@ -1077,8 +1262,13 @@
       "t": "OTT",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C7",
       "prnk": "C13 L13",
       "vorp": 85.93,
@@ -1100,9 +1290,13 @@
       "n": "Brandon Hagel",
       "t": "TBL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW7",
       "prnk": "L15 R15",
       "vorp": 85.19,
@@ -1126,6 +1320,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D11",
       "prnk": "D19",
       "vorp": 83.84,
@@ -1149,6 +1347,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D11",
       "prnk": "D20",
       "vorp": 83.63,
@@ -1170,9 +1372,13 @@
       "n": "Matthew Tkachuk",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW7",
       "prnk": "L16 R16",
       "vorp": 83.35,
@@ -1196,6 +1402,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C7",
       "prnk": "C15",
       "vorp": 81.36,
@@ -1219,6 +1429,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D12",
       "prnk": "D21",
       "vorp": 78.0,
@@ -1241,9 +1455,14 @@
       "t": "ANA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW8",
       "prnk": "C16 L17 R17",
       "vorp": 76.36,
@@ -1267,6 +1486,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G1",
       "prnk": "G1",
       "vorp": 76.05,
@@ -1288,9 +1511,13 @@
       "n": "Alex DeBrincat",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW8",
       "prnk": "L18 R18",
       "vorp": 73.06,
@@ -1314,6 +1541,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G1",
       "prnk": "G2",
       "vorp": 72.56,
@@ -1337,6 +1568,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D13",
       "prnk": "D22",
       "vorp": 71.05,
@@ -1358,9 +1593,13 @@
       "n": "Dylan Guenther",
       "t": "UTA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW8",
       "prnk": "L19 R19",
       "vorp": 71.05,
@@ -1384,6 +1623,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C8",
       "prnk": "C17",
       "vorp": 70.82,
@@ -1407,6 +1650,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C8",
       "prnk": "C18",
       "vorp": 70.17,
@@ -1430,6 +1677,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G1",
       "prnk": "G3",
       "vorp": 69.71,
@@ -1453,6 +1704,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D13",
       "prnk": "D23",
       "vorp": 69.22,
@@ -1474,9 +1729,13 @@
       "n": "Jesper Bratt",
       "t": "NJD",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW8",
       "prnk": "L20 R20",
       "vorp": 68.13,
@@ -1500,6 +1759,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G1",
       "prnk": "G4",
       "vorp": 66.86,
@@ -1522,8 +1785,13 @@
       "t": "NYR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW8",
       "prnk": "C20 R21",
       "vorp": 64.45,
@@ -1547,6 +1815,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C9",
       "prnk": "C19",
       "vorp": 64.05,
@@ -1568,8 +1840,12 @@
       "n": "Adrian Kempe",
       "t": "LAK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW8",
       "prnk": "R22",
       "vorp": 63.38,
@@ -1591,8 +1867,12 @@
       "n": "Lucas Raymond",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW8",
       "prnk": "R23",
       "vorp": 62.31,
@@ -1616,6 +1896,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D14",
       "prnk": "D24",
       "vorp": 60.6,
@@ -1638,8 +1922,13 @@
       "t": "FLA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C9",
       "prnk": "C21 L21",
       "vorp": 60.34,
@@ -1663,6 +1952,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G2",
       "prnk": "G5",
       "vorp": 59.59,
@@ -1686,6 +1979,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C9",
       "prnk": "C22",
       "vorp": 59.36,
@@ -1707,9 +2004,13 @@
       "n": "Juraj Slafkovsky",
       "t": "MTL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW9",
       "prnk": "L22 R24",
       "vorp": 54.53,
@@ -1733,6 +2034,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D15",
       "prnk": "D25",
       "vorp": 54.38,
@@ -1756,6 +2061,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G2",
       "prnk": "G6",
       "vorp": 53.79,
@@ -1777,8 +2086,12 @@
       "n": "Mark Stone",
       "t": "VGK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW9",
       "prnk": "R25",
       "vorp": 52.75,
@@ -1802,6 +2115,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C10",
       "prnk": "C23",
       "vorp": 52.07,
@@ -1825,6 +2142,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D15",
       "prnk": "D26",
       "vorp": 51.95,
@@ -1847,9 +2168,14 @@
       "t": "NYR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW9",
       "prnk": "C25 L23 R26",
       "vorp": 51.21,
@@ -1873,6 +2199,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C10",
       "prnk": "C24",
       "vorp": 50.9,
@@ -1896,6 +2226,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D15",
       "prnk": "D27",
       "vorp": 50.73,
@@ -1919,6 +2253,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G2",
       "prnk": "G7",
       "vorp": 50.5,
@@ -1940,9 +2278,13 @@
       "n": "Andrei Svechnikov",
       "t": "CAR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW9",
       "prnk": "L24 R27",
       "vorp": 50.09,
@@ -1964,9 +2306,13 @@
       "n": "Drake Batherson",
       "t": "OTT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW9",
       "prnk": "L25 R28",
       "vorp": 49.17,
@@ -1990,6 +2336,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D15",
       "prnk": "D28",
       "vorp": 48.19,
@@ -2012,8 +2362,13 @@
       "t": "STL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C10",
       "prnk": "C26 L26",
       "vorp": 48.03,
@@ -2035,8 +2390,12 @@
       "n": "Kirill Marchenko",
       "t": "CBJ",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW9",
       "prnk": "R29",
       "vorp": 47.88,
@@ -2060,6 +2419,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D15",
       "prnk": "D29",
       "vorp": 47.33,
@@ -2083,6 +2446,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D15",
       "prnk": "D30",
       "vorp": 46.99,
@@ -2106,6 +2473,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G2",
       "prnk": "G8",
       "vorp": 46.4,
@@ -2129,6 +2500,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D15",
       "prnk": "D31",
       "vorp": 45.93,
@@ -2152,6 +2527,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D15",
       "prnk": "D32",
       "vorp": 45.8,
@@ -2175,6 +2554,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G2",
       "prnk": "G9",
       "vorp": 45.26,
@@ -2198,6 +2581,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D15",
       "prnk": "D33",
       "vorp": 44.96,
@@ -2221,6 +2608,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C10",
       "prnk": "C27",
       "vorp": 43.39,
@@ -2244,6 +2635,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C10",
       "prnk": "C28",
       "vorp": 43.15,
@@ -2267,6 +2662,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G2",
       "prnk": "G10",
       "vorp": 41.81,
@@ -2290,6 +2689,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C10",
       "prnk": "C29",
       "vorp": 41.51,
@@ -2313,6 +2716,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C10",
       "prnk": "C30",
       "vorp": 40.44,
@@ -2334,8 +2741,12 @@
       "n": "Bryan Rust",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW10",
       "prnk": "R30",
       "vorp": 40.28,
@@ -2357,8 +2768,12 @@
       "n": "Nikolaj Ehlers",
       "t": "CAR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW4",
       "prnk": "L27",
       "vorp": 40.13,
@@ -2382,6 +2797,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G2",
       "prnk": "G11",
       "vorp": 39.31,
@@ -2403,9 +2822,13 @@
       "n": "Pavel Dorofeyev",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW10",
       "prnk": "L28 R31",
       "vorp": 39.25,
@@ -2428,8 +2851,13 @@
       "t": "NSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW10",
       "prnk": "C31 R32",
       "vorp": 38.91,
@@ -2452,8 +2880,13 @@
       "t": "NYI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW10",
       "prnk": "C32 R33",
       "vorp": 37.07,
@@ -2475,9 +2908,13 @@
       "n": "Travis Konecny",
       "t": "PHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW10",
       "prnk": "L29 R34",
       "vorp": 36.74,
@@ -2501,6 +2938,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D16",
       "prnk": "D34",
       "vorp": 36.32,
@@ -2522,9 +2963,13 @@
       "n": "Zach Hyman",
       "t": "EDM",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW10",
       "prnk": "L30 R35",
       "vorp": 35.72,
@@ -2548,6 +2993,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G2",
       "prnk": "G12",
       "vorp": 35.33,
@@ -2571,6 +3020,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G2",
       "prnk": "G13",
       "vorp": 35.12,
@@ -2594,6 +3047,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D16",
       "prnk": "D35",
       "vorp": 33.73,
@@ -2616,8 +3073,13 @@
       "t": "CHI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW10",
       "prnk": "C33 R36",
       "vorp": 32.58,
@@ -2641,6 +3103,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D16",
       "prnk": "D36",
       "vorp": 32.19,
@@ -2664,6 +3130,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D16",
       "prnk": "D37",
       "vorp": 31.26,
@@ -2687,6 +3157,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G3",
       "prnk": "G14",
       "vorp": 29.08,
@@ -2710,6 +3184,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C11",
       "prnk": "C34",
       "vorp": 28.76,
@@ -2733,6 +3211,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C11",
       "prnk": "C35",
       "vorp": 28.35,
@@ -2756,6 +3238,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D16",
       "prnk": "D38",
       "vorp": 28.16,
@@ -2777,9 +3263,13 @@
       "n": "Will Smith",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW11",
       "prnk": "L31 R37",
       "vorp": 28.05,
@@ -2802,8 +3292,13 @@
       "t": "UTA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW11",
       "prnk": "C36 R38",
       "vorp": 26.26,
@@ -2825,8 +3320,12 @@
       "n": "Beckett Sennecke",
       "t": "ANA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW11",
       "prnk": "R39",
       "vorp": 26.03,
@@ -2849,9 +3348,14 @@
       "t": "BOS",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW11",
       "prnk": "C37 L32 R40",
       "vorp": 25.66,
@@ -2873,8 +3377,12 @@
       "n": "Tom Wilson",
       "t": "WSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW11",
       "prnk": "R41",
       "vorp": 25.31,
@@ -2896,9 +3404,13 @@
       "n": "Alex Ovechkin",
       "t": "WSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW11",
       "prnk": "L33 R42",
       "vorp": 25.05,
@@ -2921,9 +3433,14 @@
       "t": "PIT",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW11",
       "prnk": "C38 L34 R43",
       "vorp": 24.57,
@@ -2945,9 +3462,13 @@
       "n": "Matthew Knies",
       "t": "TOR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW11",
       "prnk": "L35 R44",
       "vorp": 24.13,
@@ -2969,9 +3490,13 @@
       "n": "Alex Tuch",
       "t": "WSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW11",
       "prnk": "L36 R45",
       "vorp": 24.1,
@@ -2995,6 +3520,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C11",
       "prnk": "C39",
       "vorp": 23.06,
@@ -3017,8 +3546,13 @@
       "t": "WPG",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW11",
       "prnk": "C41 R46",
       "vorp": 21.7,
@@ -3042,6 +3576,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C11",
       "prnk": "C40",
       "vorp": 21.68,
@@ -3064,9 +3602,14 @@
       "t": "PIT",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW11",
       "prnk": "C43 L38 R47",
       "vorp": 21.01,
@@ -3088,8 +3631,12 @@
       "n": "Porter Martone",
       "t": "PHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW11",
       "prnk": "R48",
       "vorp": 20.65,
@@ -3112,8 +3659,13 @@
       "t": "VGK",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C11",
       "prnk": "C42 L37",
       "vorp": 20.29,
@@ -3135,8 +3687,12 @@
       "n": "Kevin Fiala",
       "t": "LAK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW5",
       "prnk": "L39",
       "vorp": 19.72,
@@ -3160,6 +3716,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G4",
       "prnk": "G15",
       "vorp": 19.1,
@@ -3181,8 +3741,12 @@
       "n": "Jimmy Snuggerud",
       "t": "STL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW11",
       "prnk": "R49",
       "vorp": 18.2,
@@ -3204,8 +3768,12 @@
       "n": "Ivan Demidov",
       "t": "MTL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW11",
       "prnk": "R50",
       "vorp": 17.6,
@@ -3229,6 +3797,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D17",
       "prnk": "D39",
       "vorp": 16.86,
@@ -3252,6 +3824,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C11",
       "prnk": "C44",
       "vorp": 16.74,
@@ -3275,6 +3851,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G4",
       "prnk": "G16",
       "vorp": 16.42,
@@ -3298,6 +3878,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G4",
       "prnk": "G17",
       "vorp": 16.23,
@@ -3321,6 +3905,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G4",
       "prnk": "G18",
       "vorp": 15.9,
@@ -3344,6 +3932,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D17",
       "prnk": "D40",
       "vorp": 15.58,
@@ -3367,6 +3959,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D17",
       "prnk": "D41",
       "vorp": 15.36,
@@ -3390,6 +3986,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G4",
       "prnk": "G19",
       "vorp": 15.19,
@@ -3413,6 +4013,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G4",
       "prnk": "G20",
       "vorp": 14.99,
@@ -3436,6 +4040,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D17",
       "prnk": "D42",
       "vorp": 14.74,
@@ -3459,6 +4067,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C11",
       "prnk": "C45",
       "vorp": 14.33,
@@ -3481,8 +4093,13 @@
       "t": "SEA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C11",
       "prnk": "C46 L40",
       "vorp": 14.21,
@@ -3506,6 +4123,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D17",
       "prnk": "D43",
       "vorp": 14.11,
@@ -3529,6 +4150,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D17",
       "prnk": "D44",
       "vorp": 13.89,
@@ -3552,6 +4177,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D17",
       "prnk": "D45",
       "vorp": 13.63,
@@ -3575,6 +4204,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D17",
       "prnk": "D46",
       "vorp": 12.33,
@@ -3596,9 +4229,13 @@
       "n": "Timo Meier",
       "t": "NJD",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW12",
       "prnk": "L41 R51",
       "vorp": 12.22,
@@ -3622,6 +4259,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D17",
       "prnk": "D47",
       "vorp": 10.78,
@@ -3643,9 +4284,13 @@
       "n": "Alexis Lafreniere",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW12",
       "prnk": "L42 R52",
       "vorp": 9.93,
@@ -3669,6 +4314,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G4",
       "prnk": "G21",
       "vorp": 9.57,
@@ -3692,6 +4341,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C12",
       "prnk": "C47",
       "vorp": 7.77,
@@ -3715,6 +4368,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C12",
       "prnk": "C48",
       "vorp": 7.01,
@@ -3738,6 +4395,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D48",
       "vorp": 6.94,
@@ -3760,8 +4421,13 @@
       "t": "COL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C12",
       "prnk": "C49 L43",
       "vorp": 6.75,
@@ -3785,6 +4451,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G4",
       "prnk": "G22",
       "vorp": 6.72,
@@ -3808,6 +4478,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C12",
       "prnk": "C50",
       "vorp": 6.54,
@@ -3831,6 +4505,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G4",
       "prnk": "G23",
       "vorp": 6.41,
@@ -3852,8 +4530,12 @@
       "n": "Jordan Kyrou",
       "t": "WSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW12",
       "prnk": "R53",
       "vorp": 6.25,
@@ -3877,6 +4559,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D49",
       "vorp": 6.08,
@@ -3900,6 +4586,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D50",
       "vorp": 5.41,
@@ -3923,6 +4613,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D51",
       "vorp": 4.89,
@@ -3946,6 +4640,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D52",
       "vorp": 4.57,
@@ -3969,6 +4667,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C12",
       "prnk": "C51",
       "vorp": 4.47,
@@ -3992,6 +4694,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D53",
       "vorp": 3.28,
@@ -4015,6 +4721,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D54",
       "vorp": 3.26,
@@ -4038,6 +4748,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D55",
       "vorp": 3.05,
@@ -4059,9 +4773,13 @@
       "n": "Brad Marchand",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW13",
       "prnk": "L44 R54",
       "vorp": 1.97,
@@ -4085,6 +4803,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D56",
       "vorp": 1.93,
@@ -4108,6 +4830,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D57",
       "vorp": 0.1,
@@ -4130,9 +4856,14 @@
       "t": "PHI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW13",
       "prnk": "C53 L46 R55",
       "vorp": 0.0,
@@ -4155,8 +4886,13 @@
       "t": "EDM",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C12",
       "prnk": "C52 L45",
       "vorp": 0.0,
@@ -4180,6 +4916,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D58",
       "vorp": 0.0,
@@ -4203,6 +4943,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G24",
       "vorp": 0.0,
@@ -4226,6 +4970,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D59",
       "vorp": -1.41,
@@ -4247,9 +4995,13 @@
       "n": "Brock Boeser",
       "t": "VAN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW13",
       "prnk": "L47 R56",
       "vorp": -2.07,
@@ -4273,6 +5025,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G25",
       "vorp": -2.31,
@@ -4296,6 +5052,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D60",
       "vorp": -2.4,
@@ -4319,6 +5079,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D61",
       "vorp": -3.79,
@@ -4340,9 +5104,13 @@
       "n": "William Eklund",
       "t": "OTT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW13",
       "prnk": "L48 R57",
       "vorp": -3.8,
@@ -4366,6 +5134,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D62",
       "vorp": -4.39,
@@ -4389,6 +5161,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D63",
       "vorp": -4.81,
@@ -4412,6 +5188,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D64",
       "vorp": -5.69,
@@ -4435,6 +5215,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D65",
       "vorp": -5.7,
@@ -4458,6 +5242,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D66",
       "vorp": -5.95,
@@ -4481,6 +5269,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D67",
       "vorp": -5.99,
@@ -4504,6 +5296,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D68",
       "vorp": -6.11,
@@ -4527,6 +5323,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D69",
       "vorp": -6.93,
@@ -4550,6 +5350,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G26",
       "vorp": -8.19,
@@ -4573,6 +5377,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D70",
       "vorp": -8.41,
@@ -4594,9 +5402,13 @@
       "n": "Matvei Michkov",
       "t": "PHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L49 R58",
       "vorp": -8.68,
@@ -4620,6 +5432,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D71",
       "vorp": -8.9,
@@ -4643,6 +5459,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D72",
       "vorp": -8.99,
@@ -4666,6 +5486,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D73",
       "vorp": -9.13,
@@ -4689,6 +5513,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D74",
       "vorp": -9.25,
@@ -4712,6 +5540,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D75",
       "vorp": -9.46,
@@ -4734,8 +5566,13 @@
       "t": "ANA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C13",
       "prnk": "C54 L50",
       "vorp": -9.66,
@@ -4759,6 +5596,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D76",
       "vorp": -9.71,
@@ -4782,6 +5623,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D77",
       "vorp": -9.8,
@@ -4802,6 +5647,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D78",
       "vorp": -9.81,
@@ -4825,6 +5674,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G27",
       "vorp": -10.03,
@@ -4848,6 +5701,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C13",
       "prnk": "C55",
       "vorp": -10.29,
@@ -4871,6 +5728,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D79",
       "vorp": -10.49,
@@ -4892,9 +5753,13 @@
       "n": "Owen Tippett",
       "t": "PHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L51 R59",
       "vorp": -10.77,
@@ -4918,6 +5783,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G28",
       "vorp": -11.08,
@@ -4941,6 +5810,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D80",
       "vorp": -11.55,
@@ -4962,9 +5835,13 @@
       "n": "JJ Peterka",
       "t": "BOS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L52 R60",
       "vorp": -11.57,
@@ -4988,6 +5865,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D81",
       "vorp": -11.78,
@@ -5009,8 +5890,12 @@
       "n": "Patrick Kane",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R61",
       "vorp": -12.34,
@@ -5034,6 +5919,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D82",
       "vorp": -12.37,
@@ -5055,8 +5944,12 @@
       "n": "Gavin McKenna",
       "t": "TOR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW6",
       "prnk": "L53",
       "vorp": -12.63,
@@ -5080,6 +5973,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D83",
       "vorp": -12.75,
@@ -5103,6 +6000,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G29",
       "vorp": -12.8,
@@ -5124,8 +6025,12 @@
       "n": "Carter Verhaeghe",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW6",
       "prnk": "L54",
       "vorp": -12.89,
@@ -5148,8 +6053,13 @@
       "t": "DAL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C56 R62",
       "vorp": -13.14,
@@ -5173,6 +6083,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D84",
       "vorp": -13.27,
@@ -5194,8 +6108,12 @@
       "n": "Josh Doan",
       "t": "BUF",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R63",
       "vorp": -13.38,
@@ -5219,6 +6137,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D85",
       "vorp": -13.43,
@@ -5242,6 +6164,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C13",
       "prnk": "C57",
       "vorp": -14.36,
@@ -5265,6 +6191,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C13",
       "prnk": "C58",
       "vorp": -14.36,
@@ -5286,9 +6216,13 @@
       "n": "Tyler Bertuzzi",
       "t": "CHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L55 R64",
       "vorp": -14.85,
@@ -5312,6 +6246,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G30",
       "vorp": -14.97,
@@ -5335,6 +6273,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D86",
       "vorp": -15.25,
@@ -5353,8 +6295,12 @@
       "n": "Matt Coronato",
       "t": "CGY",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R65",
       "vorp": -15.48,
@@ -5378,6 +6324,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G31",
       "vorp": -15.59,
@@ -5399,9 +6349,13 @@
       "n": "Jake DeBrusk",
       "t": "VAN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L56 R66",
       "vorp": -16.6,
@@ -5425,6 +6379,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G32",
       "vorp": -16.7,
@@ -5448,6 +6406,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C13",
       "prnk": "C59",
       "vorp": -17.1,
@@ -5471,6 +6433,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D87",
       "vorp": -17.24,
@@ -5494,6 +6460,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D88",
       "vorp": -18.29,
@@ -5517,6 +6487,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D89",
       "vorp": -18.83,
@@ -5537,6 +6511,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C13",
       "prnk": "C60",
       "vorp": -19.8,
@@ -5558,8 +6536,12 @@
       "n": "Jackson Blake",
       "t": "CAR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R67",
       "vorp": -19.99,
@@ -5583,6 +6565,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D90",
       "vorp": -20.07,
@@ -5603,6 +6589,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D91",
       "vorp": -20.09,
@@ -5624,8 +6614,12 @@
       "n": "Jordan Eberle",
       "t": "SEA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R68",
       "vorp": -20.61,
@@ -5649,6 +6643,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D92",
       "vorp": -21.01,
@@ -5672,6 +6670,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D93",
       "vorp": -21.05,
@@ -5695,6 +6697,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G5",
       "prnk": "G33",
       "vorp": -21.46,
@@ -5716,8 +6722,12 @@
       "n": "Mats Zuccarello",
       "t": "LAK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R69",
       "vorp": -21.62,
@@ -5741,6 +6751,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D94",
       "vorp": -21.73,
@@ -5762,9 +6776,13 @@
       "n": "Patrik Laine",
       "t": "MTL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L57 R70",
       "vorp": -22.31,
@@ -5783,9 +6801,13 @@
       "n": "Valeri Nichushkin",
       "t": "CBJ",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L58 R71",
       "vorp": -23.22,
@@ -5807,9 +6829,13 @@
       "n": "Luke Evangelista",
       "t": "NSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L59 R72",
       "vorp": -24.27,
@@ -5833,6 +6859,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D95",
       "vorp": -24.78,
@@ -5856,6 +6886,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D96",
       "vorp": -24.9,
@@ -5877,8 +6911,12 @@
       "n": "Ivan Barbashev",
       "t": "VGK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW7",
       "prnk": "L60",
       "vorp": -25.15,
@@ -5902,6 +6940,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D97",
       "vorp": -25.21,
@@ -5925,6 +6967,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D98",
       "vorp": -25.36,
@@ -5948,6 +6994,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D99",
       "vorp": -25.59,
@@ -5969,9 +7019,13 @@
       "n": "Seth Jarvis",
       "t": "CAR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L62 R73",
       "vorp": -26.07,
@@ -5995,6 +7049,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D100",
       "vorp": -26.12,
@@ -6017,8 +7075,13 @@
       "t": "BOS",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C14",
       "prnk": "C61 L61",
       "vorp": -26.77,
@@ -6040,9 +7103,13 @@
       "n": "Bobby McMann",
       "t": "SEA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L63 R74",
       "vorp": -27.0,
@@ -6064,9 +7131,13 @@
       "n": "Cole Perfetti",
       "t": "WPG",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L64 R75",
       "vorp": -27.07,
@@ -6090,6 +7161,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C62",
       "vorp": -27.27,
@@ -6113,6 +7188,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D101",
       "vorp": -27.35,
@@ -6131,8 +7210,12 @@
       "n": "Kyle Palmieri",
       "t": "NYI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R76",
       "vorp": -27.52,
@@ -6156,6 +7239,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D102",
       "vorp": -27.89,
@@ -6179,6 +7266,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G34",
       "vorp": -28.34,
@@ -6200,8 +7291,12 @@
       "n": "Jack Quinn",
       "t": "BUF",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R77",
       "vorp": -28.6,
@@ -6225,6 +7320,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D103",
       "vorp": -28.61,
@@ -6246,9 +7345,13 @@
       "n": "Viktor Arvidsson",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L65 R78",
       "vorp": -28.7,
@@ -6270,9 +7373,13 @@
       "n": "Will Cuylle",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L66 R79",
       "vorp": -28.71,
@@ -6296,6 +7403,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C63",
       "vorp": -28.81,
@@ -6319,6 +7430,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D104",
       "vorp": -28.88,
@@ -6342,6 +7457,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C64",
       "vorp": -29.03,
@@ -6363,9 +7482,13 @@
       "n": "Aliaksei Protas",
       "t": "WSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L67 R80",
       "vorp": -29.2,
@@ -6389,6 +7512,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D105",
       "vorp": -29.82,
@@ -6412,6 +7539,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D106",
       "vorp": -29.99,
@@ -6435,6 +7566,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D107",
       "vorp": -30.02,
@@ -6453,9 +7588,13 @@
       "n": "Tyson Foerster",
       "t": "PHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L69 R81",
       "vorp": -30.21,
@@ -6479,6 +7618,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G35",
       "vorp": -30.35,
@@ -6500,8 +7643,12 @@
       "n": "Chris Kreider",
       "t": "ANA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW7",
       "prnk": "L68",
       "vorp": -30.53,
@@ -6525,6 +7672,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D108",
       "vorp": -31.16,
@@ -6548,6 +7699,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D109",
       "vorp": -32.15,
@@ -6571,6 +7726,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D110",
       "vorp": -32.41,
@@ -6594,6 +7753,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D111",
       "vorp": -32.6,
@@ -6615,8 +7778,12 @@
       "n": "Ryan Leonard",
       "t": "WSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R82",
       "vorp": -32.8,
@@ -6640,6 +7807,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D112",
       "vorp": -33.02,
@@ -6663,6 +7834,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D113",
       "vorp": -33.1,
@@ -6686,6 +7861,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D114",
       "vorp": -33.21,
@@ -6704,8 +7883,12 @@
       "n": "Zach Benson",
       "t": "BUF",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW7",
       "prnk": "L70",
       "vorp": -33.41,
@@ -6727,8 +7910,12 @@
       "n": "Mason Marchment",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW7",
       "prnk": "L71",
       "vorp": -33.79,
@@ -6752,6 +7939,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C65",
       "vorp": -34.0,
@@ -6774,9 +7965,14 @@
       "t": "LAK",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C66 L72 R83",
       "vorp": -34.0,
@@ -6799,8 +7995,13 @@
       "t": "MIN",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C68 R84",
       "vorp": -34.79,
@@ -6823,8 +8024,13 @@
       "t": "CAR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C69 R85",
       "vorp": -34.81,
@@ -6848,6 +8054,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C67",
       "vorp": -35.18,
@@ -6869,9 +8079,13 @@
       "n": "Jonathan Huberdeau",
       "t": "CGY",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L73 R86",
       "vorp": -35.42,
@@ -6895,6 +8109,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D115",
       "vorp": -35.66,
@@ -6915,6 +8133,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D116",
       "vorp": -35.82,
@@ -6938,6 +8160,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C70",
       "vorp": -36.09,
@@ -6961,6 +8187,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G36",
       "vorp": -36.1,
@@ -6982,9 +8212,13 @@
       "n": "Anthony Mantha",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L74 R87",
       "vorp": -36.16,
@@ -7008,6 +8242,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D117",
       "vorp": -36.18,
@@ -7031,6 +8269,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C71",
       "vorp": -36.26,
@@ -7052,9 +8294,13 @@
       "n": "Yegor Chinakhov",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L75 R88",
       "vorp": -36.75,
@@ -7078,6 +8324,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D118",
       "vorp": -37.03,
@@ -7098,6 +8348,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D119",
       "vorp": -37.3,
@@ -7118,6 +8372,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G37",
       "vorp": -38.32,
@@ -7139,9 +8397,13 @@
       "n": "Artturi Lehkonen",
       "t": "COL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L76 R89",
       "vorp": -39.45,
@@ -7165,6 +8427,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D120",
       "vorp": -39.56,
@@ -7184,9 +8450,14 @@
       "t": "STL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C72 L78 R90",
       "vorp": -40.32,
@@ -7208,8 +8479,12 @@
       "n": "Jason Zucker",
       "t": "BUF",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW8",
       "prnk": "L77",
       "vorp": -40.57,
@@ -7231,9 +8506,13 @@
       "n": "Matvei Gridin",
       "t": "CGY",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L80 R91",
       "vorp": -40.59,
@@ -7257,6 +8536,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D121",
       "vorp": -41.01,
@@ -7277,6 +8560,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D122",
       "vorp": -41.12,
@@ -7296,8 +8583,13 @@
       "t": "WSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C14",
       "prnk": "C73 L79",
       "vorp": -41.23,
@@ -7321,6 +8613,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D123",
       "vorp": -41.43,
@@ -7341,6 +8637,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D124",
       "vorp": -41.61,
@@ -7361,6 +8661,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G38",
       "vorp": -41.79,
@@ -7384,6 +8688,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D125",
       "vorp": -42.15,
@@ -7407,6 +8715,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C74",
       "vorp": -42.24,
@@ -7427,6 +8739,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C75",
       "vorp": -42.79,
@@ -7450,6 +8766,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D126",
       "vorp": -42.84,
@@ -7470,6 +8790,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G39",
       "vorp": -42.86,
@@ -7493,6 +8817,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D127",
       "vorp": -42.89,
@@ -7513,6 +8841,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D128",
       "vorp": -43.14,
@@ -7533,6 +8865,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D129",
       "vorp": -43.41,
@@ -7556,6 +8892,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D130",
       "vorp": -43.58,
@@ -7576,6 +8916,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D131",
       "vorp": -43.64,
@@ -7594,8 +8938,12 @@
       "n": "Roman Kantserov",
       "t": "CHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R92",
       "vorp": -43.74,
@@ -7616,6 +8964,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D132",
       "vorp": -44.19,
@@ -7639,6 +8991,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D133",
       "vorp": -44.8,
@@ -7662,6 +9018,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D134",
       "vorp": -45.01,
@@ -7685,6 +9045,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C76",
       "vorp": -45.05,
@@ -7708,6 +9072,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D135",
       "vorp": -45.45,
@@ -7728,6 +9096,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D136",
       "vorp": -45.94,
@@ -7748,6 +9120,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D137",
       "vorp": -46.38,
@@ -7768,6 +9144,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D138",
       "vorp": -46.63,
@@ -7786,9 +9166,13 @@
       "n": "Kiefer Sherwood",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L83 R93",
       "vorp": -46.71,
@@ -7811,8 +9195,13 @@
       "t": "STL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C14",
       "prnk": "C77 L81",
       "vorp": -46.72,
@@ -7835,8 +9224,13 @@
       "t": "MIN",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C14",
       "prnk": "C78 L82",
       "vorp": -47.2,
@@ -7860,6 +9254,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C14",
       "prnk": "C79",
       "vorp": -47.39,
@@ -7883,6 +9281,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G40",
       "vorp": -48.12,
@@ -7906,6 +9308,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D139",
       "vorp": -48.18,
@@ -7925,8 +9331,13 @@
       "t": "NYI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C14",
       "prnk": "C80 L84",
       "vorp": -48.38,
@@ -7950,6 +9361,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D140",
       "vorp": -48.45,
@@ -7969,8 +9384,13 @@
       "t": "DAL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C81 R94",
       "vorp": -49.25,
@@ -7994,6 +9414,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D141",
       "vorp": -49.35,
@@ -8014,6 +9438,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D142",
       "vorp": -49.43,
@@ -8032,8 +9460,12 @@
       "n": "Ivar Stenberg",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW9",
       "prnk": "L85",
       "vorp": -49.51,
@@ -8055,9 +9487,13 @@
       "n": "Gabriel Landeskog",
       "t": "COL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L87 R95",
       "vorp": -49.56,
@@ -8081,6 +9517,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D143",
       "vorp": -49.7,
@@ -8101,6 +9541,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G41",
       "vorp": -49.76,
@@ -8122,8 +9566,12 @@
       "n": "Anders Lee",
       "t": "UTA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW9",
       "prnk": "L86",
       "vorp": -50.05,
@@ -8147,6 +9595,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G42",
       "vorp": -50.09,
@@ -8170,6 +9622,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D144",
       "vorp": -50.2,
@@ -8193,6 +9649,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D145",
       "vorp": -50.42,
@@ -8216,6 +9676,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G43",
       "vorp": -50.52,
@@ -8239,6 +9703,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D146",
       "vorp": -50.56,
@@ -8257,9 +9725,13 @@
       "n": "Jonathan Marchessault",
       "t": "NSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L88 R96",
       "vorp": -50.6,
@@ -8281,9 +9753,13 @@
       "n": "Tyler Toffoli",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L89 R97",
       "vorp": -50.64,
@@ -8305,8 +9781,12 @@
       "n": "Mackie Samoskevich",
       "t": "SEA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R98",
       "vorp": -50.8,
@@ -8330,6 +9810,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D147",
       "vorp": -51.01,
@@ -8350,6 +9834,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D148",
       "vorp": -51.25,
@@ -8370,6 +9858,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D149",
       "vorp": -51.75,
@@ -8390,6 +9882,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D150",
       "vorp": -51.96,
@@ -8410,6 +9906,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D151",
       "vorp": -52.52,
@@ -8430,6 +9930,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D152",
       "vorp": -52.53,
@@ -8450,6 +9954,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D153",
       "vorp": -53.46,
@@ -8468,9 +9976,13 @@
       "n": "Eeli Tolvanen",
       "t": "SEA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L90 R99",
       "vorp": -53.51,
@@ -8492,9 +10004,13 @@
       "n": "Vladimir Tarasenko",
       "t": "MIN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L91 R100",
       "vorp": -54.01,
@@ -8518,6 +10034,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D154",
       "vorp": -54.25,
@@ -8538,6 +10058,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D155",
       "vorp": -54.46,
@@ -8561,6 +10085,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D156",
       "vorp": -54.61,
@@ -8582,9 +10110,13 @@
       "n": "Jake Neighbours",
       "t": "STL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L92 R101",
       "vorp": -54.67,
@@ -8608,6 +10140,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D157",
       "vorp": -54.97,
@@ -8628,6 +10164,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D158",
       "vorp": -55.02,
@@ -8648,6 +10188,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D159",
       "vorp": -55.19,
@@ -8668,6 +10212,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D160",
       "vorp": -55.21,
@@ -8688,6 +10236,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D161",
       "vorp": -55.29,
@@ -8711,6 +10263,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D162",
       "vorp": -55.41,
@@ -8731,6 +10287,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D163",
       "vorp": -55.43,
@@ -8754,6 +10314,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D164",
       "vorp": -55.63,
@@ -8777,6 +10341,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G44",
       "vorp": -55.87,
@@ -8798,9 +10366,13 @@
       "n": "Igor Chernyshov",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L94 R102",
       "vorp": -56.04,
@@ -8822,8 +10394,12 @@
       "n": "Taylor Hall",
       "t": "CAR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW9",
       "prnk": "L93",
       "vorp": -56.14,
@@ -8847,6 +10423,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G45",
       "vorp": -56.14,
@@ -8866,8 +10446,13 @@
       "t": "NSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C82 R103",
       "vorp": -56.2,
@@ -8890,9 +10475,14 @@
       "t": "OTT",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C83 L95 R104",
       "vorp": -56.38,
@@ -8916,6 +10506,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D165",
       "vorp": -56.46,
@@ -8936,6 +10530,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D166",
       "vorp": -56.69,
@@ -8956,6 +10554,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G46",
       "vorp": -56.93,
@@ -8979,6 +10581,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D167",
       "vorp": -57.13,
@@ -8999,6 +10605,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G47",
       "vorp": -57.21,
@@ -9022,6 +10632,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C84",
       "vorp": -57.25,
@@ -9045,6 +10659,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C85",
       "vorp": -57.7,
@@ -9068,6 +10686,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G48",
       "vorp": -57.76,
@@ -9091,6 +10713,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D168",
       "vorp": -57.89,
@@ -9111,6 +10737,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D169",
       "vorp": -57.96,
@@ -9131,6 +10761,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D170",
       "vorp": -58.45,
@@ -9151,6 +10785,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D171",
       "vorp": -58.49,
@@ -9170,8 +10808,13 @@
       "t": "NJD",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C86 R105",
       "vorp": -58.61,
@@ -9195,6 +10838,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G49",
       "vorp": -58.66,
@@ -9218,6 +10865,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D172",
       "vorp": -59.37,
@@ -9238,6 +10889,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D173",
       "vorp": -59.55,
@@ -9257,8 +10912,13 @@
       "t": "NYI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C88 R106",
       "vorp": -59.81,
@@ -9282,6 +10942,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G50",
       "vorp": -59.91,
@@ -9302,6 +10966,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D174",
       "vorp": -59.93,
@@ -9322,6 +10990,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D175",
       "vorp": -60.1,
@@ -9342,6 +11014,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D176",
       "vorp": -60.14,
@@ -9365,6 +11041,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D177",
       "vorp": -60.15,
@@ -9386,8 +11066,12 @@
       "n": "Gabe Perreault",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "R107",
       "vorp": -60.19,
@@ -9411,6 +11095,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C87",
       "vorp": -60.43,
@@ -9432,9 +11120,13 @@
       "n": "Lawson Crouse",
       "t": "UTA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW14",
       "prnk": "L96 R108",
       "vorp": -60.48,
@@ -9458,6 +11150,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D178",
       "vorp": -60.62,
@@ -9478,6 +11174,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D179",
       "vorp": -61.08,
@@ -9498,6 +11198,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D180",
       "vorp": -61.34,
@@ -9518,6 +11222,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D181",
       "vorp": -62.03,
@@ -9538,6 +11246,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D182",
       "vorp": -62.52,
@@ -9558,6 +11270,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D183",
       "vorp": -62.54,
@@ -9578,6 +11294,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D184",
       "vorp": -62.75,
@@ -9598,6 +11318,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D185",
       "vorp": -62.82,
@@ -9621,6 +11345,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D186",
       "vorp": -63.76,
@@ -9641,6 +11369,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D187",
       "vorp": -63.93,
@@ -9661,6 +11393,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G51",
       "vorp": -64.01,
@@ -9684,6 +11420,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D188",
       "vorp": -64.46,
@@ -9704,6 +11444,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C89",
       "vorp": -64.59,
@@ -9725,8 +11469,12 @@
       "n": "Troy Terry",
       "t": "ANA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW15",
       "prnk": "R109",
       "vorp": -64.61,
@@ -9750,6 +11498,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C90",
       "vorp": -64.75,
@@ -9768,9 +11520,13 @@
       "n": "Simon Holmstrom",
       "t": "NYI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW15",
       "prnk": "L97 R110",
       "vorp": -65.27,
@@ -9794,6 +11550,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D189",
       "vorp": -66.03,
@@ -9814,6 +11574,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D190",
       "vorp": -66.72,
@@ -9834,6 +11598,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D191",
       "vorp": -67.65,
@@ -9854,6 +11622,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G52",
       "vorp": -67.71,
@@ -9877,6 +11649,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D192",
       "vorp": -67.82,
@@ -9897,6 +11673,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C91",
       "vorp": -67.84,
@@ -9920,6 +11700,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D193",
       "vorp": -68.15,
@@ -9940,6 +11724,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D194",
       "vorp": -68.25,
@@ -9960,6 +11748,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D195",
       "vorp": -68.25,
@@ -9980,6 +11772,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D196",
       "vorp": -68.84,
@@ -10000,6 +11796,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C92",
       "vorp": -68.85,
@@ -10023,6 +11823,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D197",
       "vorp": -69.51,
@@ -10043,6 +11847,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D198",
       "vorp": -69.75,
@@ -10061,9 +11869,13 @@
       "n": "Trevor Moore",
       "t": "LAK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L98 R111",
       "vorp": -70.27,
@@ -10087,6 +11899,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D199",
       "vorp": -70.55,
@@ -10107,6 +11923,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D200",
       "vorp": -70.67,
@@ -10126,9 +11946,14 @@
       "t": "DAL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C94 L100 R112",
       "vorp": -70.96,
@@ -10151,8 +11976,13 @@
       "t": "WSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C93 L99",
       "vorp": -71.16,
@@ -10174,9 +12004,13 @@
       "n": "Vasily Podkolzin",
       "t": "EDM",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L101 R113",
       "vorp": -71.66,
@@ -10200,6 +12034,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D201",
       "vorp": -72.04,
@@ -10220,6 +12058,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G53",
       "vorp": -72.15,
@@ -10243,6 +12085,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C95",
       "vorp": -72.21,
@@ -10264,9 +12110,13 @@
       "n": "Emil Heineman",
       "t": "NYI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L102 R114",
       "vorp": -72.3,
@@ -10290,6 +12140,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D202",
       "vorp": -72.52,
@@ -10310,6 +12164,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D203",
       "vorp": -72.55,
@@ -10330,6 +12188,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D204",
       "vorp": -72.6,
@@ -10350,6 +12212,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D205",
       "vorp": -72.76,
@@ -10370,6 +12236,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D206",
       "vorp": -72.95,
@@ -10390,6 +12260,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D207",
       "vorp": -72.95,
@@ -10408,9 +12282,13 @@
       "n": "Joel Farabee",
       "t": "CGY",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L103 R115",
       "vorp": -73.11,
@@ -10432,9 +12310,13 @@
       "n": "Evander Kane",
       "t": "VAN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L104 R116",
       "vorp": -73.61,
@@ -10455,6 +12337,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G54",
       "vorp": -73.81,
@@ -10478,6 +12364,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D208",
       "vorp": -73.95,
@@ -10498,6 +12388,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D209",
       "vorp": -74.06,
@@ -10517,8 +12411,13 @@
       "t": "SEA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C97 R117",
       "vorp": -74.68,
@@ -10538,8 +12437,13 @@
       "t": "PIT",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C96 L105",
       "vorp": -74.81,
@@ -10558,8 +12462,12 @@
       "n": "Bobby Brink",
       "t": "MIN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R118",
       "vorp": -74.95,
@@ -10581,8 +12489,12 @@
       "n": "Easton Cowan",
       "t": "TOR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW10",
       "prnk": "L106",
       "vorp": -75.37,
@@ -10606,6 +12518,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D210",
       "vorp": -75.55,
@@ -10626,6 +12542,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D211",
       "vorp": -75.77,
@@ -10646,6 +12566,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G55",
       "vorp": -75.87,
@@ -10666,6 +12590,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D212",
       "vorp": -75.91,
@@ -10684,9 +12612,13 @@
       "n": "Teuvo Teravainen",
       "t": "CHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L107 R119",
       "vorp": -76.03,
@@ -10708,9 +12640,13 @@
       "n": "Zack Bolduc",
       "t": "MTL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L109 R120",
       "vorp": -76.35,
@@ -10733,8 +12669,13 @@
       "t": "NSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C99 R121",
       "vorp": -76.5,
@@ -10758,6 +12699,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D213",
       "vorp": -76.64,
@@ -10776,8 +12721,12 @@
       "n": "Oliver Bjorkstrand",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R122",
       "vorp": -76.68,
@@ -10801,6 +12750,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D214",
       "vorp": -76.85,
@@ -10820,8 +12773,13 @@
       "t": "DET",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C98 L108",
       "vorp": -76.88,
@@ -10845,6 +12803,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D215",
       "vorp": -76.95,
@@ -10863,9 +12825,13 @@
       "n": "Andrei Kuzmenko",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L111 R123",
       "vorp": -77.16,
@@ -10889,6 +12855,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D216",
       "vorp": -77.16,
@@ -10907,9 +12877,13 @@
       "n": "Arseny Gritsyuk",
       "t": "NJD",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L112 R124",
       "vorp": -77.18,
@@ -10933,6 +12907,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C100",
       "vorp": -77.39,
@@ -10952,8 +12930,13 @@
       "t": "NSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C101 L110",
       "vorp": -77.47,
@@ -10975,8 +12958,12 @@
       "n": "Kaapo Kakko",
       "t": "SEA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R125",
       "vorp": -77.8,
@@ -11000,6 +12987,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C102",
       "vorp": -77.86,
@@ -11021,8 +13012,12 @@
       "n": "Conor Garland",
       "t": "CBJ",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R126",
       "vorp": -77.95,
@@ -11043,6 +13038,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C103",
       "vorp": -78.1,
@@ -11063,6 +13062,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G56",
       "vorp": -78.54,
@@ -11084,8 +13087,12 @@
       "n": "Dmitri Voronkov",
       "t": "CBJ",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW10",
       "prnk": "L113",
       "vorp": -78.56,
@@ -11109,6 +13116,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D217",
       "vorp": -78.75,
@@ -11129,6 +13140,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G57",
       "vorp": -78.79,
@@ -11151,8 +13166,13 @@
       "t": "DET",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C104 L114",
       "vorp": -78.86,
@@ -11176,6 +13196,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D218",
       "vorp": -78.93,
@@ -11195,8 +13219,13 @@
       "t": "TOR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C106 R127",
       "vorp": -79.16,
@@ -11220,6 +13249,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D219",
       "vorp": -79.23,
@@ -11240,6 +13273,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G58",
       "vorp": -79.29,
@@ -11263,6 +13300,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C105",
       "vorp": -79.78,
@@ -11286,6 +13327,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G59",
       "vorp": -79.99,
@@ -11309,6 +13354,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D220",
       "vorp": -80.35,
@@ -11328,8 +13377,13 @@
       "t": "BOS",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C107 L115",
       "vorp": -80.38,
@@ -11353,6 +13407,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D221",
       "vorp": -80.82,
@@ -11373,6 +13431,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D222",
       "vorp": -80.84,
@@ -11393,6 +13455,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D223",
       "vorp": -80.96,
@@ -11412,9 +13478,14 @@
       "t": "OTT",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C108 L116 R128",
       "vorp": -81.29,
@@ -11438,6 +13509,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G60",
       "vorp": -81.4,
@@ -11461,6 +13536,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D224",
       "vorp": -81.51,
@@ -11480,8 +13559,13 @@
       "t": "EDM",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C109 R129",
       "vorp": -81.96,
@@ -11505,6 +13589,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D225",
       "vorp": -82.35,
@@ -11525,6 +13613,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D226",
       "vorp": -82.45,
@@ -11543,9 +13635,13 @@
       "n": "Fabian Zetterlund",
       "t": "OTT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L119 R130",
       "vorp": -82.56,
@@ -11569,6 +13665,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D227",
       "vorp": -82.65,
@@ -11587,9 +13687,13 @@
       "n": "Matias Maccelli",
       "t": "NYI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L120 R131",
       "vorp": -82.65,
@@ -11609,8 +13713,13 @@
       "t": "MTL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C110 L117",
       "vorp": -82.95,
@@ -11633,8 +13742,13 @@
       "t": "DET",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C111 L118",
       "vorp": -83.03,
@@ -11658,6 +13772,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G61",
       "vorp": -83.15,
@@ -11676,9 +13794,13 @@
       "n": "Collin Graf",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L121 R132",
       "vorp": -83.33,
@@ -11702,6 +13824,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D228",
       "vorp": -83.65,
@@ -11722,6 +13848,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G6",
       "prnk": "G62",
       "vorp": -83.81,
@@ -11740,9 +13870,13 @@
       "n": "Kent Johnson",
       "t": "CBJ",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L122 R133",
       "vorp": -83.89,
@@ -11763,6 +13897,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D229",
       "vorp": -83.95,
@@ -11783,6 +13921,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D230",
       "vorp": -84.15,
@@ -11803,6 +13945,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D231",
       "vorp": -84.34,
@@ -11823,6 +13969,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D232",
       "vorp": -84.95,
@@ -11842,9 +13992,14 @@
       "t": "CGY",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C113 L123 R134",
       "vorp": -84.99,
@@ -11865,6 +14020,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C112",
       "vorp": -85.02,
@@ -11888,6 +14047,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D233",
       "vorp": -85.09,
@@ -11906,8 +14069,12 @@
       "n": "Mathieu Olivier",
       "t": "CBJ",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R135",
       "vorp": -85.36,
@@ -11928,6 +14095,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D234",
       "vorp": -85.45,
@@ -11948,6 +14119,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D235",
       "vorp": -86.24,
@@ -11966,8 +14141,12 @@
       "n": "Connor Brown",
       "t": "NJD",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R136",
       "vorp": -86.35,
@@ -11991,6 +14170,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D236",
       "vorp": -86.99,
@@ -12010,8 +14193,13 @@
       "t": "LAK",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C114 L124",
       "vorp": -87.37,
@@ -12035,6 +14223,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D237",
       "vorp": -87.56,
@@ -12053,8 +14245,12 @@
       "n": "Linus Karlsson",
       "t": "VAN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R137",
       "vorp": -88.25,
@@ -12075,6 +14271,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C115",
       "vorp": -88.33,
@@ -12098,6 +14298,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D238",
       "vorp": -88.45,
@@ -12117,8 +14321,13 @@
       "t": "VGK",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C116 L125",
       "vorp": -88.72,
@@ -12142,6 +14351,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C117",
       "vorp": -88.74,
@@ -12165,6 +14378,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D239",
       "vorp": -88.77,
@@ -12184,8 +14401,13 @@
       "t": "CBJ",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C118 R138",
       "vorp": -88.78,
@@ -12204,8 +14426,12 @@
       "n": "Nicholas Robertson",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R139",
       "vorp": -89.07,
@@ -12227,9 +14453,13 @@
       "n": "Alex Killorn",
       "t": "ANA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L126 R140",
       "vorp": -89.3,
@@ -12249,9 +14479,14 @@
       "t": "CHI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C119 L127 R141",
       "vorp": -89.34,
@@ -12273,8 +14508,12 @@
       "n": "Sam Colangelo",
       "t": "ANA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R142",
       "vorp": -89.51,
@@ -12295,6 +14534,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D240",
       "vorp": -90.45,
@@ -12315,6 +14558,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G7",
       "prnk": "G63",
       "vorp": -90.53,
@@ -12335,6 +14582,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D241",
       "vorp": -91.14,
@@ -12353,8 +14604,12 @@
       "n": "Ilya Protas",
       "t": "WSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW11",
       "prnk": "L128",
       "vorp": -91.28,
@@ -12376,8 +14631,12 @@
       "n": "Michael Bunting",
       "t": "DAL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW11",
       "prnk": "L129",
       "vorp": -91.34,
@@ -12397,9 +14656,14 @@
       "t": "CGY",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C121 L130 R143",
       "vorp": -91.53,
@@ -12420,6 +14684,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D242",
       "vorp": -91.85,
@@ -12440,6 +14708,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C120",
       "vorp": -91.9,
@@ -12463,6 +14735,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D243",
       "vorp": -92.15,
@@ -12482,8 +14758,13 @@
       "t": "UTA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C122 L131",
       "vorp": -92.56,
@@ -12507,6 +14788,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D244",
       "vorp": -92.69,
@@ -12527,6 +14812,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G7",
       "prnk": "G64",
       "vorp": -93.29,
@@ -12550,6 +14839,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G7",
       "prnk": "G65",
       "vorp": -93.32,
@@ -12573,6 +14866,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C123",
       "vorp": -93.42,
@@ -12596,6 +14893,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C124",
       "vorp": -93.57,
@@ -12619,6 +14920,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D246",
       "vorp": -94.05,
@@ -12639,6 +14944,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D245",
       "vorp": -94.05,
@@ -12657,9 +14966,13 @@
       "n": "Alex Iafallo",
       "t": "WPG",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L132 R144",
       "vorp": -94.14,
@@ -12683,6 +14996,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D247",
       "vorp": -94.14,
@@ -12703,6 +15020,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D248",
       "vorp": -94.25,
@@ -12721,9 +15042,13 @@
       "n": "Braeden Bowman",
       "t": "VGK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L134 R145",
       "vorp": -94.69,
@@ -12743,8 +15068,13 @@
       "t": "STL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C125 L133",
       "vorp": -95.06,
@@ -12765,6 +15095,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C126",
       "vorp": -95.13,
@@ -12785,6 +15119,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D249",
       "vorp": -96.17,
@@ -12804,8 +15142,13 @@
       "t": "COL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C127 L135",
       "vorp": -96.48,
@@ -12829,6 +15172,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C128",
       "vorp": -96.58,
@@ -12852,6 +15199,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D250",
       "vorp": -97.45,
@@ -12871,9 +15222,14 @@
       "t": "NJD",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C130 L137 R146",
       "vorp": -97.47,
@@ -12896,8 +15252,13 @@
       "t": "DAL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C129 L136",
       "vorp": -98.25,
@@ -12916,8 +15277,12 @@
       "n": "Eetu Luostarinen",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L138",
       "vorp": -98.52,
@@ -12939,9 +15304,13 @@
       "n": "Victor Olofsson",
       "t": "VGK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L139 R147",
       "vorp": -98.52,
@@ -12965,6 +15334,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D251",
       "vorp": -98.75,
@@ -12985,6 +15358,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D252",
       "vorp": -98.8,
@@ -13003,9 +15380,13 @@
       "n": "David Perron",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L140 R148",
       "vorp": -99.01,
@@ -13026,6 +15407,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D253",
       "vorp": -99.25,
@@ -13044,9 +15429,13 @@
       "n": "Michael Amadio",
       "t": "OTT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L142 R149",
       "vorp": -99.56,
@@ -13067,6 +15456,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D18",
       "prnk": "D254",
       "vorp": -99.95,
@@ -13086,8 +15479,13 @@
       "t": "COL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C132 R150",
       "vorp": -100.01,
@@ -13106,8 +15504,12 @@
       "n": "Alex Bump",
       "t": "PHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L141",
       "vorp": -100.36,
@@ -13128,6 +15530,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C131",
       "vorp": -100.57,
@@ -13148,6 +15554,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G8",
       "prnk": "G66",
       "vorp": -100.91,
@@ -13168,6 +15578,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G8",
       "prnk": "G67",
       "vorp": -100.99,
@@ -13186,8 +15600,12 @@
       "n": "Justin Brazeau",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R151",
       "vorp": -101.14,
@@ -13210,8 +15628,13 @@
       "t": "MIN",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C135 R152",
       "vorp": -101.58,
@@ -13232,6 +15655,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C133",
       "vorp": -101.81,
@@ -13250,9 +15677,13 @@
       "n": "Drew O'Connor",
       "t": "VAN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L145 R153",
       "vorp": -102.13,
@@ -13272,8 +15703,13 @@
       "t": "TBL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C134 L143",
       "vorp": -102.14,
@@ -13294,6 +15730,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G8",
       "prnk": "G68",
       "vorp": -102.59,
@@ -13312,8 +15752,12 @@
       "n": "Nick Lardis",
       "t": "CHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L144",
       "vorp": -102.73,
@@ -13333,8 +15777,13 @@
       "t": "BUF",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C136 L146",
       "vorp": -103.23,
@@ -13358,6 +15807,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C137",
       "vorp": -103.85,
@@ -13378,6 +15831,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D19",
       "prnk": "D255",
       "vorp": -103.95,
@@ -13396,9 +15853,13 @@
       "n": "Frank Vatrano",
       "t": "ANA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L148 R154",
       "vorp": -104.07,
@@ -13421,8 +15882,13 @@
       "t": "CHI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C139 R155",
       "vorp": -104.58,
@@ -13442,8 +15908,13 @@
       "t": "TOR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C138 L147",
       "vorp": -104.84,
@@ -13464,6 +15935,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D19",
       "prnk": "D256",
       "vorp": -104.85,
@@ -13484,6 +15959,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G8",
       "prnk": "G69",
       "vorp": -105.37,
@@ -13504,6 +15983,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C140",
       "vorp": -105.81,
@@ -13522,9 +16005,13 @@
       "n": "Jordan Martinook",
       "t": "CAR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L150 R156",
       "vorp": -105.82,
@@ -13544,8 +16031,13 @@
       "t": "COL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C141 L149",
       "vorp": -106.26,
@@ -13569,6 +16061,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G8",
       "prnk": "G70",
       "vorp": -106.66,
@@ -13589,6 +16085,10 @@
       "p": [
         "D"
       ],
+      "rawPos": [
+        "D"
+      ],
+      "posLabel": "D",
       "tier": "D19",
       "prnk": "D257",
       "vorp": -107.45,
@@ -13608,8 +16108,13 @@
       "t": "OTT",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C142 L151",
       "vorp": -107.54,
@@ -13632,8 +16137,13 @@
       "t": "MTL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C143 R157",
       "vorp": -107.72,
@@ -13652,8 +16162,12 @@
       "n": "Jonathan Lekkerimaki",
       "t": "VAN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R158",
       "vorp": -107.86,
@@ -13672,8 +16186,12 @@
       "n": "Max Shabanov",
       "t": "MIN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R159",
       "vorp": -107.96,
@@ -13695,9 +16213,13 @@
       "n": "Warren Foegele",
       "t": "OTT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L153 R160",
       "vorp": -108.43,
@@ -13716,8 +16238,12 @@
       "n": "Denver Barkey",
       "t": "PHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L152",
       "vorp": -108.61,
@@ -13737,8 +16263,13 @@
       "t": "WSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C144 R161",
       "vorp": -109.05,
@@ -13757,8 +16288,12 @@
       "n": "Michael Brandsegg-Nygard",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R162",
       "vorp": -109.11,
@@ -13779,6 +16314,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C145",
       "vorp": -110.44,
@@ -13799,6 +16338,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C146",
       "vorp": -111.34,
@@ -13817,9 +16360,13 @@
       "n": "Jonathan Drouin",
       "t": "STL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L156 R163",
       "vorp": -111.57,
@@ -13838,8 +16385,12 @@
       "n": "Liam Ohgren",
       "t": "VAN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L154",
       "vorp": -111.58,
@@ -13858,8 +16409,12 @@
       "n": "James van Riemsdyk",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L155",
       "vorp": -111.94,
@@ -13878,9 +16433,13 @@
       "n": "Nino Niederreiter",
       "t": "WPG",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L159 R164",
       "vorp": -112.62,
@@ -13901,6 +16460,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C147",
       "vorp": -112.63,
@@ -13919,8 +16482,12 @@
       "n": "Corey Perry",
       "t": "LAK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R165",
       "vorp": -112.85,
@@ -13943,8 +16510,13 @@
       "t": "LAK",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C148 L157",
       "vorp": -112.98,
@@ -13964,8 +16536,13 @@
       "t": "TOR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C149 L158",
       "vorp": -113.03,
@@ -13986,6 +16563,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C150",
       "vorp": -113.06,
@@ -14006,6 +16587,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C151",
       "vorp": -113.13,
@@ -14024,9 +16609,13 @@
       "n": "Pavol Regenda",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L160 R166",
       "vorp": -113.31,
@@ -14048,8 +16637,12 @@
       "n": "Ethen Frank",
       "t": "WSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R167",
       "vorp": -113.53,
@@ -14068,8 +16661,12 @@
       "n": "Jani Nyman",
       "t": "SEA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R168",
       "vorp": -113.81,
@@ -14090,6 +16687,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C152",
       "vorp": -114.67,
@@ -14108,8 +16709,12 @@
       "n": "Michael Carcone",
       "t": "UTA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L161",
       "vorp": -115.04,
@@ -14128,9 +16733,13 @@
       "n": "Alexandre Texier",
       "t": "MTL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L164 R169",
       "vorp": -115.54,
@@ -14150,8 +16759,13 @@
       "t": "DAL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C153 L162",
       "vorp": -115.63,
@@ -14170,8 +16784,12 @@
       "n": "Jeff Skinner",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L163",
       "vorp": -115.94,
@@ -14190,9 +16808,13 @@
       "n": "Ilya Mikheyev",
       "t": "TBL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L166 R170",
       "vorp": -116.24,
@@ -14214,8 +16836,12 @@
       "n": "A.J. Greer",
       "t": "ANA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L165",
       "vorp": -116.77,
@@ -14234,8 +16860,12 @@
       "n": "Isak Rosen",
       "t": "WPG",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R171",
       "vorp": -116.96,
@@ -14256,6 +16886,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C154",
       "vorp": -117.17,
@@ -14275,8 +16909,13 @@
       "t": "SEA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C155 L167",
       "vorp": -118.23,
@@ -14295,8 +16934,12 @@
       "n": "Adam Klapka",
       "t": "CGY",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R172",
       "vorp": -118.71,
@@ -14319,8 +16962,13 @@
       "t": "COL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C157 R173",
       "vorp": -118.8,
@@ -14340,8 +16988,13 @@
       "t": "BOS",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C156 L168",
       "vorp": -119.39,
@@ -14361,9 +17014,14 @@
       "t": "MIN",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C160 L171 R174",
       "vorp": -119.49,
@@ -14386,8 +17044,13 @@
       "t": "WPG",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C158 L169",
       "vorp": -119.83,
@@ -14408,6 +17071,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C159",
       "vorp": -120.01,
@@ -14426,8 +17093,12 @@
       "n": "Tye Kartye",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L170",
       "vorp": -120.14,
@@ -14447,8 +17118,13 @@
       "t": "PIT",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C161 L172",
       "vorp": -121.75,
@@ -14467,8 +17143,12 @@
       "n": "Jonatan Berggren",
       "t": "STL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R175",
       "vorp": -121.75,
@@ -14487,8 +17167,12 @@
       "n": "Brendan Gallagher",
       "t": "VAN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R176",
       "vorp": -122.0,
@@ -14507,8 +17191,12 @@
       "n": "Isaac Howard",
       "t": "EDM",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L173",
       "vorp": -122.27,
@@ -14528,8 +17216,13 @@
       "t": "EDM",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C162 L174",
       "vorp": -122.41,
@@ -14550,6 +17243,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G9",
       "prnk": "G71",
       "vorp": -122.59,
@@ -14568,8 +17265,12 @@
       "n": "Rutger McGroarty",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R177",
       "vorp": -122.61,
@@ -14590,6 +17291,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C163",
       "vorp": -122.96,
@@ -14610,6 +17315,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C164",
       "vorp": -123.07,
@@ -14628,9 +17337,13 @@
       "n": "Reilly Smith",
       "t": "VGK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L175 R178",
       "vorp": -123.91,
@@ -14649,8 +17362,12 @@
       "n": "Ville Koivunen",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R179",
       "vorp": -124.01,
@@ -14671,6 +17388,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C165",
       "vorp": -124.63,
@@ -14690,8 +17411,13 @@
       "t": "BOS",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C166 L176",
       "vorp": -124.84,
@@ -14713,8 +17439,12 @@
       "n": "Joel Armia",
       "t": "LAK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R180",
       "vorp": -125.07,
@@ -14733,8 +17463,12 @@
       "n": "Philipp Kurashev",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R181",
       "vorp": -125.11,
@@ -14753,8 +17487,12 @@
       "n": "Justin Danforth",
       "t": "BUF",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R182",
       "vorp": -125.21,
@@ -14773,9 +17511,13 @@
       "n": "Andre Burakovsky",
       "t": "OTT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L178 R183",
       "vorp": -125.48,
@@ -14796,6 +17538,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C167",
       "vorp": -125.54,
@@ -14815,8 +17561,13 @@
       "t": "TOR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C168 L177",
       "vorp": -125.63,
@@ -14836,8 +17587,13 @@
       "t": "NJD",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C169 R184",
       "vorp": -126.32,
@@ -14857,8 +17613,13 @@
       "t": "CHI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C170 R185",
       "vorp": -126.98,
@@ -14877,8 +17638,12 @@
       "n": "Keegan Kolesar",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R186",
       "vorp": -127.68,
@@ -14898,8 +17663,13 @@
       "t": "WPG",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C171 L179",
       "vorp": -128.02,
@@ -14918,8 +17688,12 @@
       "n": "Marcus Foligno",
       "t": "MIN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L180",
       "vorp": -128.17,
@@ -14938,8 +17712,12 @@
       "n": "Anthony Beauvillier",
       "t": "WSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L181",
       "vorp": -128.33,
@@ -14958,8 +17736,12 @@
       "n": "Josh Anderson",
       "t": "MTL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R187",
       "vorp": -128.44,
@@ -14979,9 +17761,14 @@
       "t": "NSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C172 L183 R188",
       "vorp": -128.84,
@@ -15000,8 +17787,12 @@
       "n": "Mitchell Chaffee",
       "t": "NYI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R189",
       "vorp": -129.11,
@@ -15020,8 +17811,12 @@
       "n": "Lukas Reichel",
       "t": "CHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L182",
       "vorp": -129.44,
@@ -15040,9 +17835,13 @@
       "n": "Daniil But",
       "t": "UTA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L186 R190",
       "vorp": -130.44,
@@ -15061,8 +17860,12 @@
       "n": "Conor Sheary",
       "t": "BUF",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L184",
       "vorp": -130.74,
@@ -15083,6 +17886,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C173",
       "vorp": -130.97,
@@ -15101,8 +17908,12 @@
       "n": "Nathan Walker",
       "t": "STL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L185",
       "vorp": -131.04,
@@ -15122,8 +17933,13 @@
       "t": "SEA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C174 R191",
       "vorp": -131.43,
@@ -15142,8 +17958,12 @@
       "n": "Stefan Noesen",
       "t": "NJD",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R192",
       "vorp": -131.61,
@@ -15162,8 +17982,12 @@
       "n": "Kailer Yamamoto",
       "t": "UTA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R193",
       "vorp": -131.81,
@@ -15182,8 +18006,12 @@
       "n": "Evgenii Dadonov",
       "t": "NJD",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R194",
       "vorp": -132.01,
@@ -15203,8 +18031,13 @@
       "t": "MIN",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C175 L187",
       "vorp": -134.25,
@@ -15225,6 +18058,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C176",
       "vorp": -134.35,
@@ -15243,8 +18080,12 @@
       "n": "Paul Cotter",
       "t": "VAN",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L188",
       "vorp": -134.49,
@@ -15264,8 +18105,13 @@
       "t": "BOS",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C179 R195",
       "vorp": -134.51,
@@ -15289,6 +18135,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C177",
       "vorp": -134.54,
@@ -15309,6 +18159,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C178",
       "vorp": -134.57,
@@ -15328,8 +18182,13 @@
       "t": "SJS",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C180 R196",
       "vorp": -134.73,
@@ -15348,8 +18207,12 @@
       "n": "Brennan Othmann",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L189",
       "vorp": -135.14,
@@ -15368,8 +18231,12 @@
       "n": "Michael Eyssimont",
       "t": "BOS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L190",
       "vorp": -135.52,
@@ -15388,8 +18255,12 @@
       "n": "Zachary L'Heureux",
       "t": "COL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L191",
       "vorp": -135.65,
@@ -15408,8 +18279,12 @@
       "n": "Samuel Honzek",
       "t": "CGY",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L192",
       "vorp": -135.94,
@@ -15428,8 +18303,12 @@
       "n": "Ondrej Palat",
       "t": "NYI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L193",
       "vorp": -136.44,
@@ -15448,9 +18327,13 @@
       "n": "Gustav Nyquist",
       "t": "WPG",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L195 R197",
       "vorp": -137.01,
@@ -15470,8 +18353,13 @@
       "t": "CGY",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C182 R198",
       "vorp": -137.2,
@@ -15491,8 +18379,13 @@
       "t": "DET",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C181 L194",
       "vorp": -137.36,
@@ -15513,6 +18406,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G10",
       "prnk": "G72",
       "vorp": -137.82,
@@ -15533,6 +18430,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C183",
       "vorp": -139.01,
@@ -15552,8 +18453,13 @@
       "t": "WSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C184 L196",
       "vorp": -139.04,
@@ -15572,8 +18478,12 @@
       "n": "Pontus Holmberg",
       "t": "TBL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R199",
       "vorp": -139.69,
@@ -15592,9 +18502,13 @@
       "n": "Beck Malenstyn",
       "t": "BUF",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L197 R200",
       "vorp": -139.97,
@@ -15613,9 +18527,13 @@
       "n": "Tanner Jeannot",
       "t": "BOS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L198 R201",
       "vorp": -139.98,
@@ -15636,6 +18554,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C185",
       "vorp": -140.29,
@@ -15656,6 +18578,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C186",
       "vorp": -140.64,
@@ -15676,6 +18602,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G10",
       "prnk": "G73",
       "vorp": -141.15,
@@ -15696,6 +18626,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C187",
       "vorp": -141.24,
@@ -15716,6 +18650,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C188",
       "vorp": -141.5,
@@ -15734,8 +18672,12 @@
       "n": "Kasperi Kapanen",
       "t": "EDM",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R202",
       "vorp": -141.54,
@@ -15756,6 +18698,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G10",
       "prnk": "G74",
       "vorp": -141.71,
@@ -15775,8 +18721,13 @@
       "t": "PHI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C191 R203",
       "vorp": -141.98,
@@ -15797,6 +18748,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C189",
       "vorp": -142.14,
@@ -15815,8 +18770,12 @@
       "n": "Nick Cousins",
       "t": "OTT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L199",
       "vorp": -142.23,
@@ -15835,8 +18794,12 @@
       "n": "Nils Hoglander",
       "t": "NSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L200",
       "vorp": -142.41,
@@ -15855,8 +18818,12 @@
       "n": "Jordan Greenway",
       "t": "CHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L201",
       "vorp": -142.44,
@@ -15876,8 +18843,13 @@
       "t": "VAN",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C190 L202",
       "vorp": -142.5,
@@ -15898,6 +18870,10 @@
       "p": [
         "G"
       ],
+      "rawPos": [
+        "G"
+      ],
+      "posLabel": "G",
       "tier": "G10",
       "prnk": "G75",
       "vorp": -142.66,
@@ -15916,9 +18892,13 @@
       "n": "Elmer Soderblom",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L204 R204",
       "vorp": -142.71,
@@ -15937,9 +18917,13 @@
       "n": "Andrew Mangiapane",
       "t": "CHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L205 R205",
       "vorp": -143.1,
@@ -15958,8 +18942,12 @@
       "n": "Zemgus Girgensons",
       "t": "TBL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L203",
       "vorp": -143.11,
@@ -15980,6 +18968,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C192",
       "vorp": -143.64,
@@ -15998,9 +18990,13 @@
       "n": "Adam Erne",
       "t": "DAL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L207 R206",
       "vorp": -144.01,
@@ -16019,9 +19015,13 @@
       "n": "Eric Robinson",
       "t": "CAR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L209 R207",
       "vorp": -144.1,
@@ -16042,6 +19042,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C193",
       "vorp": -144.34,
@@ -16061,8 +19065,13 @@
       "t": "NYI",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C194 L206",
       "vorp": -144.37,
@@ -16081,8 +19090,12 @@
       "n": "Danton Heinen",
       "t": "CBJ",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L208",
       "vorp": -144.84,
@@ -16101,8 +19114,12 @@
       "n": "Cole Koepke",
       "t": "WPG",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L210",
       "vorp": -145.07,
@@ -16122,9 +19139,14 @@
       "t": "EDM",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C196 L212 R208",
       "vorp": -145.47,
@@ -16143,8 +19165,12 @@
       "n": "Anthony Duclair",
       "t": "NYI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L211",
       "vorp": -145.52,
@@ -16165,6 +19191,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C195",
       "vorp": -145.79,
@@ -16184,8 +19214,13 @@
       "t": "BOS",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C197 R209",
       "vorp": -145.8,
@@ -16205,8 +19240,13 @@
       "t": "NSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C198 L213",
       "vorp": -146.84,
@@ -16225,8 +19265,12 @@
       "n": "Cole Smith",
       "t": "CHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L214",
       "vorp": -147.12,
@@ -16245,8 +19289,12 @@
       "n": "Reid Schaefer",
       "t": "NSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L215",
       "vorp": -147.18,
@@ -16267,6 +19315,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C199",
       "vorp": -147.4,
@@ -16285,8 +19337,12 @@
       "n": "Logan O'Connor",
       "t": "COL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R210",
       "vorp": -147.58,
@@ -16306,8 +19362,13 @@
       "t": "TOR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C201 R211",
       "vorp": -147.74,
@@ -16328,6 +19389,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C200",
       "vorp": -147.84,
@@ -16347,8 +19412,13 @@
       "t": "FLA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C202 R212",
       "vorp": -147.91,
@@ -16367,9 +19437,13 @@
       "n": "Alexey Toropchenko",
       "t": "STL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L216 R213",
       "vorp": -147.92,
@@ -16388,8 +19462,12 @@
       "n": "Lenni Hameenaho",
       "t": "NJD",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R214",
       "vorp": -148.21,
@@ -16408,9 +19486,13 @@
       "n": "Steven Lorentz",
       "t": "TOR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L218 R215",
       "vorp": -148.21,
@@ -16429,8 +19511,12 @@
       "n": "Miles Wood",
       "t": "CBJ",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L217",
       "vorp": -148.94,
@@ -16449,8 +19535,12 @@
       "n": "Mason Appleton",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R216",
       "vorp": -149.06,
@@ -16470,8 +19560,13 @@
       "t": "LAK",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C203 L219",
       "vorp": -149.75,
@@ -16492,6 +19587,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C204",
       "vorp": -149.85,
@@ -16512,6 +19611,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C205",
       "vorp": -150.4,
@@ -16530,8 +19633,12 @@
       "n": "Jacob Melanson",
       "t": "SEA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R217",
       "vorp": -150.93,
@@ -16550,8 +19657,12 @@
       "n": "Pierre Engvall",
       "t": "NYI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L220",
       "vorp": -151.24,
@@ -16570,8 +19681,12 @@
       "n": "Sandis Vilmanis",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L221",
       "vorp": -151.3,
@@ -16590,8 +19705,12 @@
       "n": "Taylor Raddysh",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R218",
       "vorp": -151.38,
@@ -16610,9 +19729,13 @@
       "n": "Brandon Duhaime",
       "t": "TOR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L223 R219",
       "vorp": -151.84,
@@ -16632,8 +19755,13 @@
       "t": "FLA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C206 R220",
       "vorp": -152.21,
@@ -16652,8 +19780,12 @@
       "n": "Brandon Saad",
       "t": "VGK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L222",
       "vorp": -152.64,
@@ -16672,8 +19804,12 @@
       "n": "Cole Reinhardt",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L224",
       "vorp": -152.94,
@@ -16692,8 +19828,12 @@
       "n": "Marc Gatcomb",
       "t": "VGK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R221",
       "vorp": -153.59,
@@ -16712,8 +19852,12 @@
       "n": "Mathieu Joseph",
       "t": "EDM",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R222",
       "vorp": -154.51,
@@ -16732,9 +19876,13 @@
       "n": "Nikita Grebenkin",
       "t": "PHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L226 R223",
       "vorp": -155.13,
@@ -16755,6 +19903,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C207",
       "vorp": -155.24,
@@ -16775,6 +19927,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C208",
       "vorp": -155.27,
@@ -16796,8 +19952,12 @@
       "n": "Ryan Winterton",
       "t": "SEA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R224",
       "vorp": -155.91,
@@ -16816,8 +19976,12 @@
       "n": "Zack MacEwen",
       "t": "TOR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R225",
       "vorp": -155.91,
@@ -16836,8 +20000,12 @@
       "n": "Carl Grundstrom",
       "t": "PHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R226",
       "vorp": -155.91,
@@ -16856,8 +20024,12 @@
       "n": "William Carrier",
       "t": "CAR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L225",
       "vorp": -155.92,
@@ -16878,6 +20050,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C209",
       "vorp": -156.79,
@@ -16897,8 +20073,13 @@
       "t": "NJD",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C210 L227",
       "vorp": -156.89,
@@ -16917,8 +20098,12 @@
       "n": "Garnet Hathaway",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R227",
       "vorp": -157.0,
@@ -16939,6 +20124,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C211",
       "vorp": -157.0,
@@ -16957,9 +20146,13 @@
       "n": "Maxim Tsyplakov",
       "t": "CGY",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L228 R228",
       "vorp": -157.29,
@@ -16978,8 +20171,12 @@
       "n": "Alexander Holtz",
       "t": "VGK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R229",
       "vorp": -157.51,
@@ -17000,6 +20197,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C212",
       "vorp": -157.52,
@@ -17019,8 +20220,13 @@
       "t": "DAL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C216 R230",
       "vorp": -157.66,
@@ -17041,6 +20247,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C213",
       "vorp": -157.67,
@@ -17061,6 +20271,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C214",
       "vorp": -158.01,
@@ -17081,6 +20295,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C215",
       "vorp": -158.46,
@@ -17101,6 +20319,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C217",
       "vorp": -159.04,
@@ -17119,8 +20341,12 @@
       "n": "Jeffrey Viel",
       "t": "TBL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L229",
       "vorp": -160.03,
@@ -17141,6 +20367,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C218",
       "vorp": -161.14,
@@ -17159,8 +20389,12 @@
       "n": "Carter Mazur",
       "t": "DET",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L230",
       "vorp": -161.14,
@@ -17179,9 +20413,13 @@
       "n": "Joel Kiviranta",
       "t": "DAL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L231 R231",
       "vorp": -161.34,
@@ -17202,6 +20440,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C219",
       "vorp": -162.12,
@@ -17220,8 +20462,12 @@
       "n": "Tanner Pearson",
       "t": "BUF",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L232",
       "vorp": -162.24,
@@ -17240,8 +20486,12 @@
       "n": "Ozzy Wiesblatt",
       "t": "NSH",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R232",
       "vorp": -163.18,
@@ -17260,8 +20510,12 @@
       "n": "Barclay Goodrow",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L233",
       "vorp": -163.34,
@@ -17280,8 +20534,12 @@
       "n": "Filip Hallander",
       "t": "PIT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW12",
       "prnk": "L234",
       "vorp": -164.11,
@@ -17302,6 +20560,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C220",
       "vorp": -164.54,
@@ -17320,8 +20582,12 @@
       "n": "Scott Sabourin",
       "t": "TBL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "R233",
       "vorp": -165.61,
@@ -17341,8 +20607,13 @@
       "t": "SEA",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C221 L235",
       "vorp": -166.52,
@@ -17363,6 +20634,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C222",
       "vorp": -166.69,
@@ -17381,9 +20656,13 @@
       "n": "Brandon Tanev",
       "t": "UTA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L236 R234",
       "vorp": -166.84,
@@ -17402,9 +20681,13 @@
       "n": "Landon Slaggert",
       "t": "CHI",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW16",
       "prnk": "L237 R235",
       "vorp": -167.11,
@@ -17425,6 +20708,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C223",
       "vorp": -167.94,
@@ -17444,8 +20731,13 @@
       "t": "DAL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C224 R236",
       "vorp": -168.27,
@@ -17465,8 +20757,13 @@
       "t": "TOR",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "RW"
       ],
+      "posLabel": "C/F",
       "tier": "RW16",
       "prnk": "C226 R237",
       "vorp": -169.11,
@@ -17487,6 +20784,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C225",
       "vorp": -169.41,
@@ -17507,6 +20808,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C227",
       "vorp": -170.94,
@@ -17525,8 +20830,12 @@
       "n": "Jeff Malott",
       "t": "ANA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW13",
       "prnk": "L238",
       "vorp": -172.84,
@@ -17545,9 +20854,13 @@
       "n": "Liam O'Brien",
       "t": "UTA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW17",
       "prnk": "L239 R238",
       "vorp": -173.03,
@@ -17568,6 +20881,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C228",
       "vorp": -173.81,
@@ -17586,8 +20903,12 @@
       "n": "Jaroslav Chmelar",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW17",
       "prnk": "R239",
       "vorp": -173.85,
@@ -17607,8 +20928,13 @@
       "t": "NSH",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C229 L240",
       "vorp": -174.03,
@@ -17628,8 +20954,13 @@
       "t": "DAL",
       "p": [
         "C",
+        "F"
+      ],
+      "rawPos": [
+        "C",
         "LW"
       ],
+      "posLabel": "C/F",
       "tier": "C15",
       "prnk": "C230 L241",
       "vorp": -174.56,
@@ -17648,8 +20979,12 @@
       "n": "Ryan Lomberg",
       "t": "CBJ",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW13",
       "prnk": "L242",
       "vorp": -177.34,
@@ -17670,6 +21005,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C231",
       "vorp": -177.44,
@@ -17690,6 +21029,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C232",
       "vorp": -179.44,
@@ -17708,8 +21051,12 @@
       "n": "Tomas Nosek",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW13",
       "prnk": "L243",
       "vorp": -180.64,
@@ -17728,8 +21075,12 @@
       "n": "Ryan Reaves",
       "t": "SJS",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW18",
       "prnk": "R240",
       "vorp": -180.91,
@@ -17748,8 +21099,12 @@
       "n": "Matt Rempe",
       "t": "NYR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW18",
       "prnk": "R241",
       "vorp": -181.09,
@@ -17770,6 +21125,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C233",
       "vorp": -183.98,
@@ -17788,8 +21147,12 @@
       "n": "Ross Johnston",
       "t": "ANA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW13",
       "prnk": "L244",
       "vorp": -184.0,
@@ -17810,6 +21173,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C15",
       "prnk": "C234",
       "vorp": -184.24,
@@ -17828,8 +21195,12 @@
       "n": "Nathan Bastian",
       "t": "DAL",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW18",
       "prnk": "R242",
       "vorp": -184.61,
@@ -17848,8 +21219,12 @@
       "n": "Jonas Rondbjerg",
       "t": "VGK",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW18",
       "prnk": "R243",
       "vorp": -185.32,
@@ -17868,8 +21243,12 @@
       "n": "Jonah Gadjovich",
       "t": "FLA",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW13",
       "prnk": "L245",
       "vorp": -187.63,
@@ -17888,8 +21267,12 @@
       "n": "Nicolas Deslauriers",
       "t": "CAR",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW"
       ],
+      "posLabel": "F",
       "tier": "LW13",
       "prnk": "L246",
       "vorp": -188.22,
@@ -17910,6 +21293,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C16",
       "prnk": "C235",
       "vorp": -190.17,
@@ -17928,9 +21315,13 @@
       "n": "Kurtis MacDermid",
       "t": "OTT",
       "p": [
+        "F"
+      ],
+      "rawPos": [
         "LW",
         "RW"
       ],
+      "posLabel": "F",
       "tier": "RW19",
       "prnk": "L247 R244",
       "vorp": -191.71,
@@ -17951,6 +21342,10 @@
       "p": [
         "C"
       ],
+      "rawPos": [
+        "C"
+      ],
+      "posLabel": "C",
       "tier": "C16",
       "prnk": "C236",
       "vorp": -194.74,

@@ -32,7 +32,7 @@ const defaultState = {
   slot: 5,
   teams: 8,
   stdDev: 7.0,
-  rosterLimits: { C: 4, LW: 4, RW: 4, D: 4, G: 2 },
+  rosterLimits: { C: 3, F: 5, D: 4, G: 2 },
   drafted: {}, // name -> true
   mine: {},    // name -> true
   pickHistory: [] // array of { pickNumber, name, team, pos, isMine, timestamp }

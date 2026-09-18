@@ -112,15 +112,27 @@
   }
 
   function getRosterCounts() {
-    var counts = { C: 0, LW: 0, RW: 0, D: 0, G: 0, total: 0 };
+    var counts = { C: 0, F: 0, D: 0, G: 0, total: 0 };
+    var limits = state.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
     for (var i = 0; i < state.pickHistory.length; i++) {
       var item = state.pickHistory[i];
       if (item.isMine) {
         counts.total++;
         var positions = item.pos || [];
-        for (var p = 0; p < positions.length; p++) {
-          if (counts[positions[p]] !== undefined) {
-            counts[positions[p]]++;
+        // If pure C:
+        if (positions.length === 1 && positions[0] === 'C') {
+          if (counts.C < (limits.C || 3)) counts.C++;
+          else counts.F++; // flex to Forward if C starting slots full
+        } else if (positions.indexOf('C') !== -1 && positions.indexOf('F') !== -1) {
+          // Dual C/F: fill C if open, else F
+          if (counts.C < (limits.C || 3)) counts.C++;
+          else counts.F++;
+        } else {
+          for (var p = 0; p < positions.length; p++) {
+            var posKey = positions[p];
+            if (counts[posKey] !== undefined) {
+              counts[posKey]++;
+            }
           }
         }
       }
@@ -439,7 +451,7 @@
 
   function renderSidebar(rosterCounts) {
     var limits = state.rosterLimits;
-    var posList = ["c", "lw", "rw", "d", "g"];
+    var posList = ["c", "f", "d", "g"];
     var totalDrafted = 0;
     var totalVorp = 0;
 
