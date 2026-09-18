@@ -652,6 +652,194 @@
     };
   }
 
+  /**
+   * Post-Draft Roster Grader & Surplus Value Recap
+   *
+   * Retroactive analysis once a draft has concluded:
+   * 1. Total VORP captured vs expected value per draft slot
+   *    (expected VORP at pick N = VORP of the Nth player on the ADP-ordered board).
+   * 2. Best value steals: picks made well past a player's ADP (highest ADP Delta
+   *    = ADP - pickNumber; positive means the drafter beat consensus).
+   * 3. Positional balance summary of the grader's own roster vs roster limits,
+   *    using the same C -> F flex rule as the live draft co-pilot.
+   *
+   * @param {Array}  pickHistory  [{ pickNumber, name, team, pos, isMine, timestamp }]
+   * @param {Array}  players      master board rows (draft_data.json players)
+   * @param {Object} options      { rosterLimits, teams, slot }
+   */
+  function gradeDraft(pickHistory, players, options) {
+    options = options || {};
+    var rosterLimits = options.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
+    if (!pickHistory) pickHistory = [];
+    if (!players) players = [];
+
+    /* Player lookup by name */
+    var byName = {};
+    for (var i = 0; i < players.length; i++) {
+      var pl = players[i];
+      var nm = pl.name || pl.n;
+      if (!nm) continue;
+      var adpVal = (pl.adp && typeof pl.adp === "object")
+        ? (pl.adp.yahoo || pl.adp.average || pl.adp.fantrax)
+        : pl.adp;
+      var adpNum = parseFloat(adpVal) || 999;
+      var posArr = pl.pos || pl.p || [];
+      byName[nm] = {
+        name: nm,
+        vorp: pl.vorp !== undefined ? pl.vorp : (pl.rawVorp || 0),
+        adp: adpNum,
+        pos: posArr,
+        posLabel: pl.posLabel || posArr.join("/")
+      };
+    }
+
+    /* Expected board: every player with a usable ADP, ordered by ADP */
+    var board = [];
+    for (var key in byName) {
+      if (byName.hasOwnProperty(key) && byName[key].adp < 900) board.push(byName[key]);
+    }
+    board.sort(function (a, b) { return (a.adp - b.adp) || (b.vorp - a.vorp); });
+
+    function expectedVorpAt(pickNumber) {
+      if (!board.length || pickNumber < 1) return 0;
+      var idx = Math.min(pickNumber, board.length) - 1;
+      return board[idx].vorp;
+    }
+
+    /* Grade every recorded pick */
+    var picks = [];
+    var myPicks = [];
+    var totalCaptured = 0;
+    var totalExpected = 0;
+
+    for (var p = 0; p < pickHistory.length; p++) {
+      var h = pickHistory[p];
+      var info = byName[h.name] || {
+        vorp: 0,
+        adp: 999,
+        pos: h.pos || [],
+        posLabel: (h.pos || []).join("/")
+      };
+      var expectedVorp = expectedVorpAt(h.pickNumber);
+      var hasAdp = info.adp !== null && info.adp !== undefined && info.adp < 900;
+      var adpDelta = hasAdp ? (info.adp - h.pickNumber) : 0;
+      var surplus = info.vorp - expectedVorp;
+
+      var entry = {
+        pickNumber: h.pickNumber,
+        name: h.name,
+        team: h.team || "",
+        pos: info.pos,
+        posLabel: info.posLabel,
+        isMine: !!h.isMine,
+        vorp: info.vorp,
+        adp: hasAdp ? info.adp : null,
+        expectedVorp: expectedVorp,
+        surplus: surplus,
+        adpDelta: adpDelta
+      };
+      picks.push(entry);
+      if (entry.isMine) {
+        myPicks.push(entry);
+        totalCaptured += entry.vorp;
+        totalExpected += entry.expectedVorp;
+      }
+    }
+
+    var totalSurplus = totalCaptured - totalExpected;
+    var picksCount = myPicks.length;
+    var avgSurplus = picksCount ? totalSurplus / picksCount : 0;
+    var captureRatio = totalExpected > 0 ? totalCaptured / totalExpected : null;
+
+    /* Letter grade from capture ratio (captured / expected) */
+    var grade = null;
+    var gradeLabel = "No picks recorded";
+    if (picksCount > 0 && captureRatio !== null) {
+      if (captureRatio >= 1.05) { grade = "A"; gradeLabel = "Elite draft - beat the board"; }
+      else if (captureRatio >= 0.95) { grade = "B"; gradeLabel = "Solid draft - at or above expectation"; }
+      else if (captureRatio >= 0.88) { grade = "C"; gradeLabel = "Average draft - roughly ADP-fair"; }
+      else if (captureRatio >= 0.78) { grade = "D"; gradeLabel = "Below expectation - too many reaches"; }
+      else { grade = "F"; gradeLabel = "Poor draft - significant value left behind"; }
+    }
+
+    /* Best value steals across the entire draft, ranked by ADP Delta.
+     * Tiebreak on captured VORP so ordering is deterministic. */
+    var steals = picks
+      .filter(function (x) { return x.adpDelta > 0; })
+      .sort(function (a, b) { return (b.adpDelta - a.adpDelta) || (b.vorp - a.vorp); })
+      .slice(0, 10);
+
+
+    /* Positional balance of my roster (mirrors app.js flex logic:
+     * C-only and dual C,F players fill C first, then flex to F). */
+    var counts = { C: 0, F: 0, D: 0, G: 0 };
+    for (var m = 0; m < myPicks.length; m++) {
+      var mp = myPicks[m];
+      var positions = mp.pos || [];
+      if (!positions.length) continue;
+      if (positions.length === 1 && positions[0] === "C") {
+        if (counts.C < (rosterLimits.C || 3)) counts.C++;
+        else counts.F++;
+      } else if (positions.indexOf("C") !== -1 && positions.indexOf("F") !== -1) {
+        if (counts.C < (rosterLimits.C || 3)) counts.C++;
+        else counts.F++;
+      } else {
+        for (var q = 0; q < positions.length; q++) {
+          if (counts[positions[q]] !== undefined) counts[positions[q]]++;
+        }
+      }
+    }
+
+    var balanceSlots = [];
+    var posOrder = ["C", "F", "D", "G"];
+    var filledTotal = 0;
+    var slotsTotal = 0;
+    var hasEmpty = false;
+    for (var b = 0; b < posOrder.length; b++) {
+      var bp = posOrder[b];
+      var bCount = counts[bp] || 0;
+      var bLimit = rosterLimits[bp] || 0;
+      var status;
+      if (bCount === 0) { status = "EMPTY (critical)"; hasEmpty = true; }
+      else if (bCount < bLimit) { status = "LIGHT"; }
+      else if (bCount === bLimit) { status = "FILLED"; }
+      else { status = "OVER"; }
+      filledTotal += Math.min(bCount, bLimit);
+      slotsTotal += bLimit;
+      balanceSlots.push({ pos: bp, count: bCount, limit: bLimit, status: status });
+    }
+
+    var fillRatio = slotsTotal > 0 ? filledTotal / slotsTotal : null;
+    var balanceVerdict;
+    if (hasEmpty && picksCount > 0) balanceVerdict = "Unbalanced - at least one starting position empty";
+    else if (fillRatio === null) balanceVerdict = "No roster to grade";
+    else if (fillRatio >= 0.98) balanceVerdict = "Balanced - all starting slots filled";
+    else balanceVerdict = "Mostly balanced - " + (slotsTotal - filledTotal) + " starting slot(s) still open";
+
+    return {
+      graded: picksCount > 0,
+      picks: picks,
+      myPicks: myPicks,
+      summary: {
+        totalCapturedVorp: totalCaptured,
+        totalExpectedVorp: totalExpected,
+        totalSurplus: totalSurplus,
+        picksCount: picksCount,
+        avgSurplusPerPick: avgSurplus,
+        captureRatio: captureRatio,
+        grade: grade,
+        gradeLabel: gradeLabel
+      },
+      steals: steals,
+      positionalBalance: {
+        counts: counts,
+        slots: balanceSlots,
+        fillRatio: fillRatio,
+        verdict: balanceVerdict
+      }
+    };
+  }
+
   return {
     normalCDF: normalCDF,
     pSurvive: pSurvive,
@@ -665,6 +853,7 @@
     computeTargetTradeoffs: computeTargetTradeoffs,
     getTopMatchup: getTopMatchup,
     evaluateBoard: evaluateBoard,
-    comparePlayersGameTheory: comparePlayersGameTheory
+    comparePlayersGameTheory: comparePlayersGameTheory,
+    gradeDraft: gradeDraft
   };
 });

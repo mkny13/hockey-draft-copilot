@@ -7,6 +7,19 @@ const { WebSocketServer } = require('ws');
 const app = express();
 const PORT = process.env.PORT || 3333;
 const STATE_FILE = path.join(__dirname, 'draft_state.json');
+const DATA_FILE = path.join(__dirname, 'draft_data.json');
+
+// Post-draft report grader (shared engine with the browser)
+const GameTheory = require('./public/js/gametheory.js');
+
+// Lazily cached master player board for report grading
+let playersCache = null;
+function loadPlayers() {
+  if (!playersCache) {
+    playersCache = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')).players || [];
+  }
+  return playersCache;
+}
 
 // Middleware
 app.use(express.json());
@@ -155,6 +168,31 @@ app.post('/api/reset', (req, res) => {
   console.log('[RESET] Draft board cleared.');
 
   res.json({ success: true, state: draftState });
+});
+
+// Post-draft report: graded surplus value recap from current draft state
+app.get('/api/report', (req, res) => {
+  try {
+    const players = loadPlayers();
+    const report = GameTheory.gradeDraft(draftState.pickHistory, players, {
+      rosterLimits: draftState.rosterLimits,
+      slot: draftState.slot,
+      teams: draftState.teams
+    });
+    res.json({
+      success: true,
+      report: report,
+      meta: {
+        slot: draftState.slot,
+        teams: draftState.teams,
+        totalPicks: draftState.pickHistory.length,
+        generatedAt: new Date().toISOString()
+      }
+    });
+  } catch (err) {
+    console.error('Error generating post-draft report:', err);
+    res.status(500).json({ error: 'Failed to generate post-draft report' });
+  }
 });
 
 app.post('/api/settings', (req, res) => {
