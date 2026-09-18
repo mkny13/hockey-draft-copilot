@@ -18,7 +18,8 @@
     // UI filters:
     posFilter: "ALL",
     searchQuery: "",
-    hideDrafted: false
+    hideDrafted: false,
+    autoComparator: true
   };
 
   var ws = null;
@@ -41,6 +42,7 @@
   var cmpSelectA = document.getElementById("compare-player-a");
   var cmpSelectB = document.getElementById("compare-player-b");
   var cmpVerdict = document.getElementById("comparator-verdict");
+  var btnAutoMatchup = document.getElementById("btn-auto-matchup");
 
   async function init() {
     setupBookmarklet();
@@ -243,26 +245,51 @@
         riskBadge = `<span style="color:#7ee787; background:rgba(63,185,80,0.15); border:1px solid rgba(63,185,80,0.4); font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;" title="Safe sleeper: ${survPct} chance to reach Pick #${targetTurn}">🛡️ SAFE SLEEPER (${survPct})</span>`;
       }
 
+      var gt = p.gtTradeoff;
+      var evText = (gt && gt.ev2) ? gt.ev2.toFixed(1) : "-";
+      var gtEdgePill = "";
+      if (gt && gt.netGain >= 2.0) {
+        gtEdgePill = `<span class="badge badge-gt-winner" title="Game theory 2-round expected value edge over taking ${gt.vsPlayer}">⚡ +${gt.netGain.toFixed(1)} EV</span>`;
+      } else if (gt && gt.netGain <= -10.0 && p.survivalProb > 0.50) {
+        gtEdgePill = `<span class="badge badge-wait" title="Can safely fall to Turn #${targetTurn}">🛡️ SAFE TO WAIT</span>`;
+      }
+
+      var adviceRow = "";
+      if (gt && gt.advice) {
+        adviceRow = `
+          <div class="card-gt-row">
+            <span class="gt-icon">💡</span>
+            <span style="flex:1;">${gt.advice}</span>
+          </div>
+        `;
+      }
+
       card.innerHTML = `
         <div class="card-rank">#${i + 1}</div>
         <div class="card-info" style="flex: 1;">
-          <div class="card-name-row" style="flex-wrap: wrap; gap: 6px;">
+          <div class="card-name-row" style="flex-wrap: wrap; gap: 6px; align-items:center;">
             <span class="card-name" style="font-size:14px; font-weight:700;">${p.name}</span>
             <span class="card-pos">${p.posLabel}</span>
             <span class="card-team">${p.team}</span>
             <span class="badge ${badgeClass}">${p.action}</span>
+            ${gtEdgePill}
             ${riskBadge}
           </div>
-          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display:flex; gap:12px; align-items:center;">
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
             <span>Tier Cliff: <b style="color:${p.dropoff >= 15 ? 'var(--red)' : 'var(--text-main)'};">${cliffText} pts</b></span>
             <span>Consensus ADP: <b style="color:var(--text-main);">${p.adp || 'N/A'}</b></span>
             ${p.adpDelta >= 15 ? `<span style="color:var(--green);">Arbitrage: +${p.adpDelta.toFixed(1)}</span>` : ''}
           </div>
+          ${adviceRow}
         </div>
-        <div class="card-metrics">
+        <div class="card-metrics" style="gap: 12px;">
           <div class="card-metric" style="text-align:right;">
             <span style="font-weight:800; font-size:15px; color:var(--accent);">${p.adjVorp.toFixed(1)}</span>
-            <span class="metric-label">Value (VORP)</span>
+            <span class="metric-label">VORP</span>
+          </div>
+          <div class="card-metric" style="text-align:right;">
+            <span style="font-weight:800; font-size:14px; color:${gt && gt.netGain >= 2.0 ? 'var(--green)' : 'var(--text-main)'};">${evText}</span>
+            <span class="metric-label">2-Rnd EV</span>
           </div>
         </div>
         <div class="card-actions">
@@ -307,9 +334,38 @@
       cmpSelectB.appendChild(optB);
     }
 
+    var topMatchup = state.evalResult.topMatchup;
+    var isDraftedA = curValA && (state.drafted[curValA] || state.mine[curValA]);
+    var isDraftedB = curValB && (state.drafted[curValB] || state.mine[curValB]);
+
+    if (state.autoComparator || !curValA || !curValB || isDraftedA || isDraftedB) {
+      if (topMatchup && topMatchup.playerA && topMatchup.playerB) {
+        curValA = topMatchup.playerA.name;
+        curValB = topMatchup.playerB.name;
+      }
+    }
+
     if (curValA) cmpSelectA.value = curValA;
     if (curValB) cmpSelectB.value = curValB;
+    updateAutoComparatorBtn();
     calculateTradeoff();
+  }
+
+  function updateAutoComparatorBtn() {
+    if (!btnAutoMatchup) return;
+    if (state.autoComparator) {
+      btnAutoMatchup.style.background = "rgba(63, 185, 80, 0.2)";
+      btnAutoMatchup.style.borderColor = "var(--green)";
+      btnAutoMatchup.style.color = "#7ee787";
+      btnAutoMatchup.textContent = "⚡ Auto ON";
+      btnAutoMatchup.title = "Auto-tracking top board dilemma. Click to unlock.";
+    } else {
+      btnAutoMatchup.style.background = "rgba(88, 166, 255, 0.15)";
+      btnAutoMatchup.style.borderColor = "rgba(88, 166, 255, 0.4)";
+      btnAutoMatchup.style.color = "var(--accent)";
+      btnAutoMatchup.textContent = "⚡ Auto";
+      btnAutoMatchup.title = "Click to reset to automated top board dilemma";
+    }
   }
 
   function calculateTradeoff() {
@@ -632,8 +688,23 @@
       };
     });
 
-    cmpSelectA.onchange = calculateTradeoff;
-    cmpSelectB.onchange = calculateTradeoff;
+    cmpSelectA.onchange = function () {
+      state.autoComparator = false;
+      updateAutoComparatorBtn();
+      calculateTradeoff();
+    };
+    cmpSelectB.onchange = function () {
+      state.autoComparator = false;
+      updateAutoComparatorBtn();
+      calculateTradeoff();
+    };
+
+    if (btnAutoMatchup) {
+      btnAutoMatchup.onclick = function () {
+        state.autoComparator = !state.autoComparator;
+        renderComparatorOptions();
+      };
+    }
 
     // Guide modal controls
     var guideModal = document.getElementById("guide-modal");

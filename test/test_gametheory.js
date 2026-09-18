@@ -75,4 +75,57 @@ assert(typeof cmp.deltaEV === 'number');
 assert.strictEqual(cmp.waitOnA, true, 'At pick 5 with target pick 5, Adam Fox (ADP 49.5) should be waited on');
 console.log('✓ Generalized EVONA Trade-off evaluator passes');
 
+// 8. Test Automated Multi-Candidate Trade-Offs (Pick 5 scenario)
+const fs = require('fs');
+const path = require('path');
+const rawData = JSON.parse(fs.readFileSync(path.join(__dirname, '../draft_data.json'), 'utf8'));
+
+const draftedPick5 = {
+  'Connor McDavid': true,
+  'Nathan MacKinnon': true,
+  'Nikita Kucherov': true,
+  'Cale Makar': true
+};
+
+const resPick5 = GT.evaluateBoard(rawData.players, {
+  currentPick: 5,
+  slot: 5,
+  teams: 8,
+  drafted: draftedPick5,
+  mine: {},
+  rosterCounts: { C: 0, F: 0, D: 0, G: 0 },
+  rosterLimits: { C: 3, F: 5, D: 4, G: 2 }
+});
+
+assert(resPick5.shortlist.length > 0, 'Shortlist must not be empty');
+const pick5Best = resPick5.shortlist[0];
+console.log(`Pick 5 Top Shortlist Recommendation: ${pick5Best.name} (${pick5Best.posLabel})`);
+assert.strictEqual(pick5Best.name, 'Leon Draisaitl', 'Draisaitl must be #1 recommendation due to massive cliff and 2-round EV edge');
+assert(pick5Best.gtTradeoff, 'Candidate must have attached gtTradeoff');
+assert(pick5Best.gtTradeoff.netGain > 30.0, `Draisaitl net EV gain over Hughes should be > 30, got ${pick5Best.gtTradeoff.netGain}`);
+assert(pick5Best.gtTradeoff.advice.includes('Quinn Hughes'), 'Advice must reference waiting on Quinn Hughes');
+console.log('✓ Automated multi-candidate trade-off identifies Draisaitl as 2-round EV optimal pick at Pick 5');
+
+// 9. Test Top Matchup for Comparator
+assert(resPick5.topMatchup, 'Top matchup must be generated');
+assert.strictEqual(resPick5.topMatchup.playerA.name, 'Quinn Hughes', 'Top matchup player A should be Quinn Hughes (sleeper anchor)');
+assert.strictEqual(resPick5.topMatchup.playerB.name, 'Leon Draisaitl', 'Top matchup player B should be Leon Draisaitl (GT challenger)');
+assert(resPick5.topMatchup.cmp.deltaEV > 30.0, 'Top matchup deltaEV should be > 30 pts');
+console.log('✓ Top Matchup automatically identifies Hughes vs Draisaitl dilemma');
+
+// 10. Test Pick 1 (Empty Board) Integrity: McDavid must be #1
+const resPick1 = GT.evaluateBoard(rawData.players, {
+  currentPick: 1,
+  slot: 1,
+  teams: 8,
+  drafted: {},
+  mine: {},
+  rosterCounts: { C: 0, F: 0, D: 0, G: 0 },
+  rosterLimits: { C: 3, F: 5, D: 4, G: 2 }
+});
+
+assert.strictEqual(resPick1.shortlist[0].name, 'Connor McDavid', 'Connor McDavid must be strictly #1 at Pick 1');
+assert(resPick1.shortlist[0].gtTradeoff.advice.includes('dominant overall board value'), 'McDavid advice must acknowledge dominant board value');
+console.log('✓ Pick 1 board integrity verified: McDavid strictly dominant at #1');
+
 console.log('ALL GAMETHEORY TESTS PASSED!');

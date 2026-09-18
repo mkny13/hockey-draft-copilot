@@ -294,45 +294,62 @@
       }
     }
 
-    // Step 1: Red Alerts (MUST REACH Cliff)
+    // Step 1: Automated Game Theory Multi-Candidate Trade-Off Analysis
+    var gtData = computeTargetTradeoffs(availableRows, targetTurn, stdDev);
+    for (var g = 0; g < availableRows.length; g++) {
+      var avRow = availableRows[g];
+      avRow.gtTradeoff = (gtData && gtData.tradeoffs) ? gtData.tradeoffs[avRow.name] : null;
+    }
+
+    // Step 2: Red Alerts (MUST REACH Cliff)
     var redAlerts = availableRows.filter(function (p) {
       return p.action === "MUST REACH (Cliff)" && !p.isDiminished;
     });
 
-    // Step 2: Safe Sleepers
+    // Step 3: Safe Sleepers
     var waitSafePlayers = availableRows.filter(function (p) {
       return p.action === "WAIT (ADP Safe)" && p.adjVorp >= 15;
     }).sort(function (a, b) {
       return b.adjVorp - a.adjVorp;
     });
 
-    // Step 3: Rank Shortlist according to Decision Protocol
+    // Step 4: Rank Shortlist according to 2-Round EV & Decision Protocol
     var shortlistCandidates = availableRows.filter(function (p) {
       return p.action !== "WAIT (ADP Safe)";
     });
 
     shortlistCandidates.sort(function (a, b) {
-      // 1. If VORP difference is significant (>= 4.0 pts), higher VORP strictly dominates:
+      var gtAdvA = (a.gtTradeoff && typeof a.gtTradeoff.netGain === "number") ? a.gtTradeoff.netGain : 0;
+      var gtAdvB = (b.gtTradeoff && typeof b.gtTradeoff.netGain === "number") ? b.gtTradeoff.netGain : 0;
+
+      // If one candidate has a decisive Game Theory 2-Round EV edge (>= 2.0 pts):
+      if (gtAdvA >= 2.0 && gtAdvB < 2.0) return -1;
+      if (gtAdvB >= 2.0 && gtAdvA < 2.0) return 1;
+
+      // Composite Game Theory score: EV2 + Expected Cliff Loss
+      var scoreA = (a.gtTradeoff && a.gtTradeoff.ev2 ? a.gtTradeoff.ev2 : a.adjVorp) + (1.0 - a.survivalProb) * a.dropoff;
+      var scoreB = (b.gtTradeoff && b.gtTradeoff.ev2 ? b.gtTradeoff.ev2 : b.adjVorp) + (1.0 - b.survivalProb) * b.dropoff;
+
+      if (Math.abs(scoreB - scoreA) >= 3.0) {
+        return scoreB - scoreA;
+      }
+
+      // If VORP difference is significant (>= 4.0 pts), higher VORP dominates
       var vorpDiff = b.adjVorp - a.adjVorp;
       if (Math.abs(vorpDiff) >= 4.0) {
         return vorpDiff;
       }
 
-      // 2. If VORP is close (within 4 pts):
-      // A MUST REACH player takes priority
-      if (a.action === "MUST REACH (Cliff)" && b.action !== "MUST REACH (Cliff)") return -1;
-      if (b.action === "MUST REACH (Cliff)" && a.action !== "MUST REACH (Cliff)") return 1;
-
-      // 3. Higher urgency (lower survival odds) takes priority
-      var survDiff = a.survivalProb - b.survivalProb;
-      if (Math.abs(survDiff) > 0.15) {
-        return survDiff;
-      }
-
-      // 4. Steeper cliff breaks final tie
+      // Steeper cliff breaks tie
       var cliffDiff = b.dropoff - a.dropoff;
       if (Math.abs(cliffDiff) >= 2.0) {
         return cliffDiff;
+      }
+
+      // Lower survival (higher urgency) breaks tie
+      var survDiff = a.survivalProb - b.survivalProb;
+      if (Math.abs(survDiff) > 0.15) {
+        return survDiff;
       }
 
       return vorpDiff;
@@ -354,31 +371,39 @@
     };
 
     if (onTheClock) {
-      if (redAlerts.length > 0) {
+      if (shortlist.length > 0 && shortlist[0].gtTradeoff && shortlist[0].gtTradeoff.netGain >= 2.0) {
+        liveProtocol.alertType = "turn";
+        liveProtocol.step = 3;
+        liveProtocol.headline = "🎯 GAME THEORY PICK: Draft " + shortlist[0].name + " (" + shortlist[0].posLabel + ")";
+        liveProtocol.subtext = shortlist[0].gtTradeoff.advice;
+      } else if (redAlerts.length > 0) {
         liveProtocol.alertType = "critical";
         liveProtocol.step = 1;
         liveProtocol.headline = "🚨 CRITICAL CLIFF DETECTED: MUST REACH NOW";
-        liveProtocol.subtext = redAlerts[0].name + " (" + redAlerts[0].posLabel + ") sits atop a +" +
+        liveProtocol.subtext = redAlerts[0].gtTradeoff ? redAlerts[0].gtTradeoff.advice : (redAlerts[0].name + " (" + redAlerts[0].posLabel + ") sits atop a +" +
           redAlerts[0].dropoff.toFixed(1) + " VORP cliff with only " + (redAlerts[0].survivalProb * 100).toFixed(0) +
-          "% odds to reach your next pick (#" + targetTurn + "). Passing forfeits irreplaceable value.";
+          "% odds to reach your next pick (#" + targetTurn + "). Passing forfeits irreplaceable value.");
       } else if (shortlist.length > 0 && shortlist[0].action === "NOW OR NEVER") {
         liveProtocol.alertType = "warning";
         liveProtocol.step = 2;
         liveProtocol.headline = "⚡ ON THE CLOCK: IMMINENT TARGET DISAPPEARING";
-        liveProtocol.subtext = shortlist[0].name + " (" + shortlist[0].posLabel + ") has <20% survival to pick #" +
-          targetTurn + " and high Adj VORP (" + shortlist[0].adjVorp.toFixed(1) + "). Lock in before opponents strike.";
+        liveProtocol.subtext = shortlist[0].gtTradeoff ? shortlist[0].gtTradeoff.advice : (shortlist[0].name + " (" + shortlist[0].posLabel + ") has <20% survival to pick #" +
+          targetTurn + " and high Adj VORP (" + shortlist[0].adjVorp.toFixed(1) + "). Lock in before opponents strike.");
       } else if (shortlist.length > 0) {
         liveProtocol.alertType = "turn";
         liveProtocol.step = 3;
         liveProtocol.headline = "🎯 ON THE CLOCK: TAKE BEST VALUE";
-        liveProtocol.subtext = "Top recommendation: " + shortlist[0].name + " (" + shortlist[0].posLabel + ", Adj VORP " +
+        liveProtocol.subtext = shortlist[0].gtTradeoff ? shortlist[0].gtTradeoff.advice : ("Top recommendation: " + shortlist[0].name + " (" + shortlist[0].posLabel + ", Adj VORP " +
           shortlist[0].adjVorp.toFixed(1) + ", Cliff +" + shortlist[0].dropoff.toFixed(1) + "). Safe sleepers like " +
-          (waitSafePlayers[0] ? waitSafePlayers[0].name : "late ADPs") + " will fall back to you.";
+          (waitSafePlayers[0] ? waitSafePlayers[0].name : "late ADPs") + " will fall back to you.");
       }
     } else {
       liveProtocol.alertType = "waiting";
       liveProtocol.headline = "⏱️ Drafting in " + picksUntilTurn + " picks (Turn #" + targetTurn + ")";
-      if (redAlerts.length > 0) {
+      if (shortlist.length > 0 && shortlist[0].gtTradeoff && shortlist[0].gtTradeoff.netGain >= 2.0) {
+        liveProtocol.subtext = "Game Theory Target: " + shortlist[0].name + " (" + shortlist[0].posLabel + ") holds +" +
+          shortlist[0].gtTradeoff.netGain.toFixed(1) + " EV advantage over field.";
+      } else if (redAlerts.length > 0) {
         liveProtocol.subtext = "Tracking Red Alert: " + redAlerts[0].name + " (" + (redAlerts[0].survivalProb * 100).toFixed(0) +
           "% survival). Prepare to draft if opponents pass.";
       } else if (shortlist.length > 0) {
@@ -387,6 +412,8 @@
       }
     }
 
+    var topMatchup = getTopMatchup(availableRows, targetTurn, stdDev);
+
     return {
       allRows: evaluatedRows,
       availableRows: availableRows,
@@ -394,6 +421,7 @@
       redAlerts: redAlerts,
       waitSafePlayers: waitSafePlayers.slice(0, 5),
       liveProtocol: liveProtocol,
+      topMatchup: topMatchup,
       onTheClock: onTheClock,
       targetTurn: targetTurn,
       currentPick: currentPick,
@@ -462,6 +490,168 @@
     };
   }
 
+  /**
+   * Evaluates Game Theory Trade-Offs automatically across all available targets.
+   * Compares each candidate against the board's top VORP anchor (pTop) or the top challenger.
+   */
+  function computeTargetTradeoffs(availableRows, targetTurn, stdDev) {
+    if (!availableRows || !availableRows.length) return { tradeoffs: {}, pTop: null, pChallenger: null, bestGTCandidate: null, topNetGain: -999 };
+    stdDev = stdDev || 7.0;
+
+    var sorted = availableRows.slice().sort(function (a, b) {
+      return b.adjVorp - a.adjVorp;
+    });
+
+    var pTop = sorted[0];
+    if (!pTop) return { tradeoffs: {}, pTop: null, pChallenger: null, bestGTCandidate: null, topNetGain: -999 };
+
+    // Identify top cliff / urgency challenger among top 15
+    var pChallenger = null;
+    var maxLoss = -1;
+    var limit = Math.min(sorted.length, 15);
+    for (var i = 0; i < limit; i++) {
+      var p = sorted[i];
+      if (p.name === pTop.name) continue;
+      var loss = (1.0 - p.survivalProb) * p.dropoff;
+      if (loss > maxLoss) {
+        maxLoss = loss;
+        pChallenger = p;
+      }
+    }
+    if (!pChallenger && sorted.length > 1) {
+      pChallenger = sorted[1];
+    }
+
+    var tradeoffs = {};
+    var topNetGain = -999;
+    var bestGTCandidate = null;
+
+    for (var j = 0; j < availableRows.length; j++) {
+      var cand = availableRows[j];
+      var isTop = (cand.name === pTop.name);
+      var refPlayer = isTop ? pChallenger : pTop;
+
+      var netGain = 0;
+      var ev2 = cand.adjVorp;
+      var cmp = null;
+
+      if (refPlayer) {
+        var cmpPlayerA = isTop ? pTop : pTop;
+        var cmpPlayerB = isTop ? pChallenger : cand;
+        cmp = comparePlayersGameTheory(cmpPlayerA, cmpPlayerB, null, null, targetTurn, stdDev);
+
+        if (cmp) {
+          if (isTop) {
+            // Picking pTop gives evOption2; net gain over challenger is -cmp.deltaEV
+            ev2 = cmp.evOption2;
+            netGain = -cmp.deltaEV;
+          } else {
+            // Picking candidate gives evOption1; net gain over pTop is cmp.deltaEV
+            ev2 = cmp.evOption1;
+            netGain = cmp.deltaEV;
+          }
+        }
+      }
+
+      if (!isTop && netGain > topNetGain) {
+        topNetGain = netGain;
+        bestGTCandidate = cand;
+      }
+
+      // Format plain-English advice & badge
+      var badgeText = "";
+      var badgeClass = "";
+      var advice = "";
+
+      var survPct = (cand.survivalProb * 100).toFixed(0) + "%";
+      var cliffText = cand.dropoff > 0 ? ("+" + cand.dropoff.toFixed(1)) : "0.0";
+
+      if (!isTop && netGain >= 2.0) {
+        badgeText = "🏆 GT WINNER (+" + netGain.toFixed(1) + " EV)";
+        badgeClass = "badge-gt-winner";
+        advice = "Locks in " + cliffText + " " + cand.posLabel + " cliff. " + pTop.name +
+          " (" + (pTop.survivalProb * 100).toFixed(0) + "% surv) is likely to slide to Turn #" + targetTurn +
+          " (+" + netGain.toFixed(1) + " net EV advantage over drafting " + pTop.name + " now).";
+      } else if (isTop) {
+        if (pChallenger && netGain < -2.0) {
+          badgeText = "🛡️ SAFE TO WAIT (" + survPct + " Surv)";
+          badgeClass = "badge-wait";
+          advice = pTop.name + " has " + survPct + " survival to Turn #" + targetTurn + " with a small " + cliffText +
+            " cliff. Prioritizing " + pChallenger.name + " locks in their +" + pChallenger.dropoff.toFixed(1) +
+            " cliff with +" + Math.abs(netGain).toFixed(1) + " net EV gain.";
+        } else {
+          badgeText = "🏆 TOP VALUE (VORP " + cand.adjVorp.toFixed(1) + ")";
+          badgeClass = "badge-gt-winner";
+          advice = "Locks in dominant overall board value (" + cand.adjVorp.toFixed(1) + " VORP). Miss him now and he will not survive to Turn #" + targetTurn + ".";
+        }
+      } else if (cand.action === "MUST REACH (Cliff)") {
+        badgeText = "🚨 MUST REACH (" + cliffText + " Cliff)";
+        badgeClass = "badge-must-reach";
+        advice = "Critical cliff: only " + survPct + " survival to Turn #" + targetTurn + " with a " + cliffText +
+          " dropoff. Passing forfeits irreplaceable tier value at " + cand.posLabel + ".";
+      } else if (cand.action === "NOW OR NEVER") {
+        badgeText = "⚡ NOW OR NEVER";
+        badgeClass = "badge-now-or-never";
+        advice = "High snipe risk: only " + survPct + " survival to Turn #" + targetTurn + ". Draft now if prioritizing " + cand.posLabel + " before opponents strike.";
+      } else if (cand.survivalProb > 0.65) {
+        badgeText = "🛡️ SAFE SLEEPER (" + survPct + " Surv)";
+        badgeClass = "badge-wait";
+        advice = "High survival (" + survPct + " to Turn #" + targetTurn + "). Let fall to your next turn; drafting now forfeits urgent cliff value.";
+      } else {
+        badgeText = "🎯 SOLID TARGET (" + cand.adjVorp.toFixed(1) + " VORP)";
+        badgeClass = "badge-target";
+        advice = "Steady " + cand.adjVorp.toFixed(1) + " VORP at " + cand.posLabel + ". Moderate survival (" + survPct + ") to Turn #" + targetTurn + ".";
+      }
+
+      tradeoffs[cand.name] = {
+        name: cand.name,
+        ev2: ev2,
+        netGain: netGain,
+        vsPlayer: refPlayer ? refPlayer.name : "",
+        vsPos: refPlayer ? refPlayer.posLabel : "",
+        vsSurv: refPlayer ? refPlayer.survivalProb : 0,
+        badgeText: badgeText,
+        badgeClass: badgeClass,
+        advice: advice,
+        cmp: cmp
+      };
+    }
+
+    return {
+      tradeoffs: tradeoffs,
+      pTop: pTop,
+      pChallenger: pChallenger,
+      bestGTCandidate: bestGTCandidate,
+      topNetGain: topNetGain
+    };
+  }
+
+  /**
+   * Identifies the primary strategic dilemma on the board for automated comparator display
+   */
+  function getTopMatchup(availableRows, targetTurn, stdDev) {
+    var res = computeTargetTradeoffs(availableRows, targetTurn, stdDev);
+    if (!res || !res.pTop) return null;
+
+    var playerA = res.pTop;
+    var playerB = (res.bestGTCandidate && res.topNetGain >= 2.0)
+      ? res.bestGTCandidate
+      : res.pChallenger;
+
+    if (!playerB && availableRows.length > 1) {
+      playerB = availableRows[1];
+    }
+
+    if (!playerA || !playerB) return null;
+
+    var cmp = comparePlayersGameTheory(playerA, playerB, null, null, targetTurn, stdDev);
+    return {
+      playerA: playerA,
+      playerB: playerB,
+      cmp: cmp
+    };
+  }
+
   return {
     normalCDF: normalCDF,
     pSurvive: pSurvive,
@@ -472,6 +662,8 @@
     getDiminishingMultiplier: getDiminishingMultiplier,
     classifyAction: classifyAction,
     computeDynamicCliffs: computeDynamicCliffs,
+    computeTargetTradeoffs: computeTargetTradeoffs,
+    getTopMatchup: getTopMatchup,
     evaluateBoard: evaluateBoard,
     comparePlayersGameTheory: comparePlayersGameTheory
   };

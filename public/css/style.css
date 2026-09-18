@@ -298,7 +298,7 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-height: 220px;
+  max-height: 270px;
   overflow-y: auto;
 }
 
@@ -316,6 +316,32 @@ body {
 
 .shortlist-card:hover {
   border-color: var(--accent);
+}
+
+.card-gt-row {
+  margin-top: 4px;
+  padding: 3px 8px;
+  background: rgba(88, 166, 255, 0.08);
+  border-left: 2px solid var(--accent);
+  border-radius: 0 4px 4px 0;
+  font-size: 11px;
+  color: #c9d1d9;
+  line-height: 1.35;
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+}
+
+.card-gt-row .gt-icon {
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.badge-gt-winner {
+  background: rgba(63, 185, 80, 0.25);
+  border: 1px solid #7ee787;
+  color: #7ee787;
+  font-weight: 700;
 }
 
 .card-rank {
