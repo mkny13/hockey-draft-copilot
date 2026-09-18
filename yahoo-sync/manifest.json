@@ -1,14 +1,23 @@
 {
   "manifest_version": 3,
   "name": "Yahoo Fantasy Hockey Draft Sync",
-  "version": "1.0",
+  "version": "1.1",
   "description": "Auto-sync live draft picks from Yahoo Fantasy Hockey to the Game Theory Co-Pilot",
-  "permissions": [],
+  "permissions": [
+    "storage"
+  ],
   "host_permissions": [
     "https://hockey.fantasysports.yahoo.com/*",
     "https://draft.fantasysports.yahoo.com/*",
     "http://localhost:3333/*"
   ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Draft Co-Pilot Sync"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
   "content_scripts": [
     {
       "matches": [
@@ -16,6 +25,7 @@
         "https://draft.fantasysports.yahoo.com/*"
       ],
       "js": ["content.js"],
+      "css": ["status.css"],
       "run_at": "document_idle"
     }
   ]
