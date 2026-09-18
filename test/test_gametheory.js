@@ -128,4 +128,86 @@ assert.strictEqual(resPick1.shortlist[0].name, 'Connor McDavid', 'Connor McDavid
 assert(resPick1.shortlist[0].gtTradeoff.advice.includes('dominant overall board value'), 'McDavid advice must acknowledge dominant board value');
 console.log('✓ Pick 1 board integrity verified: McDavid strictly dominant at #1');
 
+// 11. Test Post-Draft Roster Grader (VORP surplus, ADP Delta steals, positional balance)
+const synthPlayers = [
+  { name: 'Alpha', vorp: 200, adp: { average: 1 }, pos: ['C'] },
+  { name: 'Bravo', vorp: 150, adp: { average: 2 }, pos: ['F'] },
+  { name: 'Charlie', vorp: 120, adp: { average: 3 }, pos: ['D'] },
+  { name: 'Delta', vorp: 100, adp: { average: 4 }, pos: ['G'] },
+  { name: 'Echo', vorp: 80, adp: { average: 5 }, pos: ['C', 'F'] },
+  { name: 'Foxtrot', vorp: 60, adp: { average: 6 }, pos: ['D'] },
+  { name: 'Golf', vorp: 40, adp: { average: 7 }, pos: ['F'] },
+  { name: 'Hotel', vorp: 20, adp: { average: 8 }, pos: ['G'] }
+];
+
+const synthHistory = [
+  { pickNumber: 1, name: 'Alpha', pos: ['C'], isMine: true },
+  { pickNumber: 2, name: 'Echo', pos: ['C', 'F'], isMine: true },
+  { pickNumber: 3, name: 'Foxtrot', pos: ['D'], isMine: true },
+  { pickNumber: 4, name: 'Golf', pos: ['F'], isMine: false }
+];
+
+const grade1 = GT.gradeDraft(synthHistory, synthPlayers, { rosterLimits: { C: 3, F: 5, D: 4, G: 2 } });
+
+assert.strictEqual(grade1.graded, true, 'Draft with my picks must be graded');
+assert.strictEqual(grade1.summary.picksCount, 3, 'Only my picks count toward the grade');
+// Expected VORP per slot = VORP of the Nth player on the ADP-ordered board
+assert.strictEqual(grade1.myPicks[0].expectedVorp, 200, 'Pick 1 expected VORP = Alpha (ADP 1)');
+assert.strictEqual(grade1.myPicks[1].expectedVorp, 150, 'Pick 2 expected VORP = Bravo (ADP 2)');
+assert.strictEqual(grade1.myPicks[2].expectedVorp, 120, 'Pick 3 expected VORP = Charlie (ADP 3)');
+// Surplus = captured - expected
+assert.strictEqual(grade1.myPicks[0].surplus, 0, 'Alpha at pick 1 is ADP-fair (0 surplus)');
+assert.strictEqual(grade1.myPicks[1].surplus, -70, 'Echo at pick 2 is a 70 VORP reach');
+assert.strictEqual(grade1.myPicks[2].surplus, -60, 'Foxtrot at pick 3 is a 60 VORP reach');
+assert.strictEqual(grade1.summary.totalCapturedVorp, 340, 'Total captured VORP = 200+80+60');
+assert.strictEqual(grade1.summary.totalExpectedVorp, 470, 'Total expected VORP = 200+150+120');
+assert.strictEqual(grade1.summary.totalSurplus, -130, 'Total surplus = -130');
+// ADP Delta = ADP - pickNumber
+assert.strictEqual(grade1.myPicks[1].adpDelta, 3, 'Echo ADP 5 at pick 2 = +3 delta');
+assert.strictEqual(grade1.myPicks[0].adpDelta, 0, 'Alpha ADP 1 at pick 1 = 0 delta');
+console.log('✓ Post-draft grading computes VORP surplus vs expected value per slot');
+
+// Steals ranked by ADP Delta across the entire draft (ties broken by VORP)
+assert.strictEqual(grade1.steals[0].name, 'Echo', 'Echo (+3, VORP 80) ranks above Foxtrot (+3, VORP 60)');
+assert.strictEqual(grade1.steals[1].name, 'Foxtrot', 'Foxtrot (+3 delta) is second steal');
+assert(grade1.steals.every(s => s.adpDelta > 0), 'Steals list must only contain positive ADP Delta picks');
+console.log('✓ ADP Delta steal ranking passes');
+
+// Positional balance: C-only and dual C,F fill C first, then flex to F
+const bal1 = grade1.positionalBalance;
+assert.strictEqual(bal1.counts.C, 2, 'Alpha (C) + Echo (dual C,F) fill C slots first');
+assert.strictEqual(bal1.counts.F, 0, 'No F slots used while C is open');
+assert.strictEqual(bal1.counts.D, 1, 'Foxtrot fills one D slot');
+assert.strictEqual(bal1.counts.G, 0, 'No goalies drafted');
+assert.strictEqual(bal1.slots.find(s => s.pos === 'G').status, 'EMPTY (critical)', 'Empty G position flagged critical');
+assert.strictEqual(bal1.slots.find(s => s.pos === 'D').status, 'LIGHT', 'Under-limit D position flagged LIGHT');
+console.log('✓ Positional balance counting and C/F flex logic passes');
+
+// Filled-roster balance verdict
+const filledHistory = [
+  { pickNumber: 1, name: 'Alpha', pos: ['C'], isMine: true },
+  { pickNumber: 2, name: 'Bravo', pos: ['F'], isMine: true },
+  { pickNumber: 3, name: 'Charlie', pos: ['D'], isMine: true },
+  { pickNumber: 4, name: 'Delta', pos: ['G'], isMine: true }
+];
+// limits C:1 F:1 D:1 G:1 -> everything filled
+const grade2 = GT.gradeDraft(filledHistory, synthPlayers, { rosterLimits: { C: 1, F: 1, D: 1, G: 1 } });
+assert.strictEqual(grade2.positionalBalance.slots.every(s => s.status === 'FILLED'), true, 'All slots FILLED');
+assert(grade2.positionalBalance.verdict.indexOf('Balanced') === 0, 'Verdict reports balanced roster');
+console.log('✓ Balanced roster verdict passes');
+
+// Empty draft history degrades gracefully
+const gradeEmpty = GT.gradeDraft([], synthPlayers, { rosterLimits: { C: 3, F: 5, D: 4, G: 2 } });
+assert.strictEqual(gradeEmpty.graded, false, 'Empty history must not be graded');
+assert.strictEqual(gradeEmpty.summary.grade, null, 'Empty history has no letter grade');
+assert.strictEqual(gradeEmpty.summary.totalCapturedVorp, 0, 'Empty history captures nothing');
+console.log('✓ Empty draft history handled gracefully');
+
+// Real-board sanity: grade the current draft_state pickHistory (4 opponent picks)
+const stData = JSON.parse(fs.readFileSync(path.join(__dirname, '../draft_state.json'), 'utf8'));
+const gradeReal = GT.gradeDraft(stData.pickHistory, rawData.players, { rosterLimits: stData.rosterLimits });
+assert.strictEqual(gradeReal.picks.length, stData.pickHistory.length, 'Every recorded pick is graded');
+assert.strictEqual(gradeReal.summary.picksCount, 0, 'No my-team picks yet in default state');
+console.log('✓ Real draft board grading sanity passes');
+
 console.log('ALL GAMETHEORY TESTS PASSED!');
