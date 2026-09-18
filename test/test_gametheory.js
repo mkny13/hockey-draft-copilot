@@ -210,4 +210,152 @@ assert.strictEqual(gradeReal.picks.length, stData.pickHistory.length, 'Every rec
 assert.strictEqual(gradeReal.summary.picksCount, 0, 'No my-team picks yet in default state');
 console.log('✓ Real draft board grading sanity passes');
 
+// 12. Monte Carlo: seeded gaussian noise follows N(0, 1)
+const rngNoise = GT.mulberry32(42);
+const noiseSamples = [];
+for (let ns = 0; ns < 20000; ns++) noiseSamples.push(GT.gaussian(rngNoise));
+const noiseMean = noiseSamples.reduce((a, b) => a + b, 0) / noiseSamples.length;
+const noiseStd = Math.sqrt(
+  noiseSamples.reduce((a, b) => a + (b - noiseMean) * (b - noiseMean), 0) / noiseSamples.length
+);
+assert(Math.abs(noiseMean) < 0.05, `Gaussian sample mean should be ~0, got ${noiseMean}`);
+assert(Math.abs(noiseStd - 1) < 0.05, `Gaussian sample std should be ~1, got ${noiseStd}`);
+
+// Noisy ADP observations: N(mean, std^2)
+const rngAdp = GT.mulberry32(1234);
+const adpObs = [];
+for (let ao = 0; ao < 20000; ao++) adpObs.push(GT.sampleNormalNoise(50, 7, rngAdp));
+const adpMean = adpObs.reduce((a, b) => a + b, 0) / adpObs.length;
+const adpStd = Math.sqrt(
+  adpObs.reduce((a, b) => a + (b - adpMean) * (b - adpMean), 0) / adpObs.length
+);
+assert(Math.abs(adpMean - 50) < 0.4, `Noisy ADP mean should be ~50, got ${adpMean}`);
+assert(Math.abs(adpStd - 7) < 0.35, `Noisy ADP std should be ~7, got ${adpStd}`);
+console.log('✓ Monte Carlo normal-distribution ADP noise passes');
+
+// 13. Monte Carlo simulation: determinism, extremes, convergence, monotonicity
+const mcPlayers = [];
+for (let mp = 0; mp < 100; mp++) {
+  mcPlayers.push({
+    id: mp,
+    name: 'SimP' + (mp + 1),
+    n: 'SimP' + (mp + 1),
+    vorp: 200 - mp * 2,
+    rawVorp: 200 - mp * 2,
+    pos: ['F'],
+    adp: { average: mp + 1 }
+  });
+}
+
+// Determinism: identical seeds produce identical results
+const runA = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 1, seed: 7, targets: ['SimP25'] }, 5, 300);
+const runB = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 1, seed: 7, targets: ['SimP25'] }, 5, 300);
+assert.deepStrictEqual(runA.targets[0].roundSurvival, runB.targets[0].roundSurvival, 'Same seed must reproduce identical survival probabilities');
+console.log('✓ Monte Carlo seeded determinism passes');
+
+// Early target (ADP 1) never survives to round 3 (my pick #21 in an 8-team draft)
+const mcEarly = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 1, seed: 11, targets: ['SimP1'] }, 5, 500);
+assert(mcEarly.targets[0].roundSurvival[3] < 0.05, `ADP-1 target survival to round 3 must be ~0, got ${mcEarly.targets[0].roundSurvival[3]}`);
+console.log('✓ Monte Carlo early-target extinction passes');
+
+// Deep sleeper (ADP 100) always survives to round 3
+const mcDeep = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 1, seed: 11, targets: ['SimP100'] }, 5, 500);
+assert(mcDeep.targets[0].roundSurvival[3] > 0.98, `ADP-100 sleeper must survive to round 3, got ${mcDeep.targets[0].roundSurvival[3]}`);
+console.log('✓ Monte Carlo deep-sleeper survival passes');
+
+// Mid target: monotone non-increasing survival across rounds 3 → 4 → 5
+const mcMid = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 1, seed: 21, targets: ['SimP25'] }, 5, 500);
+const p3 = mcMid.targets[0].roundSurvival[3];
+const p4 = mcMid.targets[0].roundSurvival[4];
+const p5 = mcMid.targets[0].roundSurvival[5];
+assert(p3 >= p4 && p4 >= p5, `Round survival must be non-increasing (r3 ${p3} >= r4 ${p4} >= r5 ${p5})`);
+assert(p3 > 0.05 && p3 < 0.95, `Mid-ADP target round-3 survival should be interior, got ${p3}`);
+console.log('✓ Monte Carlo round monotonicity passes');
+
+// Convergence: independent seeds converge toward the same estimate
+const convA = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 1, seed: 101, targets: ['SimP25'] }, 5, 2000);
+const convB = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 1, seed: 202, targets: ['SimP25'] }, 5, 2000);
+const convDelta = Math.abs(convA.targets[0].roundSurvival[3] - convB.targets[0].roundSurvival[3]);
+assert(convDelta < 0.06, `Independent 2000-sim runs must converge (Δ=${convDelta})`);
+console.log(`✓ Monte Carlo convergence passes (independent estimates Δ=${convDelta.toFixed(3)})`);
+
+// Noise application: larger ADP noise must decrease round-3 survival of a mid target
+const mcTight = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 1, seed: 33, noiseStd: 1, targets: ['SimP25'] }, 5, 500);
+const mcLoose = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 1, seed: 33, noiseStd: 40, targets: ['SimP25'] }, 5, 500);
+assert(
+  mcLoose.targets[0].roundSurvival[3] < mcTight.targets[0].roundSurvival[3] - 0.15,
+  `Wider noise must erode round-3 survival (tight ${mcTight.targets[0].roundSurvival[3]} vs loose ${mcLoose.targets[0].roundSurvival[3]})`
+);
+console.log('✓ Monte Carlo ADP noise application passes');
+
+// Mid-draft start: only upcoming rounds are tracked, past rounds are null
+const mcMidDraft = GT.runMonteCarlo(mcPlayers, { teams: 8, slot: 5, currentPick: 12, seed: 7, targets: ['SimP25'] }, 5, 200);
+assert(mcMidDraft.myPicks[1] === undefined, 'Round 1 pick is in the past and must not be scheduled');
+assert.strictEqual(mcMidDraft.targets[0].roundSurvival[1], null, 'Past round survival must be null');
+assert(typeof mcMidDraft.targets[0].roundSurvival[3] === 'number', 'Upcoming round 3 must have a probability');
+assert.strictEqual(mcMidDraft.myPicks[3], 21, 'My round-3 pick in an 8-team slot-5 draft is overall pick #21');
+console.log('✓ Monte Carlo mid-draft scheduling passes');
+
+// 14. roundSurvivalProbabilities wrapper (per-round sleeper estimates)
+const rsHughes = GT.roundSurvivalProbabilities('Quinn Hughes', [3, 4, 5], 500, {
+  players: rawData.players,
+  teams: 8,
+  slot: 5,
+  currentPick: 1,
+  seed: 7
+});
+assert(rsHughes !== null, 'roundSurvivalProbabilities must resolve the target by name');
+assert.strictEqual(rsHughes.name, 'Quinn Hughes');
+assert(rsHughes.adp > 0, 'Target ADP must be resolved');
+for (const rt of [3, 4, 5]) {
+  const prob = rsHughes.rounds[rt];
+  assert(typeof prob === 'number' && prob >= 0 && prob <= 1, `Round ${rt} probability must be in [0,1], got ${prob}`);
+}
+assert(
+  rsHughes.rounds[3] >= rsHughes.rounds[4] && rsHughes.rounds[4] >= rsHughes.rounds[5],
+  'Round survival must not increase with deeper rounds'
+);
+assert.strictEqual(rsHughes.myPicks[3], 21, 'myPicks must map round 3 to overall pick #21 (8 teams, slot 5)');
+
+// Resolves by master row id as well as by name
+const hughesRow = rawData.players.find(p => p.n === 'Quinn Hughes');
+const rsById = GT.roundSurvivalProbabilities(hughesRow.id, [3], 200, {
+  players: rawData.players, teams: 8, slot: 5, currentPick: 1, seed: 7
+});
+assert.strictEqual(rsById.name, 'Quinn Hughes', 'roundSurvivalProbabilities must resolve targets by row id');
+console.log('✓ roundSurvivalProbabilities per-round sleeper estimates pass');
+
+// Already-drafted targets report 0% survival everywhere
+const rsDrafted = GT.roundSurvivalProbabilities('Quinn Hughes', [3, 4, 5], 200, {
+  players: rawData.players,
+  teams: 8,
+  slot: 5,
+  currentPick: 1,
+  drafted: { 'Quinn Hughes': true },
+  seed: 7
+});
+assert.strictEqual(rsDrafted.drafted, true, 'Drafted target must be flagged');
+assert.strictEqual(rsDrafted.rounds[3], 0, 'Drafted target has 0% survival in every round');
+console.log('✓ Drafted-target edge case passes');
+
+// Real-board sanity: 500-sim run on the full 800+ player board stays in bounds
+const tMcStart = Date.now();
+const mcReal = GT.runMonteCarlo(rawData.players, {
+  teams: 8, slot: 5, currentPick: 1, seed: 99,
+  targets: ['Quinn Hughes', 'Leon Draisaitl', 'Connor McDavid']
+}, 5, 500);
+const mcRealElapsed = Date.now() - tMcStart;
+assert.strictEqual(mcReal.simulations, 500);
+assert.strictEqual(mcReal.targets.length, 3, 'All requested targets must be reported');
+for (const tgt of mcReal.targets) {
+  for (const rr of [3, 4, 5]) {
+    const prob = tgt.roundSurvival[rr];
+    assert(typeof prob === 'number' && prob >= 0 && prob <= 1, `${tgt.name} round ${rr} probability out of bounds: ${prob}`);
+  }
+}
+// McDavid (ADP 1.6) must be gone by round 3; Draisaitl (early ADP) rarely survives either
+assert(mcReal.targets[2].roundSurvival[3] < 0.05, 'McDavid cannot survive to round 3');
+assert(mcReal.targets[1].roundSurvival[3] < 0.35, 'Draisaitl (early first-round ADP) rarely survives to round 3');
+console.log(`✓ Real-board Monte Carlo sanity passes (${mcRealElapsed}ms for 500 sims)`);
+
 console.log('ALL GAMETHEORY TESTS PASSED!');

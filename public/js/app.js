@@ -44,6 +44,15 @@
   var cmpVerdict = document.getElementById("comparator-verdict");
   var btnAutoMatchup = document.getElementById("btn-auto-matchup");
 
+  // Monte Carlo simulation modal
+  var mcModal = document.getElementById("montecarlo-modal");
+  var mcTargetSelect = document.getElementById("mc-target-select");
+  var mcSimulationsInput = document.getElementById("mc-simulations");
+  var mcSimLabel = document.getElementById("mc-sim-label");
+  var mcTargetSummary = document.getElementById("mc-target-summary");
+  var mcResults = document.getElementById("montecarlo-results");
+  var btnRunMonteCarlo = document.getElementById("btn-run-montecarlo");
+
   async function init() {
     setupBookmarklet();
     setupEventListeners();
@@ -753,6 +762,146 @@
   }
 
 
+  /* ============ Monte Carlo Round-by-Round Survival (Issue #4) ============ */
+
+  var MC_ROUND_TARGETS = [3, 4, 5];
+
+  function renderMonteCarloTargets() {
+    if (!mcTargetSelect) return;
+    var rows = (state.evalResult && state.evalResult.availableRows) || [];
+    var selected = mcTargetSelect.value;
+
+    var sorted = rows.slice().sort(function (a, b) { return b.adjVorp - a.adjVorp; }).slice(0, 60);
+    sorted.sort(function (a, b) { return (a.adp || 999) - (b.adp || 999); });
+
+    mcTargetSelect.innerHTML = "";
+    if (!sorted.length) {
+      var optEmpty = document.createElement("option");
+      optEmpty.value = "";
+      optEmpty.textContent = "No available players on board";
+      mcTargetSelect.appendChild(optEmpty);
+      return;
+    }
+
+    for (var i = 0; i < sorted.length; i++) {
+      var p = sorted[i];
+      var opt = document.createElement("option");
+      opt.value = p.name;
+      opt.textContent = p.name + " (" + p.posLabel + ", ADP " + (p.adp ? p.adp.toFixed(1) : "N/A") + ", VORP " + p.adjVorp.toFixed(1) + ")";
+      mcTargetSelect.appendChild(opt);
+    }
+
+    if (selected && sorted.some(function (x) { return x.name === selected; })) {
+      mcTargetSelect.value = selected;
+    }
+  }
+
+  function mcVerdict(prob) {
+    if (prob === null || prob === undefined) return { label: "Round already passed", color: "var(--text-dim)" };
+    if (prob >= 0.75) return { label: "🛡️ Safe to wait", color: "var(--green)" };
+    if (prob >= 0.45) return { label: "🎯 Coin flip — monitor the board", color: "var(--yellow)" };
+    if (prob >= 0.20) return { label: "⚠️ At risk — likely gone", color: "var(--orange)" };
+    return { label: "🚨 Will be drafted — must reach now", color: "var(--red)" };
+  }
+
+  function runMonteCarloSimulation() {
+    if (!mcResults || !mcTargetSelect) return;
+    var targetName = mcTargetSelect.value;
+    if (!targetName) {
+      mcResults.innerHTML = "<div style='font-size:12px; color:var(--orange); padding:14px; text-align:center;'>Select a sleeper target first.</div>";
+      return;
+    }
+
+    var simulations = Math.min(5000, Math.max(50, parseInt(mcSimulationsInput.value, 10) || 500));
+    mcSimulationsInput.value = simulations;
+    if (mcSimLabel) mcSimLabel.textContent = simulations;
+    mcResults.innerHTML = "<div style='font-size:12px; color:var(--accent); padding:14px; text-align:center;'>🎲 Simulating " + simulations + " drafts with normal ADP noise...</div>";
+    if (btnRunMonteCarlo) btnRunMonteCarlo.disabled = true;
+
+    // Defer so the "simulating" state paints before the synchronous engine runs
+    setTimeout(function () {
+      try {
+        var res = GameTheory.roundSurvivalProbabilities(targetName, MC_ROUND_TARGETS, simulations, {
+          players: state.masterPlayers,
+          teams: state.teams,
+          slot: state.slot,
+          currentPick: state.currentPick,
+          drafted: state.drafted,
+          mine: state.mine,
+          noiseStd: state.stdDev
+        });
+        renderMonteCarloResults(res, simulations);
+      } catch (err) {
+        console.error("Monte Carlo simulation error:", err);
+        mcResults.innerHTML = "<div style='font-size:12px; color:var(--red); padding:14px; text-align:center;'>Simulation failed: " + err.message + "</div>";
+      } finally {
+        if (btnRunMonteCarlo) btnRunMonteCarlo.disabled = false;
+      }
+    }, 30);
+  }
+
+  function renderMonteCarloResults(res, simulations) {
+    if (!mcResults) return;
+    if (!res) {
+      mcResults.innerHTML = "<div style='font-size:12px; color:var(--red); padding:14px; text-align:center;'>Target not found on the current board.</div>";
+      return;
+    }
+
+    if (res.drafted) {
+      mcResults.innerHTML = "<div style='font-size:12px; color:var(--red); padding:14px; text-align:center;'>" +
+        res.name + " is already drafted — survival probability is 0% in every round.</div>";
+      return;
+    }
+
+    var html = "";
+    html += "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;'>" +
+      "<div style='font-weight:700; font-size:13px;'>" + res.name +
+      " <span style='font-size:11px; color:var(--text-muted); font-weight:normal;'>ADP " +
+      (res.adp !== null && res.adp !== undefined ? res.adp.toFixed(1) : "N/A") +
+      " | σ = " + res.noiseStd.toFixed(1) + "</span></div>" +
+      "<div style='font-size:10px; color:var(--text-dim); font-family:var(--font-mono);'>" + simulations +
+      " sims | Pick #" + res.currentPick + " | " + res.teams + " teams</div>" +
+      "</div>";
+
+    for (var i = 0; i < MC_ROUND_TARGETS.length; i++) {
+      var round = MC_ROUND_TARGETS[i];
+      var prob = res.rounds[round];
+      var myPick = res.myPicks[round];
+      var pct = (prob === null || prob === undefined) ? null : Math.round(prob * 100);
+      var verdict = mcVerdict(prob);
+      var barWidth = (prob === null || prob === undefined) ? 0 : Math.max(2, Math.round(prob * 100));
+
+      html += "<div style='margin-bottom:10px; background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:10px;'>";
+      html += "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;'>";
+      html += "<div style='font-size:12px; font-weight:700;'>Round " + round +
+        " <span style='font-size:10px; color:var(--text-muted); font-weight:normal;'>(" +
+        (myPick !== undefined ? "your pick #" + myPick : "pick already passed") + ")</span></div>";
+      html += "<div style='font-family:var(--font-mono); font-size:14px; font-weight:700; color:" + verdict.color + ";'>" +
+        (pct === null ? "—" : pct + "%") + "</div>";
+      html += "</div>";
+      html += "<div style='height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; margin-bottom:6px;'>";
+      html += "<div style='height:100%; width:" + barWidth + "%; background:" + verdict.color + "; border-radius:4px;'></div>";
+      html += "</div>";
+      html += "<div style='font-size:11px; color:" + verdict.color + ";'>" + verdict.label + "</div>";
+      html += "</div>";
+    }
+
+    html += "<div style='font-size:10px; color:var(--text-dim); margin-top:4px; line-height:1.5;'>" +
+      "Model: opponents draft the best available player by their own noisy ADP draw (N(ADP, " + res.noiseStd.toFixed(1) + "²)). " +
+      "Your picks are modeled as proxy picks (you wait on the target), so these are conservative wait-and-see odds.</div>";
+
+    mcResults.innerHTML = html;
+  }
+
+  function openMonteCarloModal() {
+    if (!mcModal) return;
+    renderMonteCarloTargets();
+    if (mcSimulationsInput && mcSimLabel) {
+      mcSimLabel.textContent = parseInt(mcSimulationsInput.value, 10) || 500;
+    }
+    mcModal.style.display = "flex";
+  }
+
   function updateSettings(delta) {
     var payload = {};
     if (delta.slot !== undefined) payload.slot = delta.slot;
@@ -861,6 +1010,24 @@
       document.getElementById("btn-report-modal-close").onclick = function () {
         reportModal.style.display = "none";
       };
+    }
+
+    // Monte Carlo simulation modal controls
+    var btnOpenMonteCarlo = document.getElementById("btn-open-montecarlo");
+    if (btnOpenMonteCarlo && mcModal) {
+      btnOpenMonteCarlo.onclick = openMonteCarloModal;
+      document.getElementById("btn-close-montecarlo-modal").onclick = function () {
+        mcModal.style.display = "none";
+      };
+      document.getElementById("btn-montecarlo-modal-close").onclick = function () {
+        mcModal.style.display = "none";
+      };
+      if (btnRunMonteCarlo) btnRunMonteCarlo.onclick = runMonteCarloSimulation;
+      if (mcSimulationsInput) {
+        mcSimulationsInput.oninput = function () {
+          if (mcSimLabel) mcSimLabel.textContent = parseInt(mcSimulationsInput.value, 10) || 500;
+        };
+      }
     }
 
     var modal = document.getElementById("sync-modal");

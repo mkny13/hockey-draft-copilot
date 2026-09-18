@@ -840,6 +840,334 @@
     };
   }
 
+  /* ============================================================
+   * Monte Carlo Draft Simulation (round-by-round opponent modeling)
+   *
+   * Simulates full draft runs where every remaining player's ADP is
+   * perturbed with normally-distributed noise (Box-Muller sampling of
+   * N(adp, noiseStd^2)). Opponents always draft the best available
+   * player by their noisy ADP; my turns draft the best available
+   * NON-target (a proxy pick) so we can measure how often a sleeper
+   * target is still on the board when my round-N pick arrives.
+   * ============================================================ */
+
+  /**
+   * Deterministic seeded PRNG (mulberry32) for reproducible simulations.
+   */
+  function mulberry32(seed) {
+    var a = (seed === undefined || seed === null) ? 0 : (seed >>> 0);
+    return function () {
+      a |= 0; a = (a + 0x6D2B79F5) | 0;
+      var t = Math.imul(a ^ (a >>> 15), 1 | a);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+
+  /**
+   * Standard normal deviate via Box-Muller transform from a uniform [0,1) rng.
+   */
+  function gaussian(rng) {
+    var source = rng || Math.random;
+    var u = 0, v = 0;
+    while (u === 0) u = source();
+    while (v === 0) v = source();
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
+
+  /**
+   * One noisy ADP observation: N(mean, std^2).
+   */
+  function sampleNormalNoise(mean, std, rng) {
+    var s = (std === undefined || std === null || std <= 0) ? 7.0 : std;
+    return mean + gaussian(rng) * s;
+  }
+
+  function resolveAdpValue(row) {
+    var adpVal = (row.adp && typeof row.adp === "object")
+      ? (row.adp.yahoo || row.adp.average || row.adp.fantrax)
+      : row.adp;
+    var adpNum = parseFloat(adpVal);
+    return isNaN(adpNum) ? null : adpNum;
+  }
+
+  /**
+   * Overall pick number of `slot` in round `r` of a snake draft.
+   */
+  function snakePickNumber(round, slot, teams) {
+    var isOdd = (round % 2) === 1;
+    return (round - 1) * teams + (isOdd ? slot : (teams - slot + 1));
+  }
+
+  /**
+   * Run N simulated drafts with normally-distributed ADP noise.
+   *
+   * @param {Array}  players    master board rows (draft_data.json players)
+   * @param {Object|Number} draftOrder  { teams, slot, currentPick, drafted, mine,
+   *                                noiseStd, seed, targets } — or just a teams count
+   * @param {Number} rounds     rounds to simulate (e.g. 5)
+   * @param {Number} simulations number of draft runs (e.g. 500)
+   * @param {Object} options    fallback overrides { slot, currentPick, drafted, mine,
+   *                                noiseStd, stdDev, seed, targets }
+   *
+   * Returns per-target round-by-round survival probabilities:
+   * { simulations, teams, rounds, currentPick, slot, noiseStd, poolSize,
+   *   myPicks: { [round]: pickNumber },
+   *   targets: [{ name, id, adp, drafted, roundSurvival: { [round]: prob|null } }] }
+   */
+  function runMonteCarlo(players, draftOrder, rounds, simulations, options) {
+    options = options || {};
+    var cfg = (draftOrder && typeof draftOrder === "object") ? draftOrder : {};
+
+    var teams = parseInt(cfg.teams || draftOrder, 10) || 8;
+    var slot = parseInt(cfg.slot || options.slot, 10) || 1;
+    rounds = parseInt(rounds, 10) || 10;
+    simulations = Math.max(1, parseInt(simulations, 10) || 500);
+    var currentPick = parseInt(cfg.currentPick || options.currentPick, 10) || 1;
+    var noiseStd = parseFloat(
+      (cfg.noiseStd !== undefined ? cfg.noiseStd : undefined) ||
+      (options.noiseStd !== undefined ? options.noiseStd : undefined) ||
+      (cfg.stdDev !== undefined ? cfg.stdDev : undefined) ||
+      (options.stdDev !== undefined ? options.stdDev : undefined)
+    );
+    if (isNaN(noiseStd) || noiseStd <= 0) noiseStd = 7.0;
+
+    var draftedSet = cfg.drafted || options.drafted || {};
+    var mineSet = cfg.mine || options.mine || {};
+    var seed = (cfg.seed !== undefined) ? cfg.seed : options.seed;
+    var rng = (seed !== undefined && seed !== null) ? mulberry32(seed) : Math.random;
+
+    /* Targets: array of player names or ids */
+    var requestedTargets = cfg.targets || options.targets || [];
+    if (!Array.isArray(requestedTargets)) requestedTargets = [requestedTargets];
+    var targetNames = [];
+    for (var t = 0; t < requestedTargets.length; t++) {
+      var reqName = (requestedTargets[t] && typeof requestedTargets[t] === "object")
+        ? (requestedTargets[t].name || requestedTargets[t].n)
+        : requestedTargets[t];
+      if (reqName && targetNames.indexOf(reqName) === -1) targetNames.push(reqName);
+    }
+
+    /* Build the pool of REMAINING players (drafted & mine excluded) */
+    var rows = players || [];
+    var pool = [];
+    var nameSet = {};
+    for (var i = 0; i < rows.length; i++) {
+      var row = rows[i];
+      var name = row.name || row.n;
+      if (!name || nameSet[name]) continue;
+      nameSet[name] = true;
+
+      var adp = resolveAdpValue(row);
+      if (adp === null) continue;
+      if (draftedSet[name] || mineSet[name]) continue;
+
+      pool.push({
+        name: name,
+        id: row.id !== undefined ? row.id : i,
+        adp: adp,
+        vorp: row.vorp !== undefined ? row.vorp : (row.rawVorp || 0),
+        pos: row.pos || row.p || [],
+        isTarget: targetNames.indexOf(name) !== -1
+      });
+    }
+
+    /* Targets missing from the pool (already drafted / mine) */
+    var missingTargets = [];
+    for (var m = 0; m < targetNames.length; m++) {
+      var found = false;
+      for (var f = 0; f < pool.length; f++) {
+        if (pool[f].isTarget && pool[f].name === targetNames[m]) { found = true; break; }
+      }
+      if (!found) missingTargets.push(targetNames[m]);
+    }
+
+    var maxPick = teams * rounds;
+    var myPicks = {};
+    for (var r = 1; r <= rounds; r++) {
+      var pickNo = snakePickNumber(r, slot, teams);
+      if (pickNo >= currentPick && pickNo <= maxPick) myPicks[r] = pickNo;
+    }
+
+    var n = pool.length;
+    var nadp = new Float64Array(n);
+    var taken = new Uint8Array(n);
+    var order = new Int32Array(n);
+    var perTargetHits = {};
+    for (var h = 0; h < targetNames.length; h++) {
+      perTargetHits[targetNames[h]] = {};
+    }
+
+    for (var sim = 0; sim < simulations; sim++) {
+      /* 1. Sample noisy ADPs: N(base ADP, noiseStd^2), clamped to >= 1 */
+      for (var a = 0; a < n; a++) {
+        nadp[a] = Math.max(1, sampleNormalNoise(pool[a].adp, noiseStd, rng));
+        taken[a] = 0;
+      }
+
+      /* 2. Rebuild the board: every drafter takes the best available
+       *    player according to their own noisy ADP observation. */
+      for (var o = 0; o < n; o++) order[o] = o;
+      Array.prototype.sort.call(order, function (x, y) {
+        var d = nadp[x] - nadp[y];
+        if (d !== 0) return d;
+        d = pool[x].adp - pool[y].adp;
+        if (d !== 0) return d;
+        return pool[y].vorp - pool[x].vorp;
+      });
+
+      /* 3. Walk the draft from currentPick to the final pick */
+      var head = 0;
+      var simTaken = {};
+      var takenTargets = 0;
+      for (var pick = currentPick; pick <= maxPick; pick++) {
+        var details = getPickDetails(pick, teams);
+        if (details.ownerSlot === slot) {
+          /* My turn: record which targets are still on the board, then
+           * proxy-pick the best available NON-target (I am waiting on the
+           * sleeper, so I never draft the target myself in the sim). */
+          for (var ti = 0; ti < targetNames.length; ti++) {
+            var tName = targetNames[ti];
+            if (!simTaken[tName]) {
+              perTargetHits[tName][details.round] = (perTargetHits[tName][details.round] || 0) + 1;
+            }
+          }
+          var my = head;
+          while (my < n && (taken[order[my]] || pool[order[my]].isTarget)) my++;
+          if (my < n) taken[order[my]] = 1;
+        } else {
+          while (head < n && taken[order[head]]) head++;
+          if (head < n) {
+            var idx = order[head];
+            taken[idx] = 1;
+            if (pool[idx].isTarget && !simTaken[pool[idx].name]) {
+              simTaken[pool[idx].name] = true;
+              takenTargets++;
+            }
+            head++;
+          }
+        }
+        if (takenTargets >= targetNames.length) break;
+      }
+    }
+
+    /* 4. Aggregate survival probabilities per target per round */
+    var targetResults = [];
+    for (var g = 0; g < pool.length; g++) {
+      if (!pool[g].isTarget) continue;
+      var pEntry = pool[g];
+      var rs = {};
+      for (var rr = 1; rr <= rounds; rr++) {
+        rs[rr] = (myPicks[rr] === undefined) ? null : ((perTargetHits[pEntry.name][rr] || 0) / simulations);
+      }
+      targetResults.push({
+        name: pEntry.name,
+        id: pEntry.id,
+        adp: pEntry.adp,
+        pos: pEntry.pos,
+        drafted: false,
+        roundSurvival: rs
+      });
+    }
+    for (var mi = 0; mi < missingTargets.length; mi++) {
+      var missRs = {};
+      for (var mr = 1; mr <= rounds; mr++) missRs[mr] = 0;
+      targetResults.push({
+        name: missingTargets[mi],
+        id: null,
+        adp: null,
+        pos: [],
+        drafted: true,
+        roundSurvival: missRs
+      });
+    }
+    targetResults.sort(function (x, y) {
+      return targetNames.indexOf(x.name) - targetNames.indexOf(y.name);
+    });
+
+    return {
+      simulations: simulations,
+      teams: teams,
+      rounds: rounds,
+      currentPick: currentPick,
+      slot: slot,
+      noiseStd: noiseStd,
+      poolSize: n,
+      myPicks: myPicks,
+      targets: targetResults
+    };
+  }
+
+  /**
+   * Round-by-round survival probability for a single sleeper target.
+   * Estimates P(target still available at my pick in round R) for each
+   * requested round (e.g. [3, 4, 5]) via Monte Carlo simulation with
+   * normally-distributed ADP noise on the remaining player pool.
+   *
+   * @param {String|Number} playerId    player name (or master row id)
+   * @param {Array|Number}  roundTargets e.g. [3, 4, 5]
+   * @param {Number}        simulations  e.g. 500
+   * @param {Object}        options     { players (required), teams, slot,
+   *                                      currentPick, drafted, mine, noiseStd, seed }
+   */
+  function roundSurvivalProbabilities(playerId, roundTargets, simulations, options) {
+    options = options || {};
+    var rows = options.players || [];
+    if (!rows.length) return null;
+
+    var row = null;
+    for (var i = 0; i < rows.length; i++) {
+      var nm = rows[i].name || rows[i].n;
+      if (nm === playerId || rows[i].id === playerId) { row = rows[i]; break; }
+    }
+    if (!row) return null;
+
+    var name = row.name || row.n;
+    var rts = Array.isArray(roundTargets) ? roundTargets : [roundTargets];
+    var maxRound = 5;
+    for (var t = 0; t < rts.length; t++) {
+      var rt = parseInt(rts[t], 10);
+      if (!isNaN(rt) && rt > maxRound) maxRound = rt;
+    }
+
+    var mcOptions = {
+      players: rows,
+      teams: options.teams,
+      slot: options.slot,
+      currentPick: options.currentPick,
+      drafted: options.drafted,
+      mine: options.mine,
+      noiseStd: options.noiseStd !== undefined ? options.noiseStd : options.stdDev,
+      seed: options.seed
+    };
+
+    var res = runMonteCarlo(rows, { targets: [name] }, maxRound, simulations, mcOptions);
+    var entry = (res.targets && res.targets[0]) || {
+      name: name, id: row.id, adp: null, drafted: false, roundSurvival: {}
+    };
+
+    var roundsOut = {};
+    for (var r = 0; r < rts.length; r++) {
+      var roundNum = parseInt(rts[r], 10);
+      roundsOut[roundNum] = (entry.roundSurvival[roundNum] === undefined) ? null : entry.roundSurvival[roundNum];
+    }
+
+    return {
+      playerId: row.id !== undefined ? row.id : playerId,
+      name: name,
+      adp: entry.adp,
+      drafted: entry.drafted,
+      simulations: res.simulations,
+      teams: res.teams,
+      slot: res.slot,
+      currentPick: res.currentPick,
+      noiseStd: res.noiseStd,
+      myPicks: res.myPicks,
+      rounds: roundsOut,
+      roundSurvival: entry.roundSurvival
+    };
+  }
+
   return {
     normalCDF: normalCDF,
     pSurvive: pSurvive,
@@ -854,6 +1182,11 @@
     getTopMatchup: getTopMatchup,
     evaluateBoard: evaluateBoard,
     comparePlayersGameTheory: comparePlayersGameTheory,
-    gradeDraft: gradeDraft
+    gradeDraft: gradeDraft,
+    mulberry32: mulberry32,
+    gaussian: gaussian,
+    sampleNormalNoise: sampleNormalNoise,
+    runMonteCarlo: runMonteCarlo,
+    roundSurvivalProbabilities: roundSurvivalProbabilities
   };
 });
