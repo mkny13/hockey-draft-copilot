@@ -139,7 +139,6 @@
    * Calculate Dynamic Positional Cliffs among currently available undrafted players
    */
   function computeDynamicCliffs(availablePlayers) {
-    // Map position -> sorted list of available VORPs
     var posMap = {};
     for (var i = 0; i < availablePlayers.length; i++) {
       var p = availablePlayers[i];
@@ -152,7 +151,6 @@
       }
     }
 
-    // Sort each position descending
     for (var k in posMap) {
       posMap[k].sort(function (a, b) { return b.vorp - a.vorp; });
     }
@@ -166,16 +164,28 @@
       var maxCliff = 0;
       for (var n = 0; n < plPos.length; n++) {
         var list = posMap[plPos[n]] || [];
-        // Find next player below this player
-        var nextVal = 0;
+        var myIdx = -1;
         for (var l = 0; l < list.length; l++) {
-          if (list[l].vorp < plVorp - 0.01) {
-            nextVal = list[l].vorp;
+          if (list[l].name === pl.name) {
+            myIdx = l;
             break;
           }
         }
-        var cliff = plVorp - nextVal;
-        if (cliff > maxCliff) maxCliff = cliff;
+
+        if (myIdx !== -1) {
+          var nextPl = list[myIdx + 1];
+          var directDrop = nextPl ? (plVorp - nextPl.vorp) : plVorp;
+          var tierDrop = directDrop;
+          if (nextPl && directDrop < 15 && (myIdx + 2 < list.length)) {
+            var tierNext = list[myIdx + 2];
+            var nextDrop = nextPl.vorp - tierNext.vorp;
+            if (nextDrop >= 15) {
+              tierDrop = plVorp - tierNext.vorp;
+            }
+          }
+          var effectiveCliff = Math.max(directDrop, tierDrop);
+          if (effectiveCliff > maxCliff) maxCliff = effectiveCliff;
+        }
       }
       dynamicCliffMap[pl.name] = maxCliff > 0 ? maxCliff : (pl.dropoff || 0);
     }
@@ -302,19 +312,30 @@
     });
 
     shortlistCandidates.sort(function (a, b) {
+      // 1. If VORP difference is significant (>= 4.0 pts), higher VORP strictly dominates:
+      var vorpDiff = b.adjVorp - a.adjVorp;
+      if (Math.abs(vorpDiff) >= 4.0) {
+        return vorpDiff;
+      }
+
+      // 2. If VORP is close (within 4 pts):
+      // A MUST REACH player takes priority
       if (a.action === "MUST REACH (Cliff)" && b.action !== "MUST REACH (Cliff)") return -1;
       if (b.action === "MUST REACH (Cliff)" && a.action !== "MUST REACH (Cliff)") return 1;
 
-      // Between Now or Never and Target
-      if (a.action === "NOW OR NEVER" && b.action === "TARGET" && (a.adjVorp >= b.adjVorp - 5.0)) return -1;
-      if (b.action === "NOW OR NEVER" && a.action === "TARGET" && (b.adjVorp >= a.adjVorp - 5.0)) return 1;
-
-      // Close VORP tiebreaking by Next dropoff cliff
-      var vorpDiff = Math.abs(a.adjVorp - b.adjVorp);
-      if (vorpDiff <= 2.5) {
-        return b.dropoff - a.dropoff;
+      // 3. Higher urgency (lower survival odds) takes priority
+      var survDiff = a.survivalProb - b.survivalProb;
+      if (Math.abs(survDiff) > 0.15) {
+        return survDiff;
       }
-      return b.adjVorp - a.adjVorp;
+
+      // 4. Steeper cliff breaks final tie
+      var cliffDiff = b.dropoff - a.dropoff;
+      if (Math.abs(cliffDiff) >= 2.0) {
+        return cliffDiff;
+      }
+
+      return vorpDiff;
     });
 
     var shortlist = shortlistCandidates.slice(0, 8);

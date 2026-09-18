@@ -209,8 +209,9 @@
 
   function renderShortlist() {
     var list = state.evalResult.shortlist;
+    var targetTurn = state.evalResult.targetTurn;
     shortlistContainer.innerHTML = "";
-    document.getElementById("shortlist-count").textContent = list.length + " ranked options";
+    document.getElementById("shortlist-count").textContent = list.length + " prioritized targets";
 
     if (!list.length) {
       shortlistContainer.innerHTML = "<div style='color:var(--text-muted); font-size:12px; padding:8px;'>All top targets drafted.</div>";
@@ -230,32 +231,43 @@
       var survPct = (p.survivalProb * 100).toFixed(0) + "%";
       var cliffText = p.dropoff > 0 ? "+" + p.dropoff.toFixed(1) : "-";
 
+      // Human-readable reach risk pill
+      var riskBadge = "";
+      if (p.survivalProb < 0.25) {
+        riskBadge = `<span style="color:#ff7b72; background:rgba(248,81,73,0.15); border:1px solid rgba(248,81,73,0.4); font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;" title="Only ${survPct} chance this player survives to your next turn (#${targetTurn})">🔥 GONE BY PICK #${targetTurn} (${survPct})</span>`;
+      } else if (p.survivalProb < 0.50) {
+        riskBadge = `<span style="color:#ffa657; background:rgba(240,136,62,0.15); border:1px solid rgba(240,136,62,0.4); font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;" title="High snipe risk (${survPct} survival to Pick #${targetTurn})">⚠️ HIGH SNIPE RISK (${survPct})</span>`;
+      } else if (p.survivalProb < 0.75) {
+        riskBadge = `<span style="color:#79c0ff; background:rgba(88,166,255,0.12); border:1px solid rgba(88,166,255,0.3); font-size:10px; font-weight:600; padding:2px 6px; border-radius:4px;" title="Moderate survival: ${survPct} to Pick #${targetTurn}">🎲 IN PLAY (${survPct})</span>`;
+      } else {
+        riskBadge = `<span style="color:#7ee787; background:rgba(63,185,80,0.15); border:1px solid rgba(63,185,80,0.4); font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px;" title="Safe sleeper: ${survPct} chance to reach Pick #${targetTurn}">🛡️ SAFE SLEEPER (${survPct})</span>`;
+      }
+
       card.innerHTML = `
         <div class="card-rank">#${i + 1}</div>
-        <div class="card-info">
-          <div class="card-name-row">
-            <span class="card-name">${p.name}</span>
+        <div class="card-info" style="flex: 1;">
+          <div class="card-name-row" style="flex-wrap: wrap; gap: 6px;">
+            <span class="card-name" style="font-size:14px; font-weight:700;">${p.name}</span>
             <span class="card-pos">${p.posLabel}</span>
             <span class="card-team">${p.team}</span>
             <span class="badge ${badgeClass}">${p.action}</span>
+            ${riskBadge}
           </div>
-          <div style="font-size: 11px; color: var(--text-dim);">
-            ADP: <b>${p.adp || 'N/A'}</b> · Dynamic Cliff: <b style="color:${p.dropoff >= 15 ? 'var(--red)' : 'var(--text-main)'}">${cliffText}</b>
+          <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display:flex; gap:12px; align-items:center;">
+            <span>Tier Cliff: <b style="color:${p.dropoff >= 15 ? 'var(--red)' : 'var(--text-main)'};">${cliffText} pts</b></span>
+            <span>Consensus ADP: <b style="color:var(--text-main);">${p.adp || 'N/A'}</b></span>
+            ${p.adpDelta >= 15 ? `<span style="color:var(--green);">Arbitrage: +${p.adpDelta.toFixed(1)}</span>` : ''}
           </div>
         </div>
         <div class="card-metrics">
-          <div class="card-metric">
-            <span style="font-weight:700; color:var(--accent);">${p.adjVorp.toFixed(1)}</span>
-            <span class="metric-label">Adj VORP</span>
-          </div>
-          <div class="card-metric">
-            <span style="font-weight:700; color:${p.survivalProb < 0.2 ? 'var(--orange)' : 'var(--green)'};">${survPct}</span>
-            <span class="metric-label">P(Surv)</span>
+          <div class="card-metric" style="text-align:right;">
+            <span style="font-weight:800; font-size:15px; color:var(--accent);">${p.adjVorp.toFixed(1)}</span>
+            <span class="metric-label">Value (VORP)</span>
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn-card-draft" data-id="${p.id}" title="Draft to My Team">+ Mine</button>
-          <button class="btn-card-taken" data-id="${p.id}" title="Taken by Opponent">Taken</button>
+          <button class="btn-card-draft" data-id="${p.id}" title="Draft to My Team" style="padding:5px 10px; font-size:12px;">+ Mine</button>
+          <button class="btn-card-taken" data-id="${p.id}" title="Taken by Opponent" style="padding:5px 8px; font-size:12px;">Taken</button>
         </div>
       `;
 
@@ -622,6 +634,21 @@
 
     cmpSelectA.onchange = calculateTradeoff;
     cmpSelectB.onchange = calculateTradeoff;
+
+    // Guide modal controls
+    var guideModal = document.getElementById("guide-modal");
+    var btnOpenGuide = document.getElementById("btn-open-guide");
+    if (btnOpenGuide && guideModal) {
+      btnOpenGuide.onclick = function () {
+        guideModal.style.display = "flex";
+      };
+      document.getElementById("btn-close-guide-modal").onclick = function () {
+        guideModal.style.display = "none";
+      };
+      document.getElementById("btn-guide-modal-close").onclick = function () {
+        guideModal.style.display = "none";
+      };
+    }
 
     var modal = document.getElementById("sync-modal");
     document.getElementById("btn-open-sync").onclick = function () {

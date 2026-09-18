@@ -67,6 +67,9 @@
       <button class="btn-header btn-undo" id="btn-undo-pick" title="Revert the most recent pick">
         ↩ Undo Pick
       </button>
+      <button class="btn-header" id="btn-open-guide" title="Draft Decision Protocol & Label Key">
+        📖 Guide & Key
+      </button>
       <button class="btn-header" id="btn-open-sync" title="Yahoo Draft Sync & Settings">
         ⚡ Yahoo Sync
       </button>
@@ -240,6 +243,90 @@
         <span style="font-family: var(--font-mono); color: var(--text-dim);">Port 3333</span>
       </div>
     </aside>
+  </div>
+
+
+  <!-- Guide & Label Key Modal -->
+  <div id="guide-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.75); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:var(--panel); border:1px solid var(--panel-border); border-radius:10px; width:640px; max-width:92%; max-height:88vh; display:flex; flex-direction:column; padding:22px; box-shadow:0 12px 36px rgba(0,0,0,0.6); overflow-y:auto;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; border-bottom:1px solid var(--panel-border); padding-bottom:10px;">
+        <h2 style="font-size:17px; font-weight:700; color:var(--text-main); display:flex; align-items:center; gap:8px;">
+          <span>📖 Draft Decision Guide & Label Key</span>
+        </h2>
+        <button id="btn-close-guide-modal" style="background:none; border:none; color:var(--text-muted); font-size:24px; cursor:pointer;">&times;</button>
+      </div>
+
+      <!-- Action Badges Section -->
+      <div style="margin-bottom:16px;">
+        <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--accent); margin-bottom:8px;">
+          1. The 4 Live Action Badges (What to do on the clock)
+        </h3>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+          <div style="background:var(--bg-dark); border-left:3px solid var(--red); padding:6px 10px; border-radius:0 4px 4px 0;">
+            <span class="badge badge-must-reach">MUST REACH (Cliff)</span>
+            <span style="font-size:12px; margin-left:6px; color:var(--text-main);"><b>Draft immediately!</b> Low survival odds (&lt;35%) and a massive drop-off to the next tier (&ge;15 pts). Passing forfeits irreplaceable value.</span>
+          </div>
+          <div style="background:var(--bg-dark); border-left:3px solid var(--orange); padding:6px 10px; border-radius:0 4px 4px 0;">
+            <span class="badge badge-now-or-never">NOW OR NEVER</span>
+            <span style="font-size:12px; margin-left:6px; color:var(--text-main);"><b>Urgent pick!</b> Survival odds are &lt;20%. Opponents will draft them before your next turn. If they top your value board, lock them in now.</span>
+          </div>
+          <div style="background:var(--bg-dark); border-left:3px solid var(--accent); padding:6px 10px; border-radius:0 4px 4px 0;">
+            <span class="badge badge-target">TARGET</span>
+            <span style="font-size:12px; margin-left:6px; color:var(--text-main);"><b>Solid value pick.</b> Moderate survival (20%–75%). Weigh between their Adj VORP and positional cliffs.</span>
+          </div>
+          <div style="background:var(--bg-dark); border-left:3px solid var(--green); padding:6px 10px; border-radius:0 4px 4px 0;">
+            <span class="badge badge-wait">WAIT (ADP Safe)</span>
+            <span style="font-size:12px; margin-left:6px; color:var(--text-main);"><b>Safe to let fall!</b> High survival (&gt;75%). Casual opponents sorting by platform ADP will not reach down for them. Pass now to draft an urgent cliff; this player will fall back to you.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- P(Surv) Section -->
+      <div style="background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:12px; margin-bottom:14px;">
+        <h3 style="font-size:12px; font-weight:700; text-transform:uppercase; color:var(--yellow); margin-bottom:6px;">
+          2. What is P(Surv) and Why is it on the Short List?
+        </h3>
+        <p style="font-size:12px; color:var(--text-muted); line-height:1.5;">
+          <b>P(Surv)</b> is your <b>Survival Probability</b>: the estimated mathematical likelihood that opponents will leave this player available until your upcoming snake pick.
+        </p>
+        <ul style="font-size:11px; color:var(--text-muted); margin-left:18px; margin-top:6px; line-height:1.6;">
+          <li><b style="color:var(--red);">Under 25% (High Snipe Risk):</b> Almost certainly drafted before your next turn. If you want this player, you <i>must</i> draft them now.</li>
+          <li><b style="color:var(--accent);">25% to 65% (Toss-up / In play):</b> Active competition zone. Compare their positional cliff against alternatives.</li>
+          <li><b style="color:var(--green);">Over 75% (Safe Sleeper):</b> You have market leverage. You don't need to waste an early pick on them because consensus drafters will ignore them until later rounds.</li>
+        </ul>
+      </div>
+
+      <!-- Dynamic Cliff & Adj VORP Section -->
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
+        <div style="background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:10px;">
+          <div style="font-weight:700; font-size:11px; color:var(--text-main); margin-bottom:4px;">⚡ Dynamic Cliff (VONA)</div>
+          <div style="font-size:11px; color:var(--text-muted); line-height:1.4;">
+            The drop in VORP from this player down to the next best available player at that position. A drop of <b>+15 to +50</b> means passing on them costs you irreplaceable starting points.
+          </div>
+        </div>
+        <div style="background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:10px;">
+          <div style="font-weight:700; font-size:11px; color:var(--text-main); margin-bottom:4px;">📊 Adj VORP (Roster Utility)</div>
+          <div style="font-size:11px; color:var(--text-muted); line-height:1.4;">
+            VORP adjusted for your roster needs. Full 100% value for starting spots; automatically dampened by 15%–35% once starting spots at that position are filled to prevent wasteful bench stockpiling.
+          </div>
+        </div>
+      </div>
+
+      <!-- Keyboard & Mouse Shortcuts -->
+      <div style="background:rgba(88,166,255,0.08); border:1px solid var(--accent-dark); border-radius:6px; padding:10px; margin-bottom:16px;">
+        <div style="font-weight:700; font-size:11px; color:var(--accent); margin-bottom:4px;">⌨️ Fast Live Shortcuts & Gestures</div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px; font-size:11px; color:var(--text-main);">
+          <div>• <b>Single-click row / [Taken]:</b> Drafted by opponent</div>
+          <div>• <b>Double-click row / [+ Mine]:</b> Draft to My Team</div>
+          <div>• <b>/ (Slash key):</b> Jump instantly to search box</div>
+          <div>• <b>u or Cmd+Z:</b> Undo last drafted pick</div>
+        </div>
+      </div>
+
+      <div style="text-align:right;">
+        <button id="btn-guide-modal-close" class="btn-header" style="display:inline-block; font-weight:700;">Got It</button>
+      </div>
+    </div>
   </div>
 
   <!-- Yahoo Sync Setup Modal -->
