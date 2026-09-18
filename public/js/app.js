@@ -627,6 +627,132 @@
       .catch(err => console.error("Error resetting draft:", err));
   }
 
+  function renderReport(report) {
+    var content = document.getElementById("report-content");
+    var s = report.summary;
+    var bal = report.positionalBalance;
+
+    function fmtSigned(v, digits) {
+      var d = digits === undefined ? 1 : digits;
+      return (v >= 0 ? "+" : "") + v.toFixed(d);
+    }
+    function surplusColor(v) {
+      return v > 0 ? "var(--green)" : (v < 0 ? "var(--red)" : "var(--text-muted)");
+    }
+    function statusColor(status) {
+      if (status.indexOf("EMPTY") === 0) return "var(--red)";
+      if (status === "LIGHT") return "var(--orange)";
+      if (status === "FILLED") return "var(--green)";
+      return "var(--yellow)"; // OVER
+    }
+
+    var html = "";
+
+    // 1. Headline grade + VORP captured vs expected
+    var gradeBadge = s.grade
+      ? "<span style='font-size:34px; font-weight:800; color:" + surplusColor(s.totalSurplus) + ";'>" + s.grade + "</span>" +
+        "<div style='font-size:10px; color:var(--text-muted); margin-top:2px;'>" + s.gradeLabel + "</div>"
+      : "<span style='font-size:20px; color:var(--text-muted);'>—</span>" +
+        "<div style='font-size:10px; color:var(--text-muted); margin-top:6px;'>No picks drafted to your team yet</div>";
+
+    html += "<div style='display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:18px;'>" +
+      "<div style='background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:12px; text-align:center;'>" +
+        gradeBadge + "</div>" +
+      "<div style='background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:12px; text-align:center;'>" +
+        "<div style='font-size:10px; color:var(--text-dim); text-transform:uppercase;'>VORP Captured</div>" +
+        "<div style='font-size:22px; font-weight:700; color:var(--accent);'>" + s.totalCapturedVorp.toFixed(1) + "</div>" +
+        "<div style='font-size:10px; color:var(--text-dim);'>" + s.picksCount + " pick(s)</div></div>" +
+      "<div style='background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:12px; text-align:center;'>" +
+        "<div style='font-size:10px; color:var(--text-dim); text-transform:uppercase;'>Expected (slot ADP)</div>" +
+        "<div style='font-size:22px; font-weight:700; color:var(--text-main);'>" + s.totalExpectedVorp.toFixed(1) + "</div>" +
+        "<div style='font-size:10px; color:var(--text-dim);'>per draft slot</div></div>" +
+      "<div style='background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:12px; text-align:center;'>" +
+        "<div style='font-size:10px; color:var(--text-dim); text-transform:uppercase;'>Surplus Value</div>" +
+        "<div style='font-size:22px; font-weight:700; color:" + surplusColor(s.totalSurplus) + ";'>" + fmtSigned(s.totalSurplus) + "</div>" +
+        "<div style='font-size:10px; color:var(--text-dim);'>" + (s.captureRatio !== null ? (s.captureRatio * 100).toFixed(0) + "% of expected" : "no data") + "</div></div>" +
+      "</div>";
+
+
+    // 2. My picks: captured vs expected per slot
+    html += "<div style='font-weight:700; font-size:12px; color:var(--accent); margin-bottom:6px;'>🎯 My Picks: Captured vs Expected VORP</div>";
+    if (report.myPicks.length) {
+      html += "<table style='width:100%; border-collapse:collapse; font-size:11px; margin-bottom:18px;'>" +
+        "<thead><tr style='color:var(--text-dim); text-transform:uppercase; font-size:9px; text-align:left;'>" +
+        "<th style='padding:4px 6px;'>#</th><th style='padding:4px 6px;'>Player</th><th style='padding:4px 6px;'>Pos</th>" +
+        "<th style='padding:4px 6px; text-align:right;'>ADP</th><th style='padding:4px 6px; text-align:right;'>VORP</th>" +
+        "<th style='padding:4px 6px; text-align:right;'>Expected</th><th style='padding:4px 6px; text-align:right;'>Surplus</th>" +
+        "</tr></thead><tbody>";
+      for (var i = 0; i < report.myPicks.length; i++) {
+        var mp = report.myPicks[i];
+        html += "<tr style='border-top:1px solid var(--panel-border);'>" +
+          "<td style='padding:5px 6px; color:var(--text-dim);'>" + mp.pickNumber + "</td>" +
+          "<td style='padding:5px 6px; font-weight:600;'>" + mp.name + "</td>" +
+          "<td style='padding:5px 6px;'><span class='card-pos'>" + mp.posLabel + "</span></td>" +
+          "<td style='padding:5px 6px; text-align:right; color:var(--text-muted);'>" + (mp.adp !== null ? mp.adp.toFixed(1) : "-") + "</td>" +
+          "<td style='padding:5px 6px; text-align:right;'>" + mp.vorp.toFixed(1) + "</td>" +
+          "<td style='padding:5px 6px; text-align:right; color:var(--text-muted);'>" + mp.expectedVorp.toFixed(1) + "</td>" +
+          "<td style='padding:5px 6px; text-align:right; font-weight:700; color:" + surplusColor(mp.surplus) + ";'>" + fmtSigned(mp.surplus) + "</td>" +
+          "</tr>";
+      }
+      html += "</tbody></table>";
+    } else {
+      html += "<div style='font-size:11px; color:var(--text-muted); padding:10px; margin-bottom:18px; background:var(--bg-dark); border-radius:6px;'>No picks drafted to your team yet. Use \"+ Mine\" or double-click players during the draft, then reopen this report.</div>";
+    }
+
+
+    // 3. Best value steals by ADP Delta
+    html += "<div style='font-weight:700; font-size:12px; color:var(--green); margin-bottom:6px;'>💎 Best Value Steals (Highest ADP Delta)</div>";
+    if (report.steals.length) {
+      html += "<div style='display:flex; flex-direction:column; gap:6px; margin-bottom:18px;'>";
+      var top = report.steals.slice(0, 5);
+      for (var k = 0; k < top.length; k++) {
+        var st = top[k];
+        html += "<div style='display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:8px 10px;'>" +
+          "<div style='font-size:11px;'>" +
+            "<span style='font-weight:700;'>" + st.name + "</span>" +
+            "<span style='font-size:10px; color:var(--text-dim); margin-left:6px;'>" + st.posLabel + " · Pick #" + st.pickNumber + (st.isMine ? " · <b style='color:var(--green);'>MY TEAM</b>" : "") + "</span>" +
+          "</div>" +
+          "<div style='font-size:11px; color:var(--text-muted);'>ADP " + (st.adp !== null ? st.adp.toFixed(1) : "-") + " → <b style='color:var(--green); font-size:13px;'>" + fmtSigned(st.adpDelta) + " delta</b></div>" +
+          "</div>";
+      }
+      html += "</div>";
+    } else {
+      html += "<div style='font-size:11px; color:var(--text-muted); padding:10px; margin-bottom:18px; background:var(--bg-dark); border-radius:6px;'>No value steals yet — every pick so far was at or ahead of consensus ADP.</div>";
+    }
+
+    // 4. Positional balance
+    html += "<div style='font-weight:700; font-size:12px; color:var(--yellow); margin-bottom:6px;'>⚖️ Positional Balance (My Roster)</div>";
+    html += "<div style='display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:10px;'>";
+    for (var b = 0; b < bal.slots.length; b++) {
+      var slot = bal.slots[b];
+      html += "<div style='background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:10px; text-align:center;'>" +
+        "<div style='font-weight:700; font-size:13px;'>" + slot.pos + "</div>" +
+        "<div style='font-size:18px; font-weight:700; color:" + statusColor(slot.status) + ";'>" + slot.count + " / " + slot.limit + "</div>" +
+        "<div style='font-size:9px; color:" + statusColor(slot.status) + "; margin-top:2px;'>" + slot.status + "</div>" +
+        "</div>";
+    }
+    html += "</div>";
+    html += "<div style='font-size:11px; color:var(--text-muted); margin-bottom:6px;'>" + bal.verdict + "</div>";
+
+    content.innerHTML = html;
+  }
+
+  function fetchAndRenderReport() {
+    var content = document.getElementById("report-content");
+    if (!content) return;
+    fetch("/api/report")
+      .then(r => r.json())
+      .then(data => {
+        if (!data.success || !data.report) throw new Error("Invalid report payload");
+        renderReport(data.report);
+      })
+      .catch(err => {
+        console.error("Error loading post-draft report:", err);
+        content.innerHTML = "<div style='font-size:12px; color:var(--red); padding:16px; text-align:center;'>Could not load the post-draft report. Make sure the server is running and try again.</div>";
+      });
+  }
+
+
   function updateSettings(delta) {
     var payload = {};
     if (delta.slot !== undefined) payload.slot = delta.slot;
@@ -718,6 +844,22 @@
       };
       document.getElementById("btn-guide-modal-close").onclick = function () {
         guideModal.style.display = "none";
+      };
+    }
+
+    // Report modal controls
+    var reportModal = document.getElementById("report-modal");
+    var btnOpenReport = document.getElementById("btn-open-report");
+    if (btnOpenReport && reportModal) {
+      btnOpenReport.onclick = function () {
+        reportModal.style.display = "flex";
+        fetchAndRenderReport();
+      };
+      document.getElementById("btn-close-report-modal").onclick = function () {
+        reportModal.style.display = "none";
+      };
+      document.getElementById("btn-report-modal-close").onclick = function () {
+        reportModal.style.display = "none";
       };
     }
 

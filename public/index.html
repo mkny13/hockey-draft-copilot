@@ -70,6 +70,9 @@
       <button class="btn-header" id="btn-open-guide" title="Draft Decision Protocol & Label Key">
         📖 Guide & Key
       </button>
+      <button class="btn-header" id="btn-open-report" title="Post-Draft Roster Grader & Surplus Value Recap">
+        📊 Draft Report
+      </button>
       <button class="btn-header" id="btn-open-sync" title="Yahoo Draft Sync & Settings">
         ⚡ Yahoo Sync
       </button>
@@ -326,6 +329,24 @@
 
       <div style="text-align:right;">
         <button id="btn-guide-modal-close" class="btn-header" style="display:inline-block; font-weight:700;">Got It</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Post-Draft Report Modal -->
+  <div id="report-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.7); z-index:1000; align-items:center; justify-content:center;">
+    <div style="background:var(--panel); border:1px solid var(--panel-border); border-radius:8px; width:720px; max-width:92%; max-height:88vh; overflow-y:auto; padding:20px; box-shadow:0 8px 24px rgba(0,0,0,0.5);">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+        <h2 style="font-size:16px; font-weight:700;">📊 Post-Draft Report: Roster Grader &amp; Surplus Value Recap</h2>
+        <button id="btn-close-report-modal" style="background:none; border:none; color:var(--text-muted); font-size:20px; cursor:pointer;">&times;</button>
+      </div>
+
+      <div id="report-content">
+        <div style="font-size:12px; color:var(--text-muted); padding:20px; text-align:center;">Loading report...</div>
+      </div>
+
+      <div style="text-align:right;">
+        <button id="btn-report-modal-close" class="btn-header" style="display:inline-block;">Close</button>
       </div>
     </div>
   </div>
