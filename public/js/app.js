@@ -4,9 +4,7 @@
   // Global State
   var state = {
     draftData: null,
-    model: null,
-    settings: null,
-    valuationResult: null,
+    masterPlayers: [],
     evalResult: null,
     // Server-synced state:
     currentPick: 1,
@@ -29,7 +27,7 @@
   var safeSleepersContainer = document.getElementById("safe-sleepers-container");
   var historyFeed = document.getElementById("history-feed");
 
-  // Elements
+  // Header Elements
   var dispCurrentPick = document.getElementById("disp-current-pick");
   var dispNextTurn = document.getElementById("disp-next-turn");
   var statusBadge = document.getElementById("status-badge");
@@ -44,7 +42,6 @@
   var cmpSelectB = document.getElementById("compare-player-b");
   var cmpVerdict = document.getElementById("comparator-verdict");
 
-  // Initialize
   async function init() {
     setupBookmarklet();
     setupEventListeners();
@@ -53,30 +50,7 @@
     try {
       var res = await fetch("/draft_data.json");
       state.draftData = await res.json();
-      state.model = Valuation.createModel(state.draftData);
-      
-      var cfg = state.draftData.config;
-      state.settings = {
-        scoring: cfg.scoring,
-        weights: cfg.source_weights,
-        slots: cfg.league.slots,
-        teams: state.teams,
-        gpModel: cfg.model.gp_model,
-        gpSource: cfg.model.gp_source,
-        adpSource: cfg.model.adp_source || "average",
-        eligibility: cfg.model.eligibility || "",
-        playoffWindow: cfg.model.playoff_window || "skip",
-        replacementMethod: cfg.model.replacement_method,
-        countBench: cfg.model.count_bench !== false,
-        tierK: cfg.model.tier_k,
-        minGP: cfg.model.min_gp || 0,
-        rankMetric: cfg.model.rank_metric || "vorp",
-        adjust: {
-          tiers: (cfg.adjust && cfg.adjust.tiers) || [0.05, 0.10, 0.20],
-          skaterStats: (cfg.adjust && cfg.adjust.skater_stats) || [],
-          goalieStats: (cfg.adjust && cfg.adjust.goalie_stats) || []
-        }
-      };
+      state.masterPlayers = state.draftData.players || [];
 
       // Fetch latest server state
       var stateRes = await fetch("/api/state");
@@ -155,17 +129,12 @@
   }
 
   function recomputeAndRender() {
-    if (!state.model || !state.settings) return;
-
-    // Run core valuation engine
-    state.settings.teams = state.teams;
-    state.settings.drafted = state.drafted;
-    state.valuationResult = Valuation.compute(state.model, state.settings);
+    if (!state.masterPlayers || !state.masterPlayers.length) return;
 
     var rosterCounts = getRosterCounts();
 
-    // Run Game Theory Decision Protocol Engine
-    state.evalResult = GameTheory.evaluateBoard(state.valuationResult.rows, {
+    // Evaluate board with enhanced Game Theory engine
+    state.evalResult = GameTheory.evaluateBoard(state.masterPlayers, {
       currentPick: state.currentPick,
       slot: state.slot,
       teams: state.teams,
@@ -259,7 +228,7 @@
             <span class="badge ${badgeClass}">${p.action}</span>
           </div>
           <div style="font-size: 11px; color: var(--text-dim);">
-            ADP: <b>${p.adp || 'N/A'}</b> · Drop-off Cliff: <b style="color:${p.dropoff >= 15 ? 'var(--red)' : 'var(--text-main)'}">${cliffText}</b>
+            ADP: <b>${p.adp || 'N/A'}</b> · Dynamic Cliff: <b style="color:${p.dropoff >= 15 ? 'var(--red)' : 'var(--text-main)'}">${cliffText}</b>
           </div>
         </div>
         <div class="card-metrics">
@@ -278,7 +247,6 @@
         </div>
       `;
 
-      // Event listeners for action buttons
       (function (player) {
         card.querySelector(".btn-card-draft").onclick = function (e) {
           e.stopPropagation();
@@ -324,7 +292,7 @@
     var nameA = cmpSelectA.value;
     var nameB = cmpSelectB.value;
     if (!nameA || !nameB || nameA === nameB) {
-      cmpVerdict.innerHTML = "Select two distinct players to evaluate the Game Theory threshold rule $P(A) > \\frac{\\text{Loss}_B}{\\text{Loss}_A}$.";
+      cmpVerdict.innerHTML = "Select two distinct players to evaluate the Generalized EVONA trade-off.";
       return;
     }
 
@@ -340,8 +308,8 @@
     cmpVerdict.innerHTML = `
       <div style="font-weight:700; color:${color}; margin-bottom:4px;">${cmp.verdict}</div>
       <div style="color:var(--text-dim); font-size:10px; font-family:var(--font-mono);">
-        Option 1 (Take ${rowB.name}, wait on ${rowA.name}): EV = ${cmp.evOption1.toFixed(1)}<br>
-        Option 2 (Lock in ${rowA.name} now): EV = ${cmp.evOption2.toFixed(1)} (ΔEV: ${cmp.deltaEV > 0 ? '+' : ''}${cmp.deltaEV.toFixed(1)})
+        Option 1 (Take ${rowB.name}, gamble on ${rowA.name}): EV = ${cmp.evOption1.toFixed(1)}<br>
+        Option 2 (Take ${rowA.name} now, gamble on ${rowB.name}): EV = ${cmp.evOption2.toFixed(1)} (ΔEV: ${cmp.deltaEV > 0 ? '+' : ''}${cmp.deltaEV.toFixed(1)})
       </div>
     `;
   }
@@ -412,7 +380,7 @@
       var cliffText = p.dropoff > 0 ? "+" + p.dropoff.toFixed(1) : "-";
       var deltaText = p.adpDelta > 0 ? "+" + p.adpDelta.toFixed(1) : (p.adpDelta < 0 ? p.adpDelta.toFixed(1) : "-");
 
-      var fpVal = state.valuationResult.rows[p.id] ? state.valuationResult.rows[p.id].fp.toFixed(0) : "-";
+      var fpVal = p.fp ? p.fp.toFixed(1) : "-";
 
       tr.innerHTML = `
         <td style="color:var(--text-dim);">${p.rank || (i + 1)}</td>
@@ -436,7 +404,6 @@
         </td>
       `;
 
-      // Clicks
       (function (player) {
         var btnMine = tr.querySelector(".btn-tbl-mine");
         if (btnMine) {
@@ -453,10 +420,9 @@
           };
         }
 
-        // Single click row = drafted by opponent, double click = my team
         tr.onclick = function (e) {
           if (e.target.closest("button")) return;
-          if (e.detail > 1) return; // ignore second click of dblclick
+          if (e.detail > 1) return;
           draftPlayer(player, false);
         };
         tr.ondblclick = function (e) {
@@ -473,7 +439,6 @@
 
   function renderSidebar(rosterCounts) {
     var limits = state.rosterLimits;
-
     var posList = ["c", "lw", "rw", "d", "g"];
     var totalDrafted = 0;
     var totalVorp = 0;
@@ -491,14 +456,14 @@
 
       if (count >= limit) {
         card.classList.add("capped");
-        warnDiv.textContent = "⚠️ Capped (-35% VORP)";
+        warnDiv.textContent = "⚠️ Capped (-15% to -35% VORP)";
       } else {
         card.classList.remove("capped");
         warnDiv.textContent = "";
       }
     }
 
-    // Calculate total VORP captured by my team
+    // Total VORP captured by my team
     for (var j = 0; j < state.pickHistory.length; j++) {
       var pick = state.pickHistory[j];
       if (pick.isMine) {
@@ -513,7 +478,7 @@
     document.getElementById("roster-total-count").textContent = totalDrafted + " / 18";
     document.getElementById("stat-total-vorp").textContent = totalVorp.toFixed(1);
 
-    // Render pick history feed
+    // Pick history feed
     historyFeed.innerHTML = "";
     document.getElementById("history-total-picks").textContent = state.pickHistory.length + " picks";
 
@@ -533,7 +498,6 @@
     }
   }
 
-  // Action Dispatchers
   function draftPlayer(player, isMine) {
     if (!player || !player.name) return;
     fetch("/api/pick", {
@@ -634,7 +598,6 @@
       renderBoardTable();
     };
 
-    // Position filter chips
     var chips = document.querySelectorAll(".filter-chip");
     chips.forEach(function (chip) {
       chip.onclick = function () {
@@ -645,11 +608,9 @@
       };
     });
 
-    // Comparator selects
     cmpSelectA.onchange = calculateTradeoff;
     cmpSelectB.onchange = calculateTradeoff;
 
-    // Modal controls
     var modal = document.getElementById("sync-modal");
     document.getElementById("btn-open-sync").onclick = function () {
       modal.style.display = "flex";
@@ -661,7 +622,6 @@
       modal.style.display = "none";
     };
 
-    // Keyboard shortcuts
     window.addEventListener("keydown", function (e) {
       if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") {
         if (e.key === "Escape") {
@@ -685,6 +645,5 @@
     if (link) link.href = bmCode;
   }
 
-  // Start
   init();
 })();
