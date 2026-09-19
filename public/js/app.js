@@ -53,10 +53,20 @@
   var mcResults = document.getElementById("montecarlo-results");
   var btnRunMonteCarlo = document.getElementById("btn-run-montecarlo");
 
+  // Alerts (audio chimes + desktop notifications)
+  var btnEnableAlerts = document.getElementById("btn-enable-alerts");
+  var alertState = {
+    enabled: false,
+    audioCtx: null,
+    lastOnClock: null,       // null = not yet observed, else true/false
+    lastCriticalKey: null    // key of the last critical-cliff alert that fired
+  };
+
   async function init() {
     setupBookmarklet();
     setupEventListeners();
     setupWebSocket();
+    updateAlertsButton();
 
     try {
       var res = await fetch("/draft_data.json");
@@ -105,6 +115,214 @@
       }
     };
   }
+
+  // ===================== Alerts: Audio Chimes + Notifications =====================
+
+  function getNotificationPermission() {
+    if (typeof Notification === "undefined") return "unavailable";
+    try {
+      return Notification.permission; // "granted" | "denied" | "default"
+    } catch (e) {
+      return "unavailable";
+    }
+  }
+
+  function updateAlertsButton() {
+    if (!btnEnableAlerts) return;
+    var perm = getNotificationPermission();
+    if (!alertState.enabled) {
+      btnEnableAlerts.textContent = "🔔 Enable Alerts";
+      btnEnableAlerts.title = perm === "denied"
+        ? "Notifications are blocked in browser settings, but audio chimes will still play. Click to enable alerts."
+        : "Enable audio chimes and desktop notifications when you are ON THE CLOCK or a CRITICAL CLIFF is detected";
+      btnEnableAlerts.style.color = "";
+      return;
+    }
+    if (perm === "granted") {
+      btnEnableAlerts.textContent = "🔔 Alerts: On";
+      btnEnableAlerts.title = "Alerts active: chime + notification on your turn and on new critical cliffs";
+      btnEnableAlerts.style.color = "var(--green)";
+    } else if (perm === "denied") {
+      btnEnableAlerts.textContent = "🔕 Alerts: Blocked";
+      btnEnableAlerts.title = "Desktop notifications are blocked in browser settings — audio chimes are still active.";
+      btnEnableAlerts.style.color = "var(--yellow)";
+    } else if (perm === "unavailable") {
+      btnEnableAlerts.textContent = "🔔 Alerts: Chimes Only";
+      btnEnableAlerts.title = "This browser does not support the Notification API — audio chimes are active.";
+      btnEnableAlerts.style.color = "var(--yellow)";
+    } else {
+      btnEnableAlerts.textContent = "🔔 Alerts: On";
+      btnEnableAlerts.title = "Alerts active (chimes); notification permission still pending.";
+      btnEnableAlerts.style.color = "var(--green)";
+    }
+  }
+
+  function requestNotificationPermission(onDone) {
+    if (typeof Notification === "undefined" || typeof Notification.requestPermission !== "function") {
+      onDone(getNotificationPermission());
+      return;
+    }
+    var handled = false;
+    var finish = function (p) {
+      if (handled) return;
+      handled = true;
+      onDone(p === undefined ? getNotificationPermission() : p);
+    };
+    try {
+      var maybePromise = Notification.requestPermission(finish);
+      if (maybePromise && typeof maybePromise.then === "function") {
+        maybePromise.then(finish, function () { finish("denied"); });
+      }
+    } catch (e) {
+      finish("denied");
+    }
+  }
+
+  function enableAlerts() {
+    // Must be invoked from a user gesture (header button click).
+    ensureAudioContext();
+    if (alertState.audioCtx && alertState.audioCtx.state === "suspended") {
+      try { alertState.audioCtx.resume(); } catch (e) { /* ignore */ }
+    }
+
+    var finish = function () {
+      alertState.enabled = true;
+      updateAlertsButton();
+      // If the draft is already on the clock when alerts are switched on,
+      // let checkAlerts() fire exactly once for the current state.
+      checkAlerts();
+    };
+
+    if (getNotificationPermission() === "default") {
+      requestNotificationPermission(function () {
+        updateAlertsButton();
+        finish();
+      });
+    } else {
+      updateAlertsButton();
+      finish();
+    }
+  }
+
+  function ensureAudioContext() {
+    if (alertState.audioCtx) return alertState.audioCtx;
+    var Ctx = window.AudioContext || window.webkitAudioContext;
+    if (!Ctx) return null;
+    try {
+      alertState.audioCtx = new Ctx();
+    } catch (e) {
+      console.error("Web Audio API unavailable:", e);
+      alertState.audioCtx = null;
+    }
+    return alertState.audioCtx;
+  }
+
+  function playChime(kind) {
+    if (!alertState.enabled) return;
+    var ctx = ensureAudioContext();
+    if (!ctx) return;
+    if (ctx.state === "suspended") {
+      try { ctx.resume(); } catch (e) { /* ignore */ }
+    }
+
+    var t0 = ctx.currentTime;
+    // Distinct melodic signatures:
+    //  - "turn": pleasant ascending two-note ping (you're up)
+    //  - "critical": urgent triple pulse (cliff detected)
+    var notes = kind === "critical"
+      ? [
+          { freq: 880, start: 0.00, dur: 0.14, type: "square", vol: 0.14 },
+          { freq: 660, start: 0.16, dur: 0.14, type: "square", vol: 0.14 },
+          { freq: 880, start: 0.32, dur: 0.32, type: "square", vol: 0.14 }
+        ]
+      : [
+          { freq: 659.25, start: 0.00, dur: 0.20, type: "sine", vol: 0.22 },  // E5
+          { freq: 987.77, start: 0.22, dur: 0.40, type: "sine", vol: 0.22 }   // B5
+        ];
+
+    for (var i = 0; i < notes.length; i++) {
+      var n = notes[i];
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.type = n.type;
+      osc.frequency.value = n.freq;
+      gain.gain.setValueAtTime(0.0001, t0 + n.start);
+      gain.gain.linearRampToValueAtTime(n.vol, t0 + n.start + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t0 + n.start + n.dur);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t0 + n.start);
+      osc.stop(t0 + n.start + n.dur + 0.05);
+    }
+  }
+
+  function sendAlertNotification(title, body, tag) {
+    if (!alertState.enabled) return;
+    if (getNotificationPermission() !== "granted") return;
+    try {
+      var n = new Notification(title, {
+        body: body,
+        tag: tag,          // coalesces repeated notifications for the same event
+        requireInteraction: false,
+        silent: false
+      });
+      if (n && typeof n.close === "function") {
+        setTimeout(function () {
+          try { n.close(); } catch (e) { /* already closed */ }
+        }, 10000);
+      }
+    } catch (e) {
+      console.error("Notification error:", e);
+    }
+  }
+
+  function checkAlerts() {
+    if (!alertState.enabled) return;
+    var res = state.evalResult;
+    if (!res) return;
+
+    // --- On the clock: fire on first observation and on each waiting -> on-clock transition
+    var wasOnClock = alertState.lastOnClock;
+    if (res.onTheClock) {
+      if (wasOnClock !== true) {
+        var best = (res.liveProtocol && res.liveProtocol.bestPick) ? res.liveProtocol.bestPick : null;
+        var target = best ? best.name + " (" + best.posLabel + ")" : "your top remaining target";
+        playChime("turn");
+        sendAlertNotification(
+          "🏒 ON THE CLOCK",
+          "Pick #" + res.targetTurn + " is yours. Top target: " + target,
+          "copilot-on-clock"
+        );
+      }
+      alertState.lastOnClock = true;
+    } else if (wasOnClock !== false) {
+      alertState.lastOnClock = false;
+    }
+
+    // --- Critical cliff: fire when a NEW red alert appears; dedupe unchanged alert sets
+    var redAlerts = res.redAlerts || [];
+    if (redAlerts.length > 0) {
+      var key = redAlerts.map(function (p) { return p.name; }).join("|") + "@" + res.targetTurn;
+      if (alertState.lastCriticalKey !== key) {
+        var a = redAlerts[0];
+        var survPct = (a.survivalProb * 100).toFixed(0);
+        var cliffText = (a.dropoff !== undefined && a.dropoff !== null) ? "+" + a.dropoff.toFixed(1) : "a";
+        playChime("critical");
+        sendAlertNotification(
+          "🚨 CRITICAL CLIFF DETECTED",
+          a.name + " (" + a.posLabel + ") MUST REACH now: " + cliffText +
+            " VORP cliff, only " + survPct + "% survival to pick #" + res.targetTurn + ".",
+          "copilot-critical"
+        );
+        alertState.lastCriticalKey = key;
+      }
+    } else {
+      // Alert cleared — a future re-appearance counts as a new event.
+      alertState.lastCriticalKey = null;
+    }
+  }
+
+  // ===================== Server State =====================
 
   function applyServerState(s) {
     if (!s) return;
@@ -175,6 +393,9 @@
     renderSafeSleepers();
     renderBoardTable();
     renderSidebar(rosterCounts);
+
+    // Fire audio chimes / desktop notifications for on-clock & critical-cliff events
+    checkAlerts();
   }
 
   function renderHeader() {
@@ -942,6 +1163,10 @@
 
     document.getElementById("btn-undo-pick").onclick = undoLastPick;
     document.getElementById("btn-reset-draft").onclick = resetDraft;
+
+    if (btnEnableAlerts) {
+      btnEnableAlerts.onclick = enableAlerts;
+    }
 
     filterSearch.oninput = function () {
       state.searchQuery = filterSearch.value;
