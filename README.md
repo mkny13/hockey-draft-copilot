@@ -38,6 +38,8 @@ Or manually: `npm install && npm start`, then open <http://localhost:3333>.
 2. Click **Load unpacked** and select this repo's `yahoo-sync/` folder.
 3. Open the draft room. A green **Co-Pilot: Live** badge appears top-right; click it for the in-room HUD with the same short list and verdict.
 
+<img src="docs/screenshots/hud.png" alt="In-room HUD on an ESPN practice draft" width="320">
+
 After pulling new code, click **Reload** on the extension and refresh the draft tab. A bookmarklet (`yahoo-sync/bookmarklet.js`, also generated in the app's ESPN Sync dialog) and a Tampermonkey script are alternatives. The server must be running on `localhost:3333`.
 
 **Data note:** the bundled `draft_data.json` is a **sample board**: real names, teams, positions and ESPN ADP, but synthetic FP/VORP/tier values, so recommendations are illustrative. To get real recommendations, replace it (and the identical copy in `public/`) with your own board export in the same format, including your `config.league.slots`. ESPN ADP is refreshable with `node scripts/ingest_espn_adp.js <saved-hashtag-hockey.html>`.
