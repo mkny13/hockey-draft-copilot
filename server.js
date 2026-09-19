@@ -7,7 +7,9 @@ const { WebSocketServer } = require('ws');
 const app = express();
 const PORT = process.env.PORT || 3333;
 const STATE_FILE = process.env.DRAFT_STATE_FILE || path.join(__dirname, 'draft_state.json');
-const DATA_FILE = path.join(__dirname, 'draft_data.json');
+// A gitignored draft_data.local.json (your own board) takes precedence over the committed sample board
+const LOCAL_DATA_FILE = path.join(__dirname, 'draft_data.local.json');
+const DATA_FILE = fs.existsSync(LOCAL_DATA_FILE) ? LOCAL_DATA_FILE : path.join(__dirname, 'draft_data.json');
 
 // Post-draft report grader (shared engine with the browser)
 const GameTheory = require('./public/js/gametheory.js');
@@ -66,6 +68,12 @@ app.use((req, res, next) => {
     return res.status(403).json({ error: 'Origin not allowed' });
   }
   next();
+});
+
+// The browser loads the board from here so the local override reaches the UI too
+app.get('/draft_data.json', (req, res) => {
+  res.set('Cache-Control', 'no-store');
+  res.sendFile(DATA_FILE);
 });
 
 // Serve frontend static assets with no-cache headers to ensure immediate updates in browser

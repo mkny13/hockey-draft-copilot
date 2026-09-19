@@ -1,3 +1,4 @@
 node_modules/
 .DS_Store
 draft_state.json
+draft_data.local.json
