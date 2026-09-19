@@ -1,13 +1,15 @@
 {
   "manifest_version": 3,
-  "name": "Yahoo Fantasy Hockey Draft Sync",
-  "version": "1.1",
-  "description": "Auto-sync live draft picks from Yahoo Fantasy Hockey to the Game Theory Co-Pilot",
+  "name": "Draft Co-Pilot Live Sync (ESPN & Yahoo)",
+  "version": "1.6",
+  "description": "Auto-sync live draft picks from ESPN & Yahoo Fantasy Hockey to the Game Theory Co-Pilot",
   "permissions": [
     "storage"
   ],
   "host_permissions": [
-    "https://hockey.fantasysports.yahoo.com/*",
+    "https://*.espn.com/*",
+    "https://espn.com/*",
+    "https://*.fantasysports.yahoo.com/*",
     "https://draft.fantasysports.yahoo.com/*",
     "http://localhost:3333/*"
   ],
@@ -21,11 +23,19 @@
   "content_scripts": [
     {
       "matches": [
-        "https://hockey.fantasysports.yahoo.com/*",
+        "https://*.espn.com/*",
+        "https://espn.com/*",
+        "https://*.fantasysports.yahoo.com/*",
         "https://draft.fantasysports.yahoo.com/*"
       ],
-      "js": ["content.js"],
-      "css": ["status.css"],
+      "all_frames": true,
+      "js": [
+        "players_data.js",
+        "content.js"
+      ],
+      "css": [
+        "status.css"
+      ],
       "run_at": "document_idle"
     }
   ]

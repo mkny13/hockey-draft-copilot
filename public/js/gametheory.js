@@ -98,22 +98,72 @@
    * - 2+ over limit (excess): 0.35
    * Multi-position players use the most favorable open slot.
    */
+  // Value of a player who only makes the bench, relative to a starter
+  var BENCH_VALUE = 0.3;
+
+  /**
+   * Starter groups (C/F/D/G) that must be filled with every remaining pick.
+   * Once remaining picks <= unfilled starter slots, only those groups matter.
+   * Returns null while there is slack, or when the roster size is unknown.
+   */
+  function getMustFillGroups(counts, limits) {
+    if (!limits || !limits.FLEX) return null;
+    var size = (limits.C || 0) + (limits.F || 0) + (limits.D || 0) + (limits.G || 0) + limits.FLEX;
+    var remaining = size - ((counts && counts.total) || 0);
+    var open = [];
+    var unfilled = 0;
+    ['C', 'F', 'D', 'G'].forEach(function (g) {
+      var gap = (limits[g] || 0) - ((counts && counts[g]) || 0);
+      if (gap > 0) { open.push(g); unfilled += gap; }
+    });
+    return unfilled > 0 && remaining <= unfilled ? open : null;
+  }
+
+  /**
+   * How many flex slots (UTIL + bench, `limits.FLEX`) my roster has consumed:
+   * every player beyond a position's starter limit lands in the shared pool.
+   */
+  function getFlexUsed(counts, limits) {
+    var used = 0;
+    ['C', 'F', 'D', 'G'].forEach(function (p) {
+      used += Math.max(0, ((counts && counts[p]) || 0) - ((limits && limits[p]) || 0));
+    });
+    return used;
+  }
+
   function getDiminishingMultiplier(positions, myRosterCounts, limits) {
     limits = limits || { C: 3, F: 5, D: 4, G: 2 };
     if (!positions || !positions.length) return 1.0;
 
+    // Starter overflow goes to the shared flex pool: UTIL (one skater, full
+    // value) then bench (BENCH_VALUE: cover for injuries and byes, but it never
+    // scores). Past the whole roster the value collapses. Without FLEX info the
+    // old graded discount by overflow count applies.
+    var flexTotal = limits.FLEX || 0;
+    var flexUsed = getFlexUsed(myRosterCounts, limits);
+
+    // In leagues with C and F slots, all Centers (C) are eligible for Forward (F) slots
+    var effectivePositions = positions.slice();
+    if (effectivePositions.indexOf('C') !== -1 && effectivePositions.indexOf('F') === -1 && limits.F) {
+      effectivePositions.push('F');
+    }
+
     var bestMultiplier = 0.0;
-    for (var i = 0; i < positions.length; i++) {
-      var p = positions[i];
+    for (var i = 0; i < effectivePositions.length; i++) {
+      var p = effectivePositions[i];
       var count = (myRosterCounts && myRosterCounts[p]) || 0;
       var limit = limits[p] || 4;
 
       var mult = 1.0;
       if (count < limit) {
         mult = 1.0;
-      } else if (count === limit) {
+      } else if (flexTotal > 0) {
+        if (p !== 'G' && flexUsed < (limits.UTIL || 0)) mult = 1.0;
+        else if (flexUsed < flexTotal) mult = BENCH_VALUE;
+        else mult = 0.35;
+      } else if (flexUsed === 0) {
         mult = 0.85;
-      } else if (count === limit + 1) {
+      } else if (flexUsed === 1) {
         mult = 0.65;
       } else {
         mult = 0.35;
@@ -205,7 +255,14 @@
     var rosterCounts = options.rosterCounts || { C: 0, LW: 0, RW: 0, D: 0, G: 0 };
     var rosterLimits = options.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
 
-    var onTheClock = isMyTurn(currentPick, slot, teams);
+    // Total picks are known when the roster size is (starters + flex pool)
+    var rosterSize = rosterLimits.FLEX
+      ? (rosterLimits.C || 0) + (rosterLimits.F || 0) + (rosterLimits.D || 0) + (rosterLimits.G || 0) + rosterLimits.FLEX
+      : 0;
+    var totalPicks = rosterSize * teams;
+    var draftComplete = totalPicks > 0 && currentPick > totalPicks;
+
+    var onTheClock = !draftComplete && isMyTurn(currentPick, slot, teams);
     var targetTurn = onTheClock
       ? getNextSnakePick(currentPick + 1, slot, teams)
       : getNextSnakePick(currentPick, slot, teams);
@@ -233,6 +290,8 @@
     var evaluatedRows = [];
     var availableRows = [];
 
+    var mustFill = getMustFillGroups(rosterCounts, rosterLimits);
+
     for (var i = 0; i < rows.length; i++) {
       var r = rows[i];
       var name = r.name || r.n;
@@ -240,15 +299,22 @@
       var isDrafted = isMine || !!draftedSet[name];
 
       var adpVal = (r.adp && typeof r.adp === "object")
-        ? (r.adp.yahoo || r.adp.average || r.adp.fantrax)
+        ? (r.adp.espn || r.adp.average || r.adp.yahoo || r.adp.fantrax)
         : r.adp;
       var adpNum = parseFloat(adpVal) || 999;
 
       var surv = isDrafted ? 0 : pSurvive(targetTurn, adpNum, stdDev);
       var posArray = r.pos || r.p || [];
       var mult = getDiminishingMultiplier(posArray, rosterCounts, rosterLimits);
+      if (mustFill) {
+        // Only players who fill an open starter slot still matter
+        var fillsOpen = posArray.some(function (g) { return mustFill.indexOf(g) !== -1; }) ||
+          (posArray.indexOf('C') !== -1 && mustFill.indexOf('F') !== -1);
+        if (!fillsOpen) mult = Math.min(mult, 0.05);
+      }
       var rawVorp = r.vorp !== undefined ? r.vorp : (r.rawVorp || 0);
-      var adjVorp = rawVorp * mult;
+      // A discount only ever lowers value: scaling a negative VORP toward zero would reward it
+      var adjVorp = rawVorp >= 0 ? rawVorp * mult : rawVorp;
 
       // Use dynamic cliff if available, else static dropoff
       var drop = (!isDrafted && dynamicCliffs[name] !== undefined)
@@ -314,46 +380,35 @@
     });
 
     // Step 4: Rank Shortlist according to 2-Round EV & Decision Protocol
+    // Safe players are normally left for later, but not when one is worth more
+    // than everything urgent: deferring him forever is how a team ends the
+    // draft without a goalie while burning picks on replacement-level players.
+    var bestUrgentVorp = -Infinity;
+    availableRows.forEach(function (p) {
+      if (p.action !== "WAIT (ADP Safe)" && p.adjVorp > bestUrgentVorp) bestUrgentVorp = p.adjVorp;
+    });
     var shortlistCandidates = availableRows.filter(function (p) {
-      return p.action !== "WAIT (ADP Safe)";
+      return p.action !== "WAIT (ADP Safe)" || p.adjVorp > bestUrgentVorp;
+    });
+
+    // A strict total order on a precomputed key. (The earlier chain of thresholded
+    // tie-breaks was not transitive, so near-ties could sort differently
+    // depending on input order.) Order: decisive 2-round EV edge (>= 2.0 pts),
+    // then composite score (EV2 + expected cliff loss), then VORP, then name.
+    shortlistCandidates.forEach(function (c) {
+      var gtAdv = (c.gtTradeoff && typeof c.gtTradeoff.netGain === "number") ? c.gtTradeoff.netGain : 0;
+      c._decisive = gtAdv >= 2.0 ? 1 : 0;
+      c._score = (c.gtTradeoff && c.gtTradeoff.ev2 ? c.gtTradeoff.ev2 : c.adjVorp) + (1.0 - c.survivalProb) * c.dropoff;
     });
 
     shortlistCandidates.sort(function (a, b) {
-      var gtAdvA = (a.gtTradeoff && typeof a.gtTradeoff.netGain === "number") ? a.gtTradeoff.netGain : 0;
-      var gtAdvB = (b.gtTradeoff && typeof b.gtTradeoff.netGain === "number") ? b.gtTradeoff.netGain : 0;
-
-      // If one candidate has a decisive Game Theory 2-Round EV edge (>= 2.0 pts):
-      if (gtAdvA >= 2.0 && gtAdvB < 2.0) return -1;
-      if (gtAdvB >= 2.0 && gtAdvA < 2.0) return 1;
-
-      // Composite Game Theory score: EV2 + Expected Cliff Loss
-      var scoreA = (a.gtTradeoff && a.gtTradeoff.ev2 ? a.gtTradeoff.ev2 : a.adjVorp) + (1.0 - a.survivalProb) * a.dropoff;
-      var scoreB = (b.gtTradeoff && b.gtTradeoff.ev2 ? b.gtTradeoff.ev2 : b.adjVorp) + (1.0 - b.survivalProb) * b.dropoff;
-
-      if (Math.abs(scoreB - scoreA) >= 3.0) {
-        return scoreB - scoreA;
-      }
-
-      // If VORP difference is significant (>= 4.0 pts), higher VORP dominates
-      var vorpDiff = b.adjVorp - a.adjVorp;
-      if (Math.abs(vorpDiff) >= 4.0) {
-        return vorpDiff;
-      }
-
-      // Steeper cliff breaks tie
-      var cliffDiff = b.dropoff - a.dropoff;
-      if (Math.abs(cliffDiff) >= 2.0) {
-        return cliffDiff;
-      }
-
-      // Lower survival (higher urgency) breaks tie
-      var survDiff = a.survivalProb - b.survivalProb;
-      if (Math.abs(survDiff) > 0.15) {
-        return survDiff;
-      }
-
-      return vorpDiff;
+      if (a._decisive !== b._decisive) return b._decisive - a._decisive;
+      if (a._score !== b._score) return b._score - a._score;
+      if (a.adjVorp !== b.adjVorp) return b.adjVorp - a.adjVorp;
+      return a.name < b.name ? -1 : (a.name > b.name ? 1 : 0);
     });
+
+    shortlistCandidates.forEach(function (c) { delete c._decisive; delete c._score; });
 
     var shortlist = shortlistCandidates.slice(0, 8);
 
@@ -412,9 +467,17 @@
       }
     }
 
+    if (draftComplete) {
+      liveProtocol.alertType = "info";
+      liveProtocol.headline = "✅ Draft complete";
+      liveProtocol.subtext = "All " + totalPicks + " picks are in. Open the Draft Report for your grade.";
+      liveProtocol.picksUntilTurn = 0;
+    }
+
     var topMatchup = getTopMatchup(availableRows, targetTurn, stdDev);
 
     return {
+      draftComplete: draftComplete,
       allRows: evaluatedRows,
       availableRows: availableRows,
       shortlist: shortlist,
@@ -435,9 +498,47 @@
    * EV(Pick B) = VORP(B) + P(A)*VORP(A) + (1-P(A))*VORP(A')
    * EV(Pick A) = VORP(A) + P(B)*VORP(B) + (1-P(B))*VORP(B')
    */
-  function comparePlayersGameTheory(playerA, playerB, nextAltA, nextAltB, targetTurn, stdDev) {
+  /**
+   * Fallback if you miss `player`: the survival-weighted expected best of the
+   * still-available players at the same primary position at your next turn,
+   * excluding `player` and anyone in `excludeNames`. It must not include the
+   * other side of a matchup (two centers are not each other's fallback), and it
+   * must not assume the best remaining name survives: a fallback with 2%
+   * survival is worth roughly the next one down, not his full VORP.
+   * Returns a stand-in row { name, adjVorp } or null when nobody is left.
+   */
+  function findNextAlt(availableRows, player, excludeNames) {
+    var group = (player.pos || [])[0];
+    var pool = [];
+    for (var i = 0; i < availableRows.length; i++) {
+      var r = availableRows[i];
+      if (r.name === player.name || excludeNames.indexOf(r.name) !== -1) continue;
+      if ((r.pos || [])[0] !== group) continue;
+      pool.push(r);
+    }
+    if (!pool.length) return null;
+    pool.sort(function (x, y) { return y.adjVorp - x.adjVorp; });
+    pool = pool.slice(0, 12);
+
+    var expected = 0;
+    var mass = 1.0; // probability that every better name is already gone
+    for (var j = 0; j < pool.length; j++) {
+      expected += mass * pool[j].survivalProb * pool[j].adjVorp;
+      mass *= (1.0 - pool[j].survivalProb);
+    }
+    // If all twelve are gone, you take the last of them anyway
+    expected += mass * pool[pool.length - 1].adjVorp;
+    return { name: "(expected " + group + " fallback)", adjVorp: expected };
+  }
+
+  function comparePlayersGameTheory(playerA, playerB, nextAltA, nextAltB, targetTurn, stdDev, availableRows) {
     if (!playerA || !playerB) return null;
     stdDev = stdDev || 7.0;
+
+    if (availableRows) {
+      nextAltA = nextAltA || findNextAlt(availableRows, playerA, [playerB.name]);
+      nextAltB = nextAltB || findNextAlt(availableRows, playerB, [playerA.name]);
+    }
 
     var vorpA = playerA.adjVorp || playerA.rawVorp || playerA.vorp || 0;
     var vorpB = playerB.adjVorp || playerB.rawVorp || playerB.vorp || 0;
@@ -538,7 +639,7 @@
       if (refPlayer) {
         var cmpPlayerA = isTop ? pTop : pTop;
         var cmpPlayerB = isTop ? pChallenger : cand;
-        cmp = comparePlayersGameTheory(cmpPlayerA, cmpPlayerB, null, null, targetTurn, stdDev);
+        cmp = comparePlayersGameTheory(cmpPlayerA, cmpPlayerB, null, null, targetTurn, stdDev, availableRows);
 
         if (cmp) {
           if (isTop) {
@@ -603,6 +704,11 @@
         advice = "Steady " + cand.adjVorp.toFixed(1) + " VORP at " + cand.posLabel + ". Moderate survival (" + survPct + ") to Turn #" + targetTurn + ".";
       }
 
+      // Always say who the advice is about (the banner shows it without the row)
+      if (advice.indexOf(cand.name) !== 0) {
+        advice = cand.name + " (" + cand.posLabel + "): " + advice;
+      }
+
       tradeoffs[cand.name] = {
         name: cand.name,
         ev2: ev2,
@@ -644,7 +750,7 @@
 
     if (!playerA || !playerB) return null;
 
-    var cmp = comparePlayersGameTheory(playerA, playerB, null, null, targetTurn, stdDev);
+    var cmp = comparePlayersGameTheory(playerA, playerB, null, null, targetTurn, stdDev, availableRows);
     return {
       playerA: playerA,
       playerB: playerB,
@@ -1168,12 +1274,38 @@
     };
   }
 
+  /**
+   * Tallies my drafted players against roster slots. Pure Centers spill into
+   * F once C slots are full; dual C/F players fill C first, then F.
+   */
+  function getRosterCounts(pickHistory, limits) {
+    var counts = { C: 0, F: 0, D: 0, G: 0, total: 0 };
+    limits = limits || { C: 3, F: 5, D: 4, G: 2 };
+    (pickHistory || []).forEach(function (item) {
+      if (!item.isMine) return;
+      counts.total++;
+      var positions = item.pos || [];
+      if (positions.indexOf('C') !== -1 && (positions.length === 1 || positions.indexOf('F') !== -1)) {
+        if (counts.C < (limits.C || 3)) counts.C++;
+        else counts.F++;
+      } else {
+        positions.forEach(function (posKey) {
+          if (counts[posKey] !== undefined) counts[posKey]++;
+        });
+      }
+    });
+    return counts;
+  }
+
   return {
     normalCDF: normalCDF,
     pSurvive: pSurvive,
     getNextSnakePick: getNextSnakePick,
     getPickDetails: getPickDetails,
     isMyTurn: isMyTurn,
+    getRosterCounts: getRosterCounts,
+    getFlexUsed: getFlexUsed,
+    getMustFillGroups: getMustFillGroups,
     getCliffAlert: getCliffAlert,
     getDiminishingMultiplier: getDiminishingMultiplier,
     classifyAction: classifyAction,
@@ -1182,6 +1314,7 @@
     getTopMatchup: getTopMatchup,
     evaluateBoard: evaluateBoard,
     comparePlayersGameTheory: comparePlayersGameTheory,
+    findNextAlt: findNextAlt,
     gradeDraft: gradeDraft,
     mulberry32: mulberry32,
     gaussian: gaussian,

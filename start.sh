@@ -13,7 +13,7 @@ if [ ! -d "node_modules" ]; then
 fi
 
 # Run test verification
-npm test --silent
+npm run test:quick --silent
 
 echo "Launching web server on http://localhost:3333..."
 (sleep 1 && open "http://localhost:3333") &

@@ -1,5 +1,5 @@
 /**
- * High-Contrast Live Status Badge for Yahoo Fantasy Hockey Draft Room
+ * High-Contrast Live Status Badge & HUD for ESPN & Yahoo Fantasy Hockey Draft Rooms
  * Injected fixed to top-right of DOM
  */
 #copilot-yahoo-badge {
@@ -71,4 +71,141 @@
   border-radius: 10px;
   font-size: 10px;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
+/* Expandable HUD Card */
+#copilot-hud-card {
+  position: fixed;
+  top: 48px;
+  right: 4px;
+  z-index: 2147483647;
+  width: 300px;
+  max-height: calc(100vh - 60px);
+  overflow-y: auto;
+  background: #0d1117;
+  border: 1px solid #30363d;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.85);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: #c9d1d9;
+  font-size: 11px;
+  padding: 12px;
+  box-sizing: border-box;
+}
+
+.hud-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  padding-bottom: 6px;
+  border-bottom: 1px solid #30363d;
+}
+
+.hud-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.hud-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 11px;
+}
+
+.hud-label {
+  color: #8b949e;
+}
+
+.hud-val {
+  color: #fff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
+.hud-btn {
+  background: #21262d;
+  border: 1px solid #30363d;
+  color: #c9d1d9;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 5px 8px;
+  border-radius: 4px;
+  cursor: pointer;
+  flex: 1;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.hud-btn:hover {
+  background: #30363d;
+  color: #fff;
+}
+
+.hud-btn.primary {
+  background: rgba(88, 166, 255, 0.15);
+  border-color: #58a6ff;
+  color: #58a6ff;
+}
+
+.hud-btn.primary:hover {
+  background: #58a6ff;
+  color: #0d1117;
+}
+
+/* HUD decision panel: headline, short list, game theory trade-off */
+.hud-section {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #30363d;
+}
+
+.hud-section-title {
+  font-size: 10px;
+  font-weight: 700;
+  color: #8b949e;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 4px;
+}
+
+.hud-headline {
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.3;
+}
+
+.hud-subtext {
+  font-size: 11px;
+  color: #c9d1d9;
+  line-height: 1.35;
+  margin-top: 2px;
+}
+
+.hud-short-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+  font-size: 11px;
+}
+
+.hud-short-name {
+  color: #fff;
+}
+
+.hud-short-surv {
+  color: #58a6ff;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
+}
+
+/* ESPN draft room: align with the Picks sidebar (measured live: x 1244-1520 of 1520, top 125px),
+   leaving the header and the pick strip above it uncovered */
+#copilot-hud-card.espn-layout {
+  top: 125px;
+  right: 0;
+  width: 276px;
+  max-height: calc(100vh - 135px);
+  border-radius: 8px 0 0 8px;
 }
