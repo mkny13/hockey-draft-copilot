@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const express = require('express');
 const { WebSocketServer } = require('ws');
+const cron = require('node-cron');
 
 const app = express();
 const PORT = process.env.PORT || 3333;
@@ -11,6 +12,13 @@ const DATA_FILE = path.join(__dirname, 'draft_data.json');
 
 // Post-draft report grader (shared engine with the browser)
 const GameTheory = require('./public/js/gametheory.js');
+
+// Automated projection scraper (issue #1): DtZ + Daily Faceoff + Apples & Ginos
+const scrape = require('./scrape.js');
+
+// Periodic re-scrape schedule. Override with SCRAPE_CRON (any valid cron
+// expression, or "off" to disable); default: every 6 hours.
+const SCRAPE_CRON = process.env.SCRAPE_CRON || '0 */6 * * *';
 
 // Lazily cached master player board for report grading
 let playersCache = null;
@@ -207,6 +215,89 @@ app.post('/api/settings', (req, res) => {
   broadcast('SETTINGS_UPDATED', draftState);
   res.json({ success: true, state: draftState });
 });
+
+// ===================== Projection Data Refresh (issue #1) =====================
+
+// Last refresh bookkeeping for /api/refresh (GET) status reporting
+let lastRefresh = { status: 'never', at: null, sources: [], errors: {}, count: null };
+
+// One refresh at a time -- overlapping scrapes would just race the atomic
+// writes and burn bandwidth.
+let refreshInProgress = false;
+async function runScheduledRefresh(trigger) {
+  if (refreshInProgress) {
+    return { ok: false, reason: 'refresh already in progress' };
+  }
+  refreshInProgress = true;
+  const startedAt = new Date().toISOString();
+  try {
+    const result = await scrape.runRefresh();
+    playersCache = null; // report grader must see the new board
+    lastRefresh = {
+      status: 'ok',
+      at: startedAt,
+      trigger: trigger,
+      sources: result.sourcesUsed,
+      errors: result.sourceErrors,
+      count: result.meta.count,
+      meta: result.meta
+    };
+    broadcast('DATA_UPDATED', lastRefresh);
+    console.log(`[refresh:${trigger}] board updated: ${result.meta.count} players from ${result.sourcesUsed.join(', ')}`);
+    if (Object.keys(result.sourceErrors).length) {
+      console.warn(`[refresh:${trigger}] source warnings:`, result.sourceErrors);
+    }
+    return { ok: true, result: result };
+  } catch (err) {
+    lastRefresh = {
+      status: 'failed',
+      at: startedAt,
+      trigger: trigger,
+      errors: { pipeline: err.message }
+    };
+    // The previous draft_data.json is untouched on disk (scrape writes
+    // atomically after the full pipeline succeeds), so nothing to roll back.
+    console.error(`[refresh:${trigger}] FAILED, previous board left intact:`, err.message);
+    return { ok: false, error: err.message };
+  } finally {
+    refreshInProgress = false;
+  }
+}
+
+// Manual trigger: rebuild the board from the live sources right now.
+app.post('/api/refresh', async (req, res) => {
+  const outcome = await runScheduledRefresh('manual');
+  if (!outcome.ok) {
+    const status = outcome.reason ? 409 : 502;
+    return res.status(status).json({ success: false, error: outcome.reason || outcome.error, lastRefresh });
+  }
+  const result = outcome.result;
+  res.json({
+    success: true,
+    meta: result.meta,
+    sourcesUsed: result.sourcesUsed,
+    sourceErrors: result.sourceErrors,
+    lastRefresh
+  });
+});
+
+// Refresh status: when did the board last change, and what is scheduled?
+app.get('/api/refresh', (req, res) => {
+  res.json({
+    success: true,
+    inProgress: refreshInProgress,
+    schedule: SCRAPE_CRON === 'off' ? null : SCRAPE_CRON,
+    lastRefresh
+  });
+});
+
+// Periodic re-scrape while the server runs.
+if (SCRAPE_CRON !== 'off' && cron.validate(SCRAPE_CRON)) {
+  cron.schedule(SCRAPE_CRON, () => { runScheduledRefresh('cron'); });
+  console.log(`[scrape] scheduled periodic refresh: "${SCRAPE_CRON}" (set SCRAPE_CRON=off to disable)`);
+} else if (SCRAPE_CRON !== 'off') {
+  console.warn(`[scrape] invalid SCRAPE_CRON "${SCRAPE_CRON}" -- periodic refresh disabled`);
+}
 
 // Start Server
 server.listen(PORT, () => {

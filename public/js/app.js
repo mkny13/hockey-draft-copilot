@@ -106,6 +106,10 @@
     ws.onmessage = function (event) {
       try {
         var msg = JSON.parse(event.data);
+        if (msg.type === "DATA_UPDATED") {
+          handleDataUpdated(msg.payload);
+          return;
+        }
         if (msg.state) {
           applyServerState(msg.state);
           recomputeAndRender();
@@ -114,6 +118,26 @@
         console.error("WS message parse error:", e);
       }
     };
+  }
+
+  // Server re-scraped the projection sources: pull the fresh board and
+  // re-render everything around the current draft state.
+  async function handleDataUpdated(payload) {
+    try {
+      var res = await fetch("/draft_data.json?ts=" + Date.now());
+      state.draftData = await res.json();
+      state.masterPlayers = state.draftData.players || [];
+      recomputeAndRender();
+      if (statusText) {
+        var srcInfo = payload && payload.sources ? " (" + payload.sources.join(", ") + ")" : "";
+        statusText.textContent = "Live Sync: Connected — projections refreshed" + srcInfo;
+        setTimeout(function () {
+          statusText.textContent = "Live Sync: Connected";
+        }, 8000);
+      }
+    } catch (err) {
+      console.error("Error loading refreshed projection data:", err);
+    }
   }
 
   // ===================== Alerts: Audio Chimes + Notifications =====================

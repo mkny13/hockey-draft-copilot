@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/test_gametheory.js"
+    "test": "node test/test_gametheory.js && node test/test_scrape.js"
   },
   "dependencies": {
     "express": "^4.21.2",
