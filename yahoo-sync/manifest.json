@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Draft Co-Pilot Live Sync (ESPN & Yahoo)",
-  "version": "1.4",
+  "version": "1.5",
   "description": "Auto-sync live draft picks from ESPN & Yahoo Fantasy Hockey to the Game Theory Co-Pilot",
   "permissions": [
     "storage"
@@ -28,33 +28,15 @@
         "https://*.fantasysports.yahoo.com/*",
         "https://draft.fantasysports.yahoo.com/*"
       ],
-      "world": "MAIN",
       "all_frames": true,
-      "js": ["injected_interceptor.js"],
-      "run_at": "document_start"
-    },
-    {
-      "matches": [
-        "https://*.espn.com/*",
-        "https://espn.com/*",
-        "https://*.fantasysports.yahoo.com/*",
-        "https://draft.fantasysports.yahoo.com/*"
+      "js": [
+        "players_data.js",
+        "content.js"
       ],
-      "all_frames": true,
-      "js": ["players_data.js", "content.js"],
-      "css": ["status.css"],
+      "css": [
+        "status.css"
+      ],
       "run_at": "document_idle"
-    }
-  ],
-  "web_accessible_resources": [
-    {
-      "resources": ["injected_interceptor.js", "players_data.js"],
-      "matches": [
-        "https://*.espn.com/*",
-        "https://espn.com/*",
-        "https://*.fantasysports.yahoo.com/*",
-        "https://draft.fantasysports.yahoo.com/*"
-      ]
     }
   ]
 }

@@ -50,7 +50,6 @@ Located in [`yahoo-sync/`](yahoo-sync/):
   - Automatically matches and observes ESPN Fantasy Hockey draft rooms (`https://fantasy.espn.com/hockey/draft*`) as well as Yahoo draft rooms.
   - Reads ESPN pick toasts (`Name / TEAM, POS` + `R#, P#`), the draft board, and history feeds. A toast is recognised only as the **innermost small element** holding both the player and the round/pick marker, and anything inside the Available Players table is ignored, so the top available player can never be recorded as a pick.
   - The extension sends the round and pick number with each pick. **Ownership is decided by the server from the snake schedule and your slot**, not from page CSS; the page's own "mine" flag is ignored because it proved unreliable. The app's own **+ Mine** / **Taken** buttons are the one manual override.
-  - `injected_interceptor.js` forwards ESPN WebSocket draft messages to the page via `postMessage`; nothing consumes them yet (a more reliable pick source once a real message is captured).
 - **Background Health Service Worker (`background.js`)**:
   - Runs periodic 5-second health checks against `http://localhost:3333/api/state`.
   - Measures latency and broadcasts status updates to the popup and open ESPN/Yahoo Draft tabs.
@@ -97,20 +96,18 @@ The application will be live at [http://localhost:3333](http://localhost:3333).
 ## Running Tests
 
 ```bash
-npm test
+npm test          # full suite (~25s)
+npm run test:quick  # engine + data only (what ./start.sh runs before launching)
 ```
-Runs the full suite in [`test/test_gametheory.js`](test/test_gametheory.js) using Node.js built-in `assert`:
-- High-precision Abramowitz & Stegun normal CDF & $P_{survive}$ odds
-- Snake draft turnaround calculator
-- Positional cliff alerts & dynamic drop-offs
-- C & F multi-position optionality and graded diminishing returns curve
-- Generalized EVONA trade-off evaluator
-- Multi-candidate automated trade-offs (e.g. Pick 5 Draisaitl vs Hughes verification)
-- Pick 1 board dominance verification (Connor McDavid strictly #1) and shortlist input-order independence
-- Survival-weighted fallback logic (`findNextAlt`), UTIL / bench / must-fill roster logic, negative-VORP discount guard
-- Roster counting (`getRosterCounts`), post-draft grader, and Monte Carlo simulation
+Plain Node `assert`, no framework. `jsdom` (dev dependency) simulates the draft-room DOM.
 
-> The grader test reads the committed `draft_state.json`; run it against a clean/reset state, not a live draft.
+| File | Covers |
+|---|---|
+| `test/test_gametheory.js` | Normal CDF and $P_{survive}$, snake scheduling, cliff alerts, C/F rules, EVONA comparator, survival-weighted fallbacks (`findNextAlt`), UTIL / bench / must-fill logic, negative-VORP guard, strict shortlist order (input-order independent), draft-complete state, roster counting, post-draft grader, Monte Carlo |
+| `test/test_data.js` | Board integrity: 820 unique players, league config, clean one-decimal ADP (guards the old corrupt-parse bug), top-200 ADP coverage, both `draft_data.json` copies identical, extension name lookup matches the board |
+| `test/test_server.js` | Spawns the real server (temp state file): league limits, canonical names, snake-schedule ownership, manual override, pick numbering, undo, settings clamp, origin check, evaluation snapshot, WebSocket broadcasts, reset |
+| `test/test_sync.js` | Runs the real extension content script and both bookmarklets in jsdom: wrapper-with-available-list layout (the "top available player recorded as a pick" bug), player-pool guard, marker order, dynamic toasts, retry after network failure, HUD rendering, badge state, manifest sanity |
+| `test/test_mock_draft.js` | Strategy regression: the engine beats a pure-ADP drafter, fills 2 goalies and a full lineup, and drafts are deterministic |
 
 ---
 

@@ -127,30 +127,34 @@ function runDraft(slot, seed, useEngine, verbose) {
   return { mineScore, meanOthers: others.reduce((a, b) => a + b, 0) / others.length, rank, mix, first6, roster: teams[slot - 1] };
 }
 
-const opt = args();
+module.exports = { runDraft, lineupPoints };
 
-if (!opt.slots) {
-  console.log(`Mock draft: slot ${opt.slot}/${TEAMS}, ${ROUNDS} rounds, seed ${opt.seed}\n`);
-  const eng = runDraft(opt.slot, opt.seed, true, true);
-  const adp = runDraft(opt.slot, opt.seed, false, false);
-  console.log(`\nEngine lineup: ${eng.mineScore.toFixed(0)} pts, rank ${eng.rank}/${TEAMS}, avg opponent ${eng.meanOthers.toFixed(0)}`);
-  console.log(`Pure ADP lineup (same slot/noise): ${adp.mineScore.toFixed(0)} pts, rank ${adp.rank}/${TEAMS}`);
-  console.log('Roster mix:', JSON.stringify(eng.mix));
-} else {
-  console.log(`Monte Carlo: ${opt.sims} sims per slot, ${TEAMS} teams, ${ROUNDS} rounds\n`);
-  console.log('slot | engine pts | ADP pts | edge  | edge>0 | engine rank | ADP rank | roster mix (C/F/D/G)');
-  for (let slot = opt.slots[0]; slot <= opt.slots[1]; slot++) {
-    let e = 0, a = 0, wins = 0, er = 0, ar = 0;
-    const mix = { C: 0, F: 0, D: 0, G: 0 };
-    for (let s = 0; s < opt.sims; s++) {
-      const seed = opt.seed * 1000 + s;
-      const eng = runDraft(slot, seed, true, false);
-      const adp = runDraft(slot, seed, false, false);
-      e += eng.mineScore; a += adp.mineScore; er += eng.rank; ar += adp.rank;
-      if (eng.mineScore > adp.mineScore) wins++;
-      Object.keys(mix).forEach((k) => { mix[k] += eng.mix[k]; });
+if (require.main === module) {
+  const opt = args();
+
+  if (!opt.slots) {
+    console.log(`Mock draft: slot ${opt.slot}/${TEAMS}, ${ROUNDS} rounds, seed ${opt.seed}\n`);
+    const eng = runDraft(opt.slot, opt.seed, true, true);
+    const adp = runDraft(opt.slot, opt.seed, false, false);
+    console.log(`\nEngine lineup: ${eng.mineScore.toFixed(0)} pts, rank ${eng.rank}/${TEAMS}, avg opponent ${eng.meanOthers.toFixed(0)}`);
+    console.log(`Pure ADP lineup (same slot/noise): ${adp.mineScore.toFixed(0)} pts, rank ${adp.rank}/${TEAMS}`);
+    console.log('Roster mix:', JSON.stringify(eng.mix));
+  } else {
+    console.log(`Monte Carlo: ${opt.sims} sims per slot, ${TEAMS} teams, ${ROUNDS} rounds\n`);
+    console.log('slot | engine pts | ADP pts | edge  | edge>0 | engine rank | ADP rank | roster mix (C/F/D/G)');
+    for (let slot = opt.slots[0]; slot <= opt.slots[1]; slot++) {
+      let e = 0, a = 0, wins = 0, er = 0, ar = 0;
+      const mix = { C: 0, F: 0, D: 0, G: 0 };
+      for (let s = 0; s < opt.sims; s++) {
+        const seed = opt.seed * 1000 + s;
+        const eng = runDraft(slot, seed, true, false);
+        const adp = runDraft(slot, seed, false, false);
+        e += eng.mineScore; a += adp.mineScore; er += eng.rank; ar += adp.rank;
+        if (eng.mineScore > adp.mineScore) wins++;
+        Object.keys(mix).forEach((k) => { mix[k] += eng.mix[k]; });
+      }
+      const n = opt.sims;
+      console.log(`${String(slot).padStart(4)} | ${(e / n).toFixed(0).padStart(10)} | ${(a / n).toFixed(0).padStart(7)} | ${((e - a) / n).toFixed(0).padStart(5)} | ${(100 * wins / n).toFixed(0).padStart(5)}% | ${(er / n).toFixed(1).padStart(11)} | ${(ar / n).toFixed(1).padStart(8)} | ${['C', 'F', 'D', 'G'].map((k) => (mix[k] / n).toFixed(1)).join('/')}`);
     }
-    const n = opt.sims;
-    console.log(`${String(slot).padStart(4)} | ${(e / n).toFixed(0).padStart(10)} | ${(a / n).toFixed(0).padStart(7)} | ${((e - a) / n).toFixed(0).padStart(5)} | ${(100 * wins / n).toFixed(0).padStart(5)}% | ${(er / n).toFixed(1).padStart(11)} | ${(ar / n).toFixed(1).padStart(8)} | ${['C', 'F', 'D', 'G'].map((k) => (mix[k] / n).toFixed(1)).join('/')}`);
   }
 }

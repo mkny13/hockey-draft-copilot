@@ -6,7 +6,7 @@ const { WebSocketServer } = require('ws');
 
 const app = express();
 const PORT = process.env.PORT || 3333;
-const STATE_FILE = path.join(__dirname, 'draft_state.json');
+const STATE_FILE = process.env.DRAFT_STATE_FILE || path.join(__dirname, 'draft_state.json');
 const DATA_FILE = path.join(__dirname, 'draft_data.json');
 
 // Post-draft report grader (shared engine with the browser)

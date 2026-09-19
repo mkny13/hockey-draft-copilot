@@ -5,12 +5,16 @@
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
-    "test": "node test/test_gametheory.js"
+    "test": "node test/test_gametheory.js && node test/test_data.js && node test/test_server.js && node test/test_sync.js && node test/test_mock_draft.js",
+    "test:quick": "node test/test_gametheory.js && node test/test_data.js"
   },
   "dependencies": {
     "express": "^4.21.2",
     "ws": "^8.18.0"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "devDependencies": {
+    "jsdom": "^29.1.1"
+  }
 }

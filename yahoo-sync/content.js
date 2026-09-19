@@ -274,7 +274,7 @@
       if (!quickInput || !quickInput.value.trim()) return;
       const raw = quickInput.value.trim();
       const resolved = (window.resolveCopilotPlayer && window.resolveCopilotPlayer(raw)) || raw;
-      pushPick(resolved, false);
+      pushPick(resolved);
       quickInput.value = "";
       const msgEl = document.getElementById("hud-status-msg");
       if (msgEl) {
@@ -347,7 +347,7 @@
   }
 
   // 4. Core Pick Pusher
-  function pushPick(name, isMine, meta) {
+  function pushPick(name, meta) {
     if (!name) return;
     const clean = name.trim();
     if (sent.has(clean.toLowerCase())) return;
@@ -357,12 +357,12 @@
     lastSyncedPick = `${pickCount}. ${clean}`;
     renderCounters();
 
-    console.log(`[Draft Co-Pilot] >>> DETECTED PICK #${pickCount}: ${clean} (Mine: ${isMine}) -> ${syncBaseUrl}/api/pick`);
+    console.log(`[Draft Co-Pilot] >>> DETECTED PICK #${pickCount}: ${clean} -> ${syncBaseUrl}/api/pick`);
 
     fetch(`${syncBaseUrl}/api/pick`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: clean, isMine: isMine, ...meta })
+      body: JSON.stringify({ name: clean, ...meta })
     })
     .then((res) => {
       if (res.ok) {
@@ -378,26 +378,6 @@
       pickCount = Math.max(0, pickCount - 1);
       renderCounters();
     });
-  }
-
-  // Helper: Detect if a team is the user's team
-  function isUserPick(teamName, elem) {
-    if (elem) {
-      if (elem.classList.contains("my-team") ||
-          elem.classList.contains("user-pick") ||
-          elem.classList.contains("is-user") ||
-          elem.querySelector(".my-team, [data-tst='user-team'], [class*='myTeam'], [class*='userPick']")) {
-        return true;
-      }
-    }
-    if (teamName) {
-      const rosterSelect = document.querySelector("select[class*='roster'], [class*='roster'] select");
-      const userTeam = rosterSelect && rosterSelect.selectedOptions && rosterSelect.selectedOptions[0]
-        ? rosterSelect.selectedOptions[0].textContent.trim().toLowerCase()
-        : "";
-      if (userTeam && teamName.toLowerCase().includes(userTeam)) return true;
-    }
-    return false;
   }
 
   // 5. Strict Guard: Discard elements inside the Available Players table
@@ -475,8 +455,7 @@
 
       const resolved = window.resolveCopilotPlayer ? window.resolveCopilotPlayer(pMatch[1].trim()) : pMatch[1].trim();
       if (resolved && !sent.has(resolved.toLowerCase())) {
-        const teamName = (txt.slice(rMatch.index + rMatch[0].length).match(/^\s*-\s*(.+?)(?:$|\n)/) || [])[1] || "";
-        pushPick(resolved, isUserPick(teamName.trim(), card), {
+        pushPick(resolved, {
           round: parseInt(rMatch[1], 10),
           pickInRound: parseInt(rMatch[2], 10)
         });
@@ -491,14 +470,13 @@
   function scanBoardAndHistory() {
     const newlyFound = [];
 
-    function tryPush(text, elem, isMineOverride) {
+    function tryPush(text, elem) {
       if (!text || text.length < 3) return;
       if (elem && isAvailablePlayersElement(elem)) return;
 
       const resolved = window.resolveCopilotPlayer ? window.resolveCopilotPlayer(text) : null;
       if (resolved && !sent.has(resolved.toLowerCase())) {
-        const isMine = isMineOverride !== undefined ? isMineOverride : isUserPick("", elem);
-        pushPick(resolved, isMine);
+        pushPick(resolved);
         newlyFound.push(resolved);
       }
     }

@@ -229,11 +229,16 @@ assert.strictEqual(gradeEmpty.summary.grade, null, 'Empty history has no letter 
 assert.strictEqual(gradeEmpty.summary.totalCapturedVorp, 0, 'Empty history captures nothing');
 console.log('✓ Empty draft history handled gracefully');
 
-// Real-board sanity: grade the current draft_state pickHistory (4 opponent picks)
-const stData = JSON.parse(fs.readFileSync(path.join(__dirname, '../draft_state.json'), 'utf8'));
-const gradeReal = GT.gradeDraft(stData.pickHistory, rawData.players, { rosterLimits: stData.rosterLimits });
-assert.strictEqual(gradeReal.picks.length, stData.pickHistory.length, 'Every recorded pick is graded');
-assert.strictEqual(gradeReal.summary.picksCount, 0, 'No my-team picks yet in default state');
+// Real-board sanity: grade a fixed 4-pick history (never the live draft_state.json, which changes during a draft)
+const fixedHistory = [
+  { pickNumber: 1, name: 'Connor McDavid', team: 'EDM', pos: ['C', 'F'], isMine: false },
+  { pickNumber: 2, name: 'Nathan MacKinnon', team: 'COL', pos: ['C', 'F'], isMine: false },
+  { pickNumber: 3, name: 'Nikita Kucherov', team: 'TBL', pos: ['F'], isMine: false },
+  { pickNumber: 4, name: 'Cale Makar', team: 'COL', pos: ['D'], isMine: false }
+];
+const gradeReal = GT.gradeDraft(fixedHistory, rawData.players, { rosterLimits: { C: 2, F: 6, D: 6, G: 2 } });
+assert.strictEqual(gradeReal.picks.length, fixedHistory.length, 'Every recorded pick is graded');
+assert.strictEqual(gradeReal.summary.picksCount, 0, 'None of the fixed picks are mine');
 console.log('✓ Real draft board grading sanity passes');
 
 // 12. Monte Carlo: seeded gaussian noise follows N(0, 1)
