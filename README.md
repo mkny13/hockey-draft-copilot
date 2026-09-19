@@ -153,6 +153,18 @@ The Co-Pilot's recommended pick drives one team; the other seven draft from ESPN
 
 ---
 
+## Credits and data sources
+
+This is a personal project. It was built on top of an export from a fantasy hockey values aggregator that blends projections from DtZ, Daily Faceoff, Apples & Ginos and The Athletic, plus ESPN ADP from Hashtag Hockey. Thanks to the aggregator's developer and to those projection authors; the game-theory layer here would have nothing to work with without their valuations.
+
+This repo does not include or redistribute their projections. The bundled `draft_data.json` is a sample with synthetic values (see [Data note](#connect-the-draft-room-chrome-extension)). To use the Co-Pilot for a real draft you will need to adapt it to your own league and valuations:
+
+- set your league's roster slots and team count in `config.league` of your board file;
+- supply your own board (FP, VORP, positions, ADP) as `draft_data.local.json`, built from whatever rankings or projections you trust and are licensed to use;
+- set your draft slot in the app.
+
+The Co-Pilot's tuning (survival model, diminishing returns, mock-draft results) was developed against one 8-team ESPN league, so expect to re-check it for yours.
+
 ## License
 
 [MIT](LICENSE)
