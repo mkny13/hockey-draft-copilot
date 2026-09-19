@@ -130,6 +130,8 @@ const json = async (p) => (await p).json();
     assert.strictEqual(ev.draftComplete, true, '8 teams x 22 rounds = 176 picks');
     assert.strictEqual(ev.onTheClock, false);
     assert(ev.headline.includes('Draft complete'));
+    assert.deepStrictEqual(ev.shortlist, [], 'No short list once the draft is over');
+    assert.strictEqual(ev.tradeoff, '');
     console.log('✓ Evaluation snapshot and draft-complete state');
 
     // Post-draft report with the extended limits

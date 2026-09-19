@@ -171,6 +171,8 @@
 
     const hud = document.createElement("div");
     hud.id = "copilot-hud-card";
+    // ESPN: dock exactly over the right-hand Picks sidebar instead of floating over the pick strip
+    if (isEspn) hud.classList.add("espn-layout");
     hud.style.display = "none";
     hud.innerHTML = `
       <div class="hud-header">

@@ -115,6 +115,7 @@ const names = (w) => w.__posts.map((p) => p.name);
   {
     const w = runExtension('<div></div>');
     await sleep(300);
+    assert(w.document.getElementById('copilot-hud-card').classList.contains('espn-layout'), 'On ESPN the HUD docks over the Picks sidebar');
     const sock = w.__sockets[0];
     assert(sock, 'The content script opens a WebSocket to the server');
     sock.onopen();

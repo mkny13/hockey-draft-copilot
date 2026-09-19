@@ -143,7 +143,8 @@ function buildEvaluation() {
     headline: live.headline || '',
     subtext: live.subtext || '',
     alertType: live.alertType || 'info',
-    shortlist: (res.shortlist || []).slice(0, 5).map((p) => ({
+    // Nothing left to recommend once the last pick is in
+    shortlist: res.draftComplete ? [] : (res.shortlist || []).slice(0, 5).map((p) => ({
       name: p.name,
       pos: p.posLabel,
       team: p.team || '',
@@ -151,7 +152,7 @@ function buildEvaluation() {
       survivalProb: p.survivalProb,
       adjVorp: p.adjVorp
     })),
-    tradeoff: res.topMatchup && res.topMatchup.cmp ? res.topMatchup.cmp.verdict : ''
+    tradeoff: !res.draftComplete && res.topMatchup && res.topMatchup.cmp ? res.topMatchup.cmp.verdict : ''
   };
 }
 

@@ -199,3 +199,13 @@
   color: #58a6ff;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
 }
+
+/* ESPN draft room: align with the Picks sidebar (measured live: x 1244-1520 of 1520, top 125px),
+   leaving the header and the pick strip above it uncovered */
+#copilot-hud-card.espn-layout {
+  top: 125px;
+  right: 0;
+  width: 276px;
+  max-height: calc(100vh - 135px);
+  border-radius: 8px 0 0 8px;
+}
