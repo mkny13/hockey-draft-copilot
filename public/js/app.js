@@ -380,7 +380,11 @@
     var res = state.evalResult;
     var onTheClock = res.onTheClock;
 
-    if (onTheClock) {
+    if (res.draftComplete) {
+      statusBadge.textContent = "✅ DRAFT COMPLETE";
+      statusBadge.className = "status-badge waiting";
+      dispNextTurn.textContent = "All picks are in";
+    } else if (onTheClock) {
       statusBadge.textContent = "🚨 ON THE CLOCK";
       statusBadge.className = "status-badge on-clock";
       dispNextTurn.textContent = "Round turn: Pick #" + res.targetTurn;
@@ -746,7 +750,7 @@
 
       if (count >= limit && flexUsed >= flexTotal) {
         card.classList.add("capped");
-        warnDiv.textContent = "⚠️ Capped (-15% to -35% VORP)";
+        warnDiv.textContent = "⚠️ Capped: extras are bench depth (~30% value)";
       } else if (count > limit) {
         card.classList.remove("capped");
         warnDiv.textContent = "Flex/bench slots used: " + flexUsed + " / " + flexTotal;
@@ -802,7 +806,8 @@
         name: player.name,
         team: player.team,
         pos: player.pos,
-        isMine: isMine
+        isMine: isMine,
+        manual: true // an explicit click in the app overrides the snake schedule
       })
     })
     .then(r => r.json())

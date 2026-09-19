@@ -57,6 +57,17 @@ app.use((req, res, next) => {
   next();
 });
 
+// State-changing requests only from the app itself, localhost tools, or the draft rooms.
+// CORS alone does not stop a simple cross-site POST (e.g. /api/reset with no body).
+const ALLOWED_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$|^https:\/\/([a-z0-9-]+\.)*(espn|yahoo)\.com$/i;
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (req.method !== 'GET' && req.method !== 'OPTIONS' && origin && !ALLOWED_ORIGIN.test(origin)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+  next();
+});
+
 // Serve frontend static assets with no-cache headers to ensure immediate updates in browser
 app.use(express.static(path.join(__dirname, 'public'), {
   etag: false,
@@ -125,6 +136,7 @@ function buildEvaluation() {
   const live = res.liveProtocol || {};
   return {
     onTheClock: res.onTheClock,
+    draftComplete: res.draftComplete,
     currentPick: res.currentPick,
     targetTurn: res.targetTurn,
     picksUntilTurn: res.picksUntilTurn,
@@ -183,7 +195,7 @@ app.get('/api/evaluation', (req, res) => {
 });
 
 app.post('/api/pick', (req, res) => {
-  const { name, team, pos, round, pickInRound } = req.body;
+  const { name, team, pos, round, pickInRound, isMine, manual } = req.body;
   if (!name || typeof name !== 'string') {
     return res.status(400).json({ error: 'Player name is required' });
   }
@@ -206,9 +218,12 @@ app.post('/api/pick', (req, res) => {
     pickNum = pir > draftState.teams ? pir : (rnd - 1) * draftState.teams + pir;
   }
 
-  // Ownership comes from the snake schedule only: the page-scraped isMine flag
-  // proved unreliable (class selectors match whole wrappers).
-  const isMyPick = GameTheory.getPickDetails(pickNum, draftState.teams).ownerSlot === draftState.slot;
+  // Ownership comes from the snake schedule. The page-scraped isMine flag proved
+  // unreliable (class selectors match whole wrappers), so it is honored only when
+  // the app itself sends it from an explicit "+ Mine" / "Taken" click.
+  const isMyPick = manual === true
+    ? !!isMine
+    : GameTheory.getPickDetails(pickNum, draftState.teams).ownerSlot === draftState.slot;
 
   if (isMyPick) {
     draftState.mine[cleanName] = true;

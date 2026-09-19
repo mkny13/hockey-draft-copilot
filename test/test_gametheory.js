@@ -418,6 +418,16 @@ assert.strictEqual(negD.adjVorp, -8, 'Discounting a negative VORP must not raise
 assert.strictEqual(negEval.shortlist[0].name, 'Pos G', 'A safe goalie beats a replacement-level defenseman when nothing urgent is worth more');
 console.log('✓ Negative-VORP discount and safe-star shortlist pass');
 
+// Draft end: 8 teams x 22 rounds = 176 picks; nothing is "on the clock" afterwards
+const doneOpts = { slot: 5, teams: 8, drafted: {}, mine: {}, rosterCounts: { C: 0, F: 0, D: 0, G: 0 }, rosterLimits: flexLimits };
+const lastPick = GT.evaluateBoard(rawData.players, Object.assign({ currentPick: 176 }, doneOpts));
+assert.strictEqual(lastPick.draftComplete, false, 'Pick 176 is still part of the draft');
+const afterEnd = GT.evaluateBoard(rawData.players, Object.assign({ currentPick: 181 }, doneOpts));
+assert.strictEqual(afterEnd.draftComplete, true);
+assert.strictEqual(afterEnd.onTheClock, false, 'Nobody is on the clock once the draft is over');
+assert(afterEnd.liveProtocol.headline.includes('Draft complete'));
+console.log('✓ Draft-complete state passes');
+
 
 // Roster counts: only my picks count; C spills to F once C slots are full
 const rcLimits = { C: 1, F: 5, D: 4, G: 2 };

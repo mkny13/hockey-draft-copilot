@@ -255,7 +255,14 @@
     var rosterCounts = options.rosterCounts || { C: 0, LW: 0, RW: 0, D: 0, G: 0 };
     var rosterLimits = options.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
 
-    var onTheClock = isMyTurn(currentPick, slot, teams);
+    // Total picks are known when the roster size is (starters + flex pool)
+    var rosterSize = rosterLimits.FLEX
+      ? (rosterLimits.C || 0) + (rosterLimits.F || 0) + (rosterLimits.D || 0) + (rosterLimits.G || 0) + rosterLimits.FLEX
+      : 0;
+    var totalPicks = rosterSize * teams;
+    var draftComplete = totalPicks > 0 && currentPick > totalPicks;
+
+    var onTheClock = !draftComplete && isMyTurn(currentPick, slot, teams);
     var targetTurn = onTheClock
       ? getNextSnakePick(currentPick + 1, slot, teams)
       : getNextSnakePick(currentPick, slot, teams);
@@ -460,9 +467,17 @@
       }
     }
 
+    if (draftComplete) {
+      liveProtocol.alertType = "info";
+      liveProtocol.headline = "✅ Draft complete";
+      liveProtocol.subtext = "All " + totalPicks + " picks are in. Open the Draft Report for your grade.";
+      liveProtocol.picksUntilTurn = 0;
+    }
+
     var topMatchup = getTopMatchup(availableRows, targetTurn, stdDev);
 
     return {
+      draftComplete: draftComplete,
       allRows: evaluatedRows,
       availableRows: availableRows,
       shortlist: shortlist,

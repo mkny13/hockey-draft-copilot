@@ -112,7 +112,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
       try {
         const stored = await chrome.storage.local.get("status");
-        if (stored && stored.status) {
+        // The worker sleeps when idle, pausing the interval: re-check when the stored status is stale
+        if (stored && stored.status && Date.now() - (stored.status.lastChecked || 0) < 10000) {
           sendResponse(stored.status);
         } else {
           const fresh = await checkHealth();

@@ -27,7 +27,7 @@
 
       wsClient.onopen = function() {
         console.log(`[Draft Co-Pilot] Connected to live server WebSocket: ${syncWsUrl}`);
-        updateBadge({ connected: true, latency: 1 });
+        updateBadge({ connected: true, latency: null });
       };
 
       wsClient.onmessage = function(event) {
@@ -38,6 +38,7 @@
       };
 
       wsClient.onclose = function() {
+        updateBadge({ connected: false });
         scheduleWsReconnect();
       };
 
@@ -445,23 +446,32 @@
     const roundPick = /R(\d+),\s*P(\d+)/i;
     const playerTeam = /([A-Z][a-zA-Z\.\'\-\s]+?)\s*\/\s*([A-Z]{2,3})(?:,\s*([A-Z]+))?/i;
 
-    // Small elements holding both "Name / TEAM" and "R#, P#". The length cap keeps
-    // page-wide wrappers (which also contain the Available Players list) out.
-    const candidates = Array.from(document.querySelectorAll("div, li, section, p, [role='alert'], [role='status']")).filter((el) => {
-      const t = el.textContent || "";
-      return t.length < 300 && roundPick.test(t) && playerTeam.test(t);
-    });
-    // Innermost only, so a wrapper never shadows the toast itself
-    const cards = candidates.filter((el) => !candidates.some((o) => o !== el && el.contains(o)));
+    // Start from the text nodes carrying "R#, P#" (cheap: one regex per node) and climb
+    // to the smallest small ancestor that also holds "Name / TEAM". The length cap
+    // keeps page-wide wrappers (which also contain the Available Players list) out.
+    const walker = document.createTreeWalker(document.body || document.documentElement, NodeFilter.SHOW_TEXT);
+    const seen = new Set();
+    let textNode;
+    while ((textNode = walker.nextNode())) {
+      if (!roundPick.test(textNode.nodeValue)) continue;
 
-    cards.forEach((card) => {
-      if (isAvailablePlayersElement(card)) return;
+      let card = textNode.parentElement;
+      let found = false;
+      for (let depth = 0; card && depth < 6; depth++, card = card.parentElement) {
+        const t = card.textContent || "";
+        if (t.length >= 300) break;
+        if (playerTeam.test(t)) { found = true; break; }
+      }
+      if (!found || seen.has(card)) continue;
+      seen.add(card);
+
+      if (isAvailablePlayersElement(card)) continue;
       const txt = card.textContent || "";
       const rMatch = txt.match(roundPick);
       const pMatch = txt.match(playerTeam);
 
       // The picked player is listed before the round/pick marker
-      if (!pMatch || pMatch.index > rMatch.index) return;
+      if (!pMatch || !rMatch || pMatch.index > rMatch.index) continue;
 
       const resolved = window.resolveCopilotPlayer ? window.resolveCopilotPlayer(pMatch[1].trim()) : pMatch[1].trim();
       if (resolved && !sent.has(resolved.toLowerCase())) {
@@ -472,7 +482,7 @@
         });
         newlyFound.push(resolved);
       }
-    });
+    }
 
     return newlyFound;
   }
@@ -647,8 +657,14 @@
     scanAndSyncAllPicks(false);
   }, 1000);
 
+  // The draft timer mutates the page every second: coalesce scans instead of running one per mutation
+  let scanTimer = null;
   const observer = new MutationObserver(() => {
-    scanAndSyncAllPicks(false);
+    if (scanTimer) return;
+    scanTimer = setTimeout(() => {
+      scanTimer = null;
+      scanAndSyncAllPicks(false);
+    }, 300);
   });
 
   if (document.body) {
