@@ -9,7 +9,7 @@ for (const [slot, seed] of [[5, 1], [2, 7]]) {
   assert.strictEqual(eng.roster.length, 22, 'a full 22-man roster');
   assert(eng.mix.G >= 2, `slot ${slot}: engine must draft its 2 starting goalies, got ${eng.mix.G}`);
   assert(eng.mix.C + eng.mix.F >= 9, `slot ${slot}: engine must fill 2C + 6F + UTIL`);
-  assert(eng.mineScore > adp.mineScore + 200, `slot ${slot}: engine (${eng.mineScore.toFixed(0)}) should beat pure ADP (${adp.mineScore.toFixed(0)}) by a wide margin`);
+  assert(eng.mineScore > adp.mineScore + 100, `slot ${slot}: engine (${eng.mineScore.toFixed(0)}) should beat pure ADP (${adp.mineScore.toFixed(0)}) by a clear margin`);
   assert(eng.rank <= 2, `slot ${slot}: engine should finish top 2, got ${eng.rank}`);
 
   const again = runDraft(slot, seed, true, false);

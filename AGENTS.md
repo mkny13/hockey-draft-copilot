@@ -33,7 +33,7 @@ npm run test:quick  # engine + data only
 ## Conventions
 
 - **Where things run:** the Chrome extension is loaded unpacked from the **main checkout's** `yahoo-sync/`, and `npm start` runs from there. Work done in a git worktree is invisible to Chrome until it is merged into main; always sync/merge and rerun `npm test` in main.
-- **Board data:** `draft_data.json` / `public/draft_data.json` are the user's own board export with real league settings (C2 F6 D6 UTIL1 G2 BN5, 8 teams). Never rebuild VORP/FP from raw source data. Only ADP columns come from `scripts/ingest_espn_adp.js`. Roster limits are derived from `config.league.slots` in that file.
+- **Board data:** `draft_data.json` / `public/draft_data.json` are a committed **sample** board (real names/ADP, synthetic FP/VORP) with the league settings (C2 F6 D6 UTIL1 G2 BN5, 8 teams). The author's real board is not in the repo; never rebuild VORP/FP from raw source data. Only ADP columns come from `scripts/ingest_espn_adp.js`. Roster limits are derived from `config.league.slots` in that file.
 - **Pick ownership** is decided by the server from the snake schedule and the configured slot, never from the draft page's DOM. The only override is the app's own "+ Mine" / "Taken" buttons, which send `manual: true`. The draft slot is a user setting (default 5 is a placeholder).
 - **Draft-page scanners** (extension, both bookmarklets) must match only the innermost small element containing the player and `R#, P#`, and must skip the Available Players table; a page-wide wrapper contains the available list and will record the wrong player.
 - A discount must never raise a negative VORP; the shortlist must remain a strict total order.
