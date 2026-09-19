@@ -63,6 +63,8 @@
   };
 
   async function init() {
+    var portEl = document.getElementById("sync-port");
+    if (portEl && window.location.port) portEl.textContent = window.location.port;
     setupBookmarklet();
     setupEventListeners();
     setupWebSocket();
@@ -341,32 +343,7 @@
   }
 
   function getRosterCounts() {
-    var counts = { C: 0, F: 0, D: 0, G: 0, total: 0 };
-    var limits = state.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
-    for (var i = 0; i < state.pickHistory.length; i++) {
-      var item = state.pickHistory[i];
-      if (item.isMine) {
-        counts.total++;
-        var positions = item.pos || [];
-        // If pure C:
-        if (positions.length === 1 && positions[0] === 'C') {
-          if (counts.C < (limits.C || 3)) counts.C++;
-          else counts.F++; // flex to Forward if C starting slots full
-        } else if (positions.indexOf('C') !== -1 && positions.indexOf('F') !== -1) {
-          // Dual C/F: fill C if open, else F
-          if (counts.C < (limits.C || 3)) counts.C++;
-          else counts.F++;
-        } else {
-          for (var p = 0; p < positions.length; p++) {
-            var posKey = positions[p];
-            if (counts[posKey] !== undefined) {
-              counts[posKey]++;
-            }
-          }
-        }
-      }
-    }
-    return counts;
+    return GameTheory.getRosterCounts(state.pickHistory, state.rosterLimits);
   }
 
   function recomputeAndRender() {
@@ -507,7 +484,7 @@
           </div>
           <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
             <span>Tier Cliff: <b style="color:${p.dropoff >= 15 ? 'var(--red)' : 'var(--text-main)'};">${cliffText} pts</b></span>
-            <span>Consensus ADP: <b style="color:var(--text-main);">${p.adp || 'N/A'}</b></span>
+            <span>ESPN ADP: <b style="color:var(--text-main);">${p.adp || 'N/A'}</b></span>
             ${p.adpDelta >= 15 ? `<span style="color:var(--green);">Arbitrage: +${p.adpDelta.toFixed(1)}</span>` : ''}
           </div>
           ${adviceRow}
@@ -555,12 +532,12 @@
       var p = available[i];
       var optA = document.createElement("option");
       optA.value = p.name;
-      optA.textContent = p.name + " (" + p.posLabel + ", ADP " + (p.adp || "N/A") + ")";
+      optA.textContent = p.name + " (" + p.posLabel + ", ESPN ADP " + (p.adp || "N/A") + ")";
       cmpSelectA.appendChild(optA);
 
       var optB = document.createElement("option");
       optB.value = p.name;
-      optB.textContent = p.name + " (" + p.posLabel + ", ADP " + (p.adp || "N/A") + ")";
+      optB.textContent = p.name + " (" + p.posLabel + ", ESPN ADP " + (p.adp || "N/A") + ")";
       cmpSelectB.appendChild(optB);
     }
 
@@ -611,7 +588,7 @@
     if (!rowA || !rowB) return;
 
     var targetTurn = state.evalResult.targetTurn;
-    var cmp = GameTheory.comparePlayersGameTheory(rowA, rowB, null, null, targetTurn, state.stdDev);
+    var cmp = GameTheory.comparePlayersGameTheory(rowA, rowB, null, null, targetTurn, state.stdDev, state.evalResult.availableRows);
     if (!cmp) return;
 
     var color = cmp.waitOnA ? "var(--green)" : "var(--orange)";
@@ -642,7 +619,7 @@
         <span>${p.name} (${p.posLabel})</span>
         <span style="font-family:var(--font-mono); font-weight:bold;">${survPct}</span>
       `;
-      pill.title = "ADP: " + (p.adp || "N/A") + " | VORP: " + p.adjVorp.toFixed(1) + " | Will safely survive to turn!";
+      pill.title = "ESPN ADP: " + (p.adp || "N/A") + " | VORP: " + p.adjVorp.toFixed(1) + " | Will safely survive to turn!";
       safeSleepersContainer.appendChild(pill);
     }
   }
@@ -753,6 +730,9 @@
     var totalDrafted = 0;
     var totalVorp = 0;
 
+    var flexTotal = limits.FLEX || 0;
+    var flexUsed = GameTheory.getFlexUsed(rosterCounts, limits);
+
     for (var i = 0; i < posList.length; i++) {
       var p = posList[i];
       var upper = p.toUpperCase();
@@ -764,9 +744,12 @@
 
       countSpan.textContent = count + " / " + limit;
 
-      if (count >= limit) {
+      if (count >= limit && flexUsed >= flexTotal) {
         card.classList.add("capped");
         warnDiv.textContent = "⚠️ Capped (-15% to -35% VORP)";
+      } else if (count > limit) {
+        card.classList.remove("capped");
+        warnDiv.textContent = "Flex/bench slots used: " + flexUsed + " / " + flexTotal;
       } else {
         card.classList.remove("capped");
         warnDiv.textContent = "";
@@ -785,7 +768,9 @@
       }
     }
 
-    document.getElementById("roster-total-count").textContent = totalDrafted + " / 18";
+    var leagueSlots = (state.draftData && state.draftData.config && state.draftData.config.league && state.draftData.config.league.slots) || {};
+    var totalSlots = Object.keys(leagueSlots).reduce(function (sum, k) { return sum + (leagueSlots[k] || 0); }, 0);
+    document.getElementById("roster-total-count").textContent = totalDrafted + " / " + (totalSlots || 18);
     document.getElementById("stat-total-vorp").textContent = totalVorp.toFixed(1);
 
     // Pick history feed
@@ -1284,7 +1269,7 @@
   }
 
   function setupBookmarklet() {
-    var bmCode = `javascript:(function(){const u='http://localhost:3333/api/pick';const s=new Set();function n(p,m){if(!p||s.has(p))return;s.add(p);fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:p,isMine:m})}).catch(e=>console.error(e));}function c(){document.querySelectorAll('.draft-results-table tr,#draft-tables tbody tr,.Grid-table tr').forEach(r=>{const el=r.querySelector('.name,.player,[data-tst="player-name"],a.F-link');if(el)n(el.textContent.trim(),r.classList.contains('my-team')||r.classList.contains('user-pick'));});}c();setInterval(c,1500);alert('🏒 Yahoo Draft Live Sync Activated!');})();`;
+    var bmCode = `javascript:(function(){const u='http://localhost:3333/api/pick';const isEspn=window.location.hostname.includes('espn.com');const pName=isEspn?'ESPN':'Yahoo';const s=new Set();let cnt=0;let b=document.getElementById('copilot-bm-badge');if(!b){b=document.createElement('div');b.id='copilot-bm-badge';b.style.cssText='position:fixed;top:12px;right:12px;z-index:2147483647;background:#0d1117;color:#3fb950;border:1.5px solid #238636;padding:6px 12px;border-radius:20px;font-family:-apple-system,sans-serif;font-size:11px;font-weight:bold;box-shadow:0 4px 14px rgba(0,0,0,0.6);display:flex;gap:8px;align-items:center;cursor:pointer;';b.innerHTML='<span>● 🏒 '+pName+' Co-Pilot: Live</span><span id=\"copilot-bm-count\" style=\"background:rgba(255,255,255,0.12);color:#fff;padding:2px 6px;border-radius:10px;font-size:10px;\">0 synced</span><button id=\"copilot-bm-scan\" style=\"background:#21262d;border:1px solid #30363d;color:#58a6ff;font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer;\">Scan</button><button id=\"copilot-bm-reset\" style=\"background:#da3633;border:none;color:#fff;font-size:10px;padding:2px 6px;border-radius:4px;cursor:pointer;margin-left:4px;\">Reset</button>';(document.body||document.documentElement).appendChild(b);document.getElementById('copilot-bm-scan').addEventListener('click',function(e){e.stopPropagation();scan();alert('⚡ Scanned board: '+cnt+' picks recorded.');});document.getElementById('copilot-bm-reset').addEventListener('click',function(e){e.stopPropagation();if(confirm('Reset draft board?')){s.clear();cnt=0;document.getElementById('copilot-bm-count').textContent='0 synced';fetch('http://localhost:3333/api/reset',{method:'POST'});}});}function isAvail(el){if(!el)return false;if(el.closest('[class*=\"playerPool\"],[class*=\"PlayerPool\"],[class*=\"players-table\"],[class*=\"player-table\"],[aria-label*=\"Players\"],#playertable'))return true;const r=el.closest('tr,[role=\"row\"],li');if(r){const btns=r.querySelectorAll('button,a,[role=\"button\"]');for(let i=0;i<btns.length;i++){const t=(btns[i].textContent||'').trim().toLowerCase();if(t==='draft'||t==='claim'||t==='queue'||t==='+')return true;}}return false;}function clean(t){if(!t)return '';let c=t.replace(/\\s+/g,' ').trim();c=c.replace(/^(?:pick\\s*\\d+[:\\.\\s]*|round\\s*\\d+[:\\.\\s]*|\\d+[\\.\\:\\s]+)/i,'');c=c.split(/ - | \\(|\\s*,\\s*[A-Z]{2,3}\\b|\\n/)[0].trim();return c.replace(/\\s+(?:IR|IR-LT|DTD|OUT|O|SSPD|NA|C|LW|RW|F|D|G)$/i,'').trim();}function n(p,m,r,k){const c=clean(p);if(!c||c.length<3||c.match(/^(?:round|pick|player|team|empty|none|draft)$/i)||s.has(c.toLowerCase()))return;s.add(c.toLowerCase());cnt++;const el=document.getElementById('copilot-bm-count');if(el)el.textContent=cnt+' synced';fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({name:c,isMine:m,round:r,pickInRound:k})}).then(r=>console.log('['+pName+' Sync] ✓ Pick #'+cnt+': '+c)).catch(e=>console.error(e));}function scan(){const cands=Array.from(document.querySelectorAll(\"div,li,p,[role='alert'],[role='status']\")).filter(el=>{const t=el.textContent||'';return t.length<300&&/R\\d+,\\s*P\\d+/i.test(t)&&/\\/\\s*[A-Z]{2,3}/.test(t);});cands.filter(el=>!cands.some(o=>o!==el&&el.contains(o))).forEach(card=>{if(isAvail(card))return;const txt=card.textContent||'';const rm=txt.match(/R(\\d+),\\s*P(\\d+)/i);const pMatch=txt.match(/([A-Z][a-zA-Z\\.\\'\\-\\s]+?)\\s*\\/\\s*([A-Z]{2,3})/i);if(pMatch&&rm&&pMatch.index<=rm.index)n(pMatch[1],false,+rm[1],+rm[2]);});document.querySelectorAll('[class*=\"DraftBoard\"] [class*=\"cell\"],[class*=\"draftBoard\"] [class*=\"cell\"],[class*=\"draft-board\"] [class*=\"cell\"],[class*=\"DraftBoard\"] [class*=\"tile\"],[class*=\"DraftCell\"],[class*=\"draftCell\"],[class*=\"pickTile\"],[class*=\"DraftPick\"],.DraftBoard__pick').forEach(c=>{if(isAvail(c))return;const l=c.querySelector('a[href*=\"player\"],a[href*=\"athlete\"],[data-player-id]');n(l?l.getAttribute('title')||l.textContent:c.textContent,c.classList.contains('my-team')||c.classList.contains('user-pick')||c.classList.contains('is-user'));});document.querySelectorAll('[class*=\"draftHistory\"] tr,[class*=\"DraftHistory\"] tr,[class*=\"pickHistory\"] li,[class*=\"activity\"] li,.ticker-item,.draft-activity-item,.chat-message,div[class*=\"feedItem\"],.draft-results-table tr').forEach(i=>{if(isAvail(i))return;const txt=i.textContent||'';const m1=txt.match(/(?:drafted|selected)\\s+([A-Z][a-zA-Z\\.\\'\\-\\s]+?)(?:\\s*,|\\s*\\(|\\s+with|\\s+as|\\s+by|$)/i);if(m1&&m1[1])n(m1[1],false);const m2=txt.match(/([A-Z][a-zA-Z\\.\\'\\-\\s]+?)\\s+(?:was\\s+drafted|drafted|selected)\\s+by/i);if(m2&&m2[1])n(m2[1],false);if(/(?:drafted|selected|pick\\s*#?\\d+)/i.test(txt)){const l=i.querySelector('a[href*=\"player\"],a[href*=\"athlete\"],[data-player-id],a.F-link');if(l)n(l.getAttribute('title')||l.textContent,false);}});document.querySelectorAll('[class*=\"lastPick\"],[class*=\"recentPick\"],[class*=\"onTheClock\"],[class*=\"draftBanner\"]').forEach(b=>{if(isAvail(b))return;const txt=b.textContent||'';const m=txt.match(/(?:selected|drafted|last pick[:\\s]*|recent pick[:\\s]*|pick\\s*#?\\d+[:\\s]*)\\s*([A-Z][a-zA-Z\\.\\'\\-\\s]+?)(?:\\s*,|\\s*\\(|$)/i);if(m&&m[1])n(m[1],false);});}scan();setInterval(scan,1000);alert('🏒 '+pName+' Draft Live Sync Activated!\\nPicks will stream hands-free to localhost:3333.');})();`;
     var link = document.getElementById("bookmarklet-link");
     if (link) link.href = bmCode;
   }

@@ -19,11 +19,12 @@ npm test
 
 ## Architecture & Code Map
 
-- `server.js`: Node.js Express & WebSocket server (`PORT=3333`). Manages live draft state (`draft_state.json`), CORS-enabled `/api/pick`, `/api/undo`, `/api/reset`, `/api/settings`, and live WS broadcast.
+- `server.js`: Node.js Express & WebSocket server (`PORT=3333`). Manages live draft state (`draft_state.json`), CORS-enabled `/api/pick`, `/api/undo`, `/api/reset`, `/api/settings`, and live WS broadcast (each broadcast carries an `evaluation` snapshot for the in-room HUD; also `GET /api/evaluation`).
 - `public/js/valuation.js`: Pure mathematical valuation engine adapted from `fantasy-hockey-aggregate.pages.dev`. Blends multi-source projections and computes baseline VORP, replacement level, and tiers.
 - `public/js/gametheory.js`: Mathematical game-theory engine implementing survival odds ($P_{survive}$ via Abramowitz & Stegun normal CDF), snake schedule turn calculations, diminishing returns ($Adj\_VORP$), automated target trade-offs (`computeTargetTradeoffs`), top matchup selector (`getTopMatchup`), and 2-round EVONA comparator (`comparePlayersGameTheory`).
 - `public/js/app.js`: Client-side UI state controller, live search, reactive table rendering, automated trade-off advice cards, auto-comparator handler, and WebSocket receiver.
-- `yahoo-sync/`: Complete Manifest V3 Chrome Extension (`background.js` health monitor, `popup.html`/`popup.js` options UI, `content.js` pick stream, and `status.css` in-room connection badge).
+- `yahoo-sync/`: Complete Manifest V3 Chrome Extension (`background.js` health monitor, `popup.html`/`popup.js` options UI, `content.js` pick stream supporting ESPN & Yahoo, and `status.css` in-room connection badge).
+- `scripts/ingest_espn_adp.js`: Automated parser and updater for live ESPN ADP dataset.
 - `start.sh`: Executable startup script that installs dependencies, runs tests, starts the server, and opens `http://localhost:3333`.
 
 ## Conventions

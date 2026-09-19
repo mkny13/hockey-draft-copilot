@@ -1,23 +1,65 @@
 {
   "meta": {
     "season": "2026-27",
-    "source": "Google Sheet Enhanced Master (C and F league)",
+    "source": "Board export (rankings.csv) from the aggregate app: DtZ, DFO, A&G + The Athletic, league snapshot settings",
     "count": 820
   },
   "config": {
     "league": {
       "teams": 8,
       "slots": {
-        "C": 3,
-        "F": 5,
-        "D": 4,
+        "C": 2,
+        "LW": 0,
+        "RW": 0,
+        "W": 0,
+        "F": 6,
+        "D": 6,
+        "UTIL": 1,
         "G": 2,
-        "BN": 4
+        "BN": 5
       }
     },
+    "scoring": {
+      "G": 4,
+      "A": 2.5,
+      "PTS": 0,
+      "PPG": 0,
+      "PPP": 1,
+      "SHG": 0,
+      "SHP": 0,
+      "SOG": 0.1,
+      "HIT": 0.1,
+      "BLK": 0.2,
+      "PM": 0,
+      "PIM": 0,
+      "GWG": 0,
+      "FOW": 0,
+      "FOL": 0,
+      "W": 3,
+      "L": 0,
+      "OTL": 0,
+      "SO": 3,
+      "SV": 0.2,
+      "SA": 0,
+      "GA": -1,
+      "SV%": 0,
+      "GAA": 0,
+      "DPT": 0,
+      "GS": 0
+    },
+    "weights": {
+      "AGN": 2,
+      "AGB": 2,
+      "DtZ": 2,
+      "DFO": 2,
+      "IMP1-c61v": 1.9
+    },
     "model": {
-      "adp_source": "average",
-      "eligibility": "yahoo"
+      "adp_source": "espn",
+      "eligibility": "yahoo",
+      "gpModel": "rate_blended_gp",
+      "replacementMethod": "draft",
+      "tierK": 1
     }
   },
   "players": [
@@ -27,7 +69,8 @@
       "n": "Connor McDavid",
       "t": "EDM",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -41,9 +84,10 @@
       "dropoff": 10.84,
       "fp": 475.93,
       "fpg": 5.803,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 1.6,
+        "average": 1.9,
+        "espn": 2.2,
         "yahoo": 1.6
       },
       "mark": ""
@@ -54,7 +98,8 @@
       "n": "Nathan MacKinnon",
       "t": "COL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -70,7 +115,8 @@
       "fpg": 5.631,
       "gp": 82.6,
       "adp": {
-        "average": 1.9,
+        "average": 2.1,
+        "espn": 1.9,
         "yahoo": 1.9
       },
       "mark": "watch"
@@ -97,7 +143,8 @@
       "fpg": 5.588,
       "gp": 81.4,
       "adp": {
-        "average": 3.7,
+        "average": 4,
+        "espn": 4,
         "yahoo": 3.7
       },
       "mark": ""
@@ -124,7 +171,8 @@
       "fpg": 4.231,
       "gp": 82.2,
       "adp": {
-        "average": 7.5,
+        "average": 8.3,
+        "espn": 9.9,
         "yahoo": 7.5
       },
       "mark": ""
@@ -147,11 +195,12 @@
       "rawVorp": 189.95,
       "adjVorp": 189.95,
       "dropoff": 6.86,
-      "fp": 332.0,
+      "fp": 332,
       "fpg": 4.109,
       "gp": 80.8,
       "adp": {
-        "average": 14.7,
+        "average": 21.7,
+        "espn": 30.6,
         "yahoo": 14.7
       },
       "mark": "watch"
@@ -178,9 +227,10 @@
       "dropoff": 1.19,
       "fp": 419.84,
       "fpg": 5.247,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
-        "average": 5.8,
+        "average": 8.3,
+        "espn": 10.4,
         "yahoo": 5.8
       },
       "mark": ""
@@ -205,9 +255,10 @@
       "dropoff": 4.66,
       "fp": 325.14,
       "fpg": 3.871,
-      "gp": 84.0,
+      "gp": 84,
       "adp": {
-        "average": 16.6,
+        "average": 17.4,
+        "espn": 17.9,
         "yahoo": 16.6
       },
       "mark": ""
@@ -218,7 +269,8 @@
       "n": "Macklin Celebrini",
       "t": "SJS",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -234,7 +286,8 @@
       "fpg": 5.093,
       "gp": 82.2,
       "adp": {
-        "average": 5.8,
+        "average": 4.6,
+        "espn": 3.9,
         "yahoo": 5.8
       },
       "mark": "watch"
@@ -261,7 +314,8 @@
       "fpg": 3.927,
       "gp": 81.6,
       "adp": {
-        "average": 14.5,
+        "average": 13.6,
+        "espn": 11.4,
         "yahoo": 14.5
       },
       "mark": ""
@@ -288,7 +342,8 @@
       "fpg": 4.688,
       "gp": 82.6,
       "adp": {
-        "average": 8.1,
+        "average": 8.3,
+        "espn": 7.8,
         "yahoo": 8.1
       },
       "mark": ""
@@ -313,9 +368,10 @@
       "dropoff": 15.08,
       "fp": 291.84,
       "fpg": 3.559,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 28.1,
+        "average": 38.7,
+        "espn": 42.2,
         "yahoo": 28.1
       },
       "mark": ""
@@ -340,9 +396,10 @@
       "dropoff": 4.4,
       "fp": 379.6,
       "fpg": 4.743,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
-        "average": 9.1,
+        "average": 14.7,
+        "espn": 19.3,
         "yahoo": 9.1
       },
       "mark": ""
@@ -370,7 +427,8 @@
       "fpg": 4.488,
       "gp": 83.6,
       "adp": {
-        "average": 13.1,
+        "average": 9.2,
+        "espn": 7.4,
         "yahoo": 13.1
       },
       "mark": ""
@@ -397,7 +455,8 @@
       "fpg": 3.311,
       "gp": 83.6,
       "adp": {
-        "average": 27.3,
+        "average": 42.8,
+        "espn": 64.8,
         "yahoo": 27.3
       },
       "mark": ""
@@ -408,7 +467,8 @@
       "n": "Jack Eichel",
       "t": "VGK",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -422,9 +482,10 @@
       "dropoff": 6.35,
       "fp": 365.88,
       "fpg": 4.574,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
-        "average": 18.9,
+        "average": 24.9,
+        "espn": 26.9,
         "yahoo": 18.9
       },
       "mark": ""
@@ -451,7 +512,8 @@
       "fpg": 3.404,
       "gp": 79.8,
       "adp": {
-        "average": 49.5,
+        "average": 82.3,
+        "espn": 108.3,
         "yahoo": 49.5
       },
       "mark": "watch"
@@ -478,7 +540,8 @@
       "fpg": 3.258,
       "gp": 82.2,
       "adp": {
-        "average": 29.4,
+        "average": 31.1,
+        "espn": 29.8,
         "yahoo": 29.4
       },
       "mark": ""
@@ -503,9 +566,10 @@
       "dropoff": 8.9,
       "fp": 359.7,
       "fpg": 4.387,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 16.1,
+        "average": 23.9,
+        "espn": 32.2,
         "yahoo": 16.1
       },
       "mark": ""
@@ -516,7 +580,8 @@
       "n": "Auston Matthews",
       "t": "TOR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -530,9 +595,10 @@
       "dropoff": 4.26,
       "fp": 359.53,
       "fpg": 4.55,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 13.6,
+        "average": 15.7,
+        "espn": 13.6,
         "yahoo": 13.6
       },
       "mark": ""
@@ -561,7 +627,8 @@
       "fpg": 4.638,
       "gp": 76.6,
       "adp": {
-        "average": 15.4,
+        "average": 34.9,
+        "espn": 50.3,
         "yahoo": 15.4
       },
       "mark": ""
@@ -572,7 +639,8 @@
       "n": "Nick Suzuki",
       "t": "MTL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -586,9 +654,10 @@
       "dropoff": 2.05,
       "fp": 352.85,
       "fpg": 4.201,
-      "gp": 84.0,
+      "gp": 84,
       "adp": {
-        "average": 17.1,
+        "average": 16.7,
+        "espn": 20.7,
         "yahoo": 17.1
       },
       "mark": ""
@@ -617,7 +686,8 @@
       "fpg": 4.196,
       "gp": 83.6,
       "adp": {
-        "average": 25.8,
+        "average": 23.3,
+        "espn": 27.5,
         "yahoo": 25.8
       },
       "mark": ""
@@ -645,7 +715,8 @@
       "fpg": 4.24,
       "gp": 82.6,
       "adp": {
-        "average": 18.7,
+        "average": 15.5,
+        "espn": 9.7,
         "yahoo": 18.7
       },
       "mark": ""
@@ -672,7 +743,8 @@
       "fpg": 3.255,
       "gp": 78.2,
       "adp": {
-        "average": 66.8,
+        "average": 65.4,
+        "espn": 52.1,
         "yahoo": 66.8
       },
       "mark": ""
@@ -699,7 +771,8 @@
       "fpg": 3.042,
       "gp": 83.6,
       "adp": {
-        "average": 47.6,
+        "average": 38.8,
+        "espn": 23.7,
         "yahoo": 47.6
       },
       "mark": ""
@@ -728,7 +801,8 @@
       "fpg": 4.215,
       "gp": 82.2,
       "adp": {
-        "average": 34.5,
+        "average": 39.7,
+        "espn": 36.7,
         "yahoo": 34.5
       },
       "mark": ""
@@ -755,7 +829,8 @@
       "fpg": 3.087,
       "gp": 81.6,
       "adp": {
-        "average": 57.3,
+        "average": 76,
+        "espn": 87.9,
         "yahoo": 57.3
       },
       "mark": ""
@@ -782,7 +857,8 @@
       "fpg": 4.117,
       "gp": 82.8,
       "adp": {
-        "average": 26.8,
+        "average": 28,
+        "espn": 26.3,
         "yahoo": 26.8
       },
       "mark": ""
@@ -807,9 +883,10 @@
       "dropoff": 0.93,
       "fp": 334.87,
       "fpg": 4.084,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 42.2,
+        "average": 45.9,
+        "espn": 41.6,
         "yahoo": 42.2
       },
       "mark": ""
@@ -837,7 +914,8 @@
       "fpg": 4.154,
       "gp": 80.4,
       "adp": {
-        "average": 21.9,
+        "average": 45.7,
+        "espn": 65.8,
         "yahoo": 21.9
       },
       "mark": ""
@@ -864,7 +942,8 @@
       "fpg": 2.939,
       "gp": 81.2,
       "adp": {
-        "average": 81.8,
+        "average": 102.3,
+        "espn": 112.6,
         "yahoo": 81.8
       },
       "mark": ""
@@ -891,7 +970,8 @@
       "fpg": 2.962,
       "gp": 80.4,
       "adp": {
-        "average": 51.8,
+        "average": 67,
+        "espn": 83.2,
         "yahoo": 51.8
       },
       "mark": ""
@@ -918,7 +998,8 @@
       "fpg": 2.894,
       "gp": 82.2,
       "adp": {
-        "average": 50.9,
+        "average": 52.4,
+        "espn": 52.7,
         "yahoo": 50.9
       },
       "mark": ""
@@ -947,7 +1028,8 @@
       "fpg": 4.037,
       "gp": 81.8,
       "adp": {
-        "average": 26.9,
+        "average": 27.2,
+        "espn": 24.9,
         "yahoo": 26.9
       },
       "mark": ""
@@ -974,7 +1056,8 @@
       "fpg": 2.869,
       "gp": 82.6,
       "adp": {
-        "average": 76.2,
+        "average": 89.7,
+        "espn": 104.9,
         "yahoo": 76.2
       },
       "mark": ""
@@ -1001,8 +1084,9 @@
       "fpg": 2.862,
       "gp": 82.2,
       "adp": {
-        "average": 75.0,
-        "yahoo": 75.0
+        "average": 88.7,
+        "espn": 93,
+        "yahoo": 75
       },
       "mark": ""
     },
@@ -1012,7 +1096,8 @@
       "n": "Mark Scheifele",
       "t": "WPG",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -1028,7 +1113,8 @@
       "fpg": 3.969,
       "gp": 82.8,
       "adp": {
-        "average": 37.5,
+        "average": 40.5,
+        "espn": 45,
         "yahoo": 37.5
       },
       "mark": ""
@@ -1055,7 +1141,8 @@
       "fpg": 2.86,
       "gp": 81.6,
       "adp": {
-        "average": 70.8,
+        "average": 101.1,
+        "espn": 122.4,
         "yahoo": 70.8
       },
       "mark": ""
@@ -1083,7 +1170,8 @@
       "fpg": 3.941,
       "gp": 82.8,
       "adp": {
-        "average": 23.1,
+        "average": 15.7,
+        "espn": 13.2,
         "yahoo": 23.1
       },
       "mark": ""
@@ -1110,7 +1198,8 @@
       "fpg": 4.001,
       "gp": 81.4,
       "adp": {
-        "average": 39.7,
+        "average": 50.7,
+        "espn": 55.9,
         "yahoo": 39.7
       },
       "mark": ""
@@ -1137,7 +1226,8 @@
       "fpg": 3.914,
       "gp": 83.2,
       "adp": {
-        "average": 43.9,
+        "average": 37.2,
+        "espn": 18.4,
         "yahoo": 43.9
       },
       "mark": ""
@@ -1164,7 +1254,8 @@
       "fpg": 2.868,
       "gp": 80.2,
       "adp": {
-        "average": 67.2,
+        "average": 81.3,
+        "espn": 91.9,
         "yahoo": 67.2
       },
       "mark": ""
@@ -1192,7 +1283,8 @@
       "fpg": 3.927,
       "gp": 82.2,
       "adp": {
-        "average": 31.8,
+        "average": 30.8,
+        "espn": 28.7,
         "yahoo": 31.8
       },
       "mark": ""
@@ -1215,12 +1307,13 @@
       "vorp": 87.54,
       "rawVorp": 87.54,
       "adjVorp": 87.54,
-      "dropoff": 1.0,
+      "dropoff": 1,
       "fp": 322.65,
       "fpg": 3.887,
-      "gp": 83.0,
+      "gp": 83,
       "adp": {
-        "average": 42.5,
+        "average": 44.7,
+        "espn": 45.1,
         "yahoo": 42.5
       },
       "mark": ""
@@ -1250,7 +1343,8 @@
       "fpg": 3.913,
       "gp": 82.2,
       "adp": {
-        "average": 38.8,
+        "average": 48.3,
+        "espn": 53.4,
         "yahoo": 38.8
       },
       "mark": ""
@@ -1279,8 +1373,9 @@
       "fpg": 3.869,
       "gp": 83.2,
       "adp": {
-        "average": 42.0,
-        "yahoo": 42.0
+        "average": 50.9,
+        "espn": 53.8,
+        "yahoo": 42
       },
       "mark": ""
     },
@@ -1307,8 +1402,9 @@
       "fpg": 3.935,
       "gp": 81.4,
       "adp": {
-        "average": 39.0,
-        "yahoo": 39.0
+        "average": 52.4,
+        "espn": 67.2,
+        "yahoo": 39
       },
       "mark": ""
     },
@@ -1334,8 +1430,9 @@
       "fpg": 2.911,
       "gp": 77.6,
       "adp": {
-        "average": 94.0,
-        "yahoo": 94.0
+        "average": 130.2,
+        "espn": 162.8,
+        "yahoo": 94
       },
       "mark": ""
     },
@@ -1361,8 +1458,9 @@
       "fpg": 2.793,
       "gp": 80.8,
       "adp": {
-        "average": 73.0,
-        "yahoo": 73.0
+        "average": 77.1,
+        "espn": 70.2,
+        "yahoo": 73
       },
       "mark": ""
     },
@@ -1389,7 +1487,8 @@
       "fpg": 4.051,
       "gp": 78.6,
       "adp": {
-        "average": 28.1,
+        "average": 33.4,
+        "espn": 32.9,
         "yahoo": 28.1
       },
       "mark": ""
@@ -1400,7 +1499,8 @@
       "n": "Sidney Crosby",
       "t": "PIT",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -1416,7 +1516,8 @@
       "fpg": 3.947,
       "gp": 80.4,
       "adp": {
-        "average": 51.4,
+        "average": 58.6,
+        "espn": 64.4,
         "yahoo": 51.4
       },
       "mark": ""
@@ -1435,16 +1536,17 @@
       "posLabel": "D",
       "tier": "D12",
       "prnk": "D21",
-      "vorp": 78.0,
-      "rawVorp": 78.0,
-      "adjVorp": 78.0,
+      "vorp": 78,
+      "rawVorp": 78,
+      "adjVorp": 78,
       "dropoff": 6.96,
       "fp": 220.05,
       "fpg": 2.904,
       "gp": 75.8,
       "adp": {
-        "average": 83.0,
-        "yahoo": 83.0
+        "average": 112.6,
+        "espn": 125.7,
+        "yahoo": 83
       },
       "mark": ""
     },
@@ -1473,7 +1575,8 @@
       "fpg": 3.808,
       "gp": 81.8,
       "adp": {
-        "average": 34.8,
+        "average": 45,
+        "espn": 55.3,
         "yahoo": 34.8
       },
       "mark": ""
@@ -1500,7 +1603,8 @@
       "fpg": 4.294,
       "gp": 59.7,
       "adp": {
-        "average": 66.3,
+        "average": 57.7,
+        "espn": 91.7,
         "yahoo": 66.3
       },
       "mark": ""
@@ -1528,7 +1632,8 @@
       "fpg": 3.695,
       "gp": 83.4,
       "adp": {
-        "average": 44.5,
+        "average": 33.9,
+        "espn": 26.7,
         "yahoo": 44.5
       },
       "mark": ""
@@ -1555,7 +1660,8 @@
       "fpg": 4.457,
       "gp": 56.7,
       "adp": {
-        "average": 47.8,
+        "average": 13.3,
+        "espn": 16,
         "yahoo": 47.8
       },
       "mark": ""
@@ -1582,7 +1688,8 @@
       "fpg": 2.605,
       "gp": 81.8,
       "adp": {
-        "average": 90.4,
+        "average": 124.6,
+        "espn": 143.9,
         "yahoo": 90.4
       },
       "mark": ""
@@ -1610,7 +1717,8 @@
       "fpg": 3.818,
       "gp": 80.2,
       "adp": {
-        "average": 40.7,
+        "average": 55.3,
+        "espn": 69.2,
         "yahoo": 40.7
       },
       "mark": ""
@@ -1621,7 +1729,8 @@
       "n": "Sebastian Aho",
       "t": "CAR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -1635,9 +1744,10 @@
       "dropoff": 0.65,
       "fp": 306.76,
       "fpg": 3.741,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 69.2,
+        "average": 70.8,
+        "espn": 64.9,
         "yahoo": 69.2
       },
       "mark": ""
@@ -1648,7 +1758,8 @@
       "n": "Aleksander Barkov",
       "t": "FLA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -1664,8 +1775,9 @@
       "fpg": 3.935,
       "gp": 77.8,
       "adp": {
-        "average": 51.0,
-        "yahoo": 51.0
+        "average": 73.4,
+        "espn": 91.4,
+        "yahoo": 51
       },
       "mark": ""
     },
@@ -1691,7 +1803,8 @@
       "fpg": 4.571,
       "gp": 54.7,
       "adp": {
-        "average": 71.2,
+        "average": 35,
+        "espn": 40.3,
         "yahoo": 71.2
       },
       "mark": ""
@@ -1718,7 +1831,8 @@
       "fpg": 2.701,
       "gp": 78.2,
       "adp": {
-        "average": 99.3,
+        "average": 151.4,
+        "espn": 201,
         "yahoo": 99.3
       },
       "mark": ""
@@ -1744,9 +1858,10 @@
       "dropoff": 3.69,
       "fp": 303.24,
       "fpg": 3.61,
-      "gp": 84.0,
+      "gp": 84,
       "adp": {
-        "average": 67.2,
+        "average": 100.4,
+        "espn": 124.2,
         "yahoo": 67.2
       },
       "mark": ""
@@ -1773,7 +1888,8 @@
       "fpg": 4.279,
       "gp": 57.7,
       "adp": {
-        "average": 80.2,
+        "average": 154.6,
+        "espn": 190.4,
         "yahoo": 80.2
       },
       "mark": ""
@@ -1802,7 +1918,8 @@
       "fpg": 3.583,
       "gp": 83.6,
       "adp": {
-        "average": 75.5,
+        "average": 65,
+        "espn": 40.6,
         "yahoo": 75.5
       },
       "mark": ""
@@ -1813,7 +1930,8 @@
       "n": "Leo Carlsson",
       "t": "ANA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -1829,7 +1947,8 @@
       "fpg": 3.73,
       "gp": 80.4,
       "adp": {
-        "average": 43.7,
+        "average": 85.7,
+        "espn": 126.1,
         "yahoo": 43.7
       },
       "mark": ""
@@ -1856,7 +1975,8 @@
       "fpg": 3.614,
       "gp": 82.6,
       "adp": {
-        "average": 50.5,
+        "average": 53.8,
+        "espn": 53.8,
         "yahoo": 50.5
       },
       "mark": ""
@@ -1883,7 +2003,8 @@
       "fpg": 3.61,
       "gp": 82.4,
       "adp": {
-        "average": 70.2,
+        "average": 99.4,
+        "espn": 126.9,
         "yahoo": 70.2
       },
       "mark": ""
@@ -1910,7 +2031,8 @@
       "fpg": 2.496,
       "gp": 81.2,
       "adp": {
-        "average": 96.9,
+        "average": 64.7,
+        "espn": 34.1,
         "yahoo": 96.9
       },
       "mark": ""
@@ -1939,7 +2061,8 @@
       "fpg": 3.684,
       "gp": 80.4,
       "adp": {
-        "average": 22.9,
+        "average": 22.7,
+        "espn": 19.7,
         "yahoo": 22.9
       },
       "mark": ""
@@ -1964,9 +2087,10 @@
       "dropoff": 5.8,
       "fp": 239.71,
       "fpg": 4.279,
-      "gp": 56.0,
+      "gp": 56,
       "adp": {
-        "average": 83.7,
+        "average": 71.1,
+        "espn": 101.4,
         "yahoo": 83.7
       },
       "mark": "watch"
@@ -1977,7 +2101,8 @@
       "n": "Nico Hischier",
       "t": "NJD",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -1993,7 +2118,8 @@
       "fpg": 3.61,
       "gp": 81.8,
       "adp": {
-        "average": 115.8,
+        "average": 102.1,
+        "espn": 75.1,
         "yahoo": 115.8
       },
       "mark": ""
@@ -2021,7 +2147,8 @@
       "fpg": 3.465,
       "gp": 83.6,
       "adp": {
-        "average": 52.5,
+        "average": 55.1,
+        "espn": 57.3,
         "yahoo": 52.5
       },
       "mark": ""
@@ -2048,7 +2175,8 @@
       "fpg": 2.498,
       "gp": 78.6,
       "adp": {
-        "average": 107.8,
+        "average": 172.9,
+        "espn": 218.8,
         "yahoo": 107.8
       },
       "mark": ""
@@ -2075,7 +2203,8 @@
       "fpg": 4.227,
       "gp": 55.3,
       "adp": {
-        "average": 101.8,
+        "average": 33.1,
+        "espn": 41.3,
         "yahoo": 101.8
       },
       "mark": ""
@@ -2102,7 +2231,8 @@
       "fpg": 3.973,
       "gp": 72.4,
       "adp": {
-        "average": 96.8,
+        "average": 124.2,
+        "espn": 143.3,
         "yahoo": 96.8
       },
       "mark": ""
@@ -2113,7 +2243,8 @@
       "n": "Robert Thomas",
       "t": "STL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -2129,7 +2260,8 @@
       "fpg": 3.655,
       "gp": 78.8,
       "adp": {
-        "average": 77.5,
+        "average": 125.1,
+        "espn": 173.6,
         "yahoo": 77.5
       },
       "mark": ""
@@ -2152,11 +2284,12 @@
       "rawVorp": 51.95,
       "adjVorp": 51.95,
       "dropoff": 1.22,
-      "fp": 194.0,
+      "fp": 194,
       "fpg": 2.431,
       "gp": 79.8,
       "adp": {
-        "average": 133.2,
+        "average": 149.4,
+        "espn": 170.3,
         "yahoo": 133.2
       },
       "mark": ""
@@ -2184,9 +2317,10 @@
       "dropoff": 1.12,
       "fp": 286.32,
       "fpg": 3.534,
-      "gp": 81.0,
+      "gp": 81,
       "adp": {
-        "average": 91.3,
+        "average": 124.1,
+        "espn": 131.4,
         "yahoo": 91.3
       },
       "mark": ""
@@ -2197,7 +2331,8 @@
       "n": "Dylan Larkin",
       "t": "DET",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -2213,7 +2348,8 @@
       "fpg": 3.55,
       "gp": 80.8,
       "adp": {
-        "average": 83.4,
+        "average": 80.5,
+        "espn": 69.4,
         "yahoo": 83.4
       },
       "mark": ""
@@ -2240,7 +2376,8 @@
       "fpg": 2.317,
       "gp": 83.2,
       "adp": {
-        "average": 106.8,
+        "average": 121,
+        "espn": 127.3,
         "yahoo": 106.8
       },
       "mark": ""
@@ -2265,9 +2402,10 @@
       "dropoff": 4.1,
       "fp": 230.62,
       "fpg": 4.272,
-      "gp": 54.0,
+      "gp": 54,
       "adp": {
-        "average": 144.1,
+        "average": 58.5,
+        "espn": 81.1,
         "yahoo": 144.1
       },
       "mark": ""
@@ -2295,7 +2433,8 @@
       "fpg": 3.547,
       "gp": 80.4,
       "adp": {
-        "average": 93.7,
+        "average": 119.6,
+        "espn": 121.4,
         "yahoo": 93.7
       },
       "mark": ""
@@ -2323,7 +2462,8 @@
       "fpg": 3.417,
       "gp": 83.2,
       "adp": {
-        "average": 78.3,
+        "average": 96.4,
+        "espn": 108.5,
         "yahoo": 78.3
       },
       "mark": ""
@@ -2350,7 +2490,8 @@
       "fpg": 2.36,
       "gp": 80.6,
       "adp": {
-        "average": 154.6,
+        "average": 157.7,
+        "espn": 176.1,
         "yahoo": 154.6
       },
       "mark": ""
@@ -2377,10 +2518,11 @@
       "dropoff": 4.64,
       "fp": 283.98,
       "fpg": 3.639,
-      "gp": 78.0,
+      "gp": 78,
       "adp": {
-        "average": 82.0,
-        "yahoo": 82.0
+        "average": 112.3,
+        "espn": 117,
+        "yahoo": 82
       },
       "mark": ""
     },
@@ -2406,8 +2548,9 @@
       "fpg": 3.46,
       "gp": 81.8,
       "adp": {
-        "average": 63.0,
-        "yahoo": 63.0
+        "average": 75.3,
+        "espn": 88.9,
+        "yahoo": 63
       },
       "mark": ""
     },
@@ -2433,7 +2576,8 @@
       "fpg": 2.402,
       "gp": 78.8,
       "adp": {
-        "average": 111.4,
+        "average": 146.6,
+        "espn": 182.9,
         "yahoo": 111.4
       },
       "mark": ""
@@ -2460,7 +2604,8 @@
       "fpg": 2.328,
       "gp": 81.2,
       "adp": {
-        "average": 118.2,
+        "average": 139.6,
+        "espn": 163.6,
         "yahoo": 118.2
       },
       "mark": ""
@@ -2487,7 +2632,8 @@
       "fpg": 4.144,
       "gp": 54.7,
       "adp": {
-        "average": 73.1,
+        "average": 67.2,
+        "espn": 72.4,
         "yahoo": 73.1
       },
       "mark": ""
@@ -2514,7 +2660,8 @@
       "fpg": 2.27,
       "gp": 82.8,
       "adp": {
-        "average": 97.5,
+        "average": 81.1,
+        "espn": 79.9,
         "yahoo": 97.5
       },
       "mark": ""
@@ -2541,7 +2688,8 @@
       "fpg": 2.358,
       "gp": 79.6,
       "adp": {
-        "average": 99.8,
+        "average": 121.1,
+        "espn": 151.9,
         "yahoo": 99.8
       },
       "mark": ""
@@ -2569,6 +2717,7 @@
       "gp": 56.7,
       "adp": {
         "average": 106.1,
+        "espn": 151.9,
         "yahoo": 106.1
       },
       "mark": ""
@@ -2591,11 +2740,12 @@
       "rawVorp": 44.96,
       "adjVorp": 44.96,
       "dropoff": 8.63,
-      "fp": 187.0,
+      "fp": 187,
       "fpg": 2.361,
       "gp": 79.2,
       "adp": {
-        "average": 145.8,
+        "average": 174.8,
+        "espn": 214.5,
         "yahoo": 145.8
       },
       "mark": ""
@@ -2606,7 +2756,8 @@
       "n": "Logan Cooley",
       "t": "UTA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -2620,10 +2771,11 @@
       "dropoff": 0.24,
       "fp": 279.33,
       "fpg": 3.405,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 106.0,
-        "yahoo": 106.0
+        "average": 125.9,
+        "espn": 132.1,
+        "yahoo": 106
       },
       "mark": ""
     },
@@ -2633,7 +2785,8 @@
       "n": "Brayden Point",
       "t": "TBL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -2649,8 +2802,9 @@
       "fpg": 3.524,
       "gp": 79.2,
       "adp": {
-        "average": 73.0,
-        "yahoo": 73.0
+        "average": 102,
+        "espn": 119.1,
+        "yahoo": 73
       },
       "mark": ""
     },
@@ -2676,7 +2830,8 @@
       "fpg": 4.06,
       "gp": 54.7,
       "adp": {
-        "average": 209.6,
+        "average": 74.4,
+        "espn": 81.1,
         "yahoo": 209.6
       },
       "mark": ""
@@ -2687,7 +2842,8 @@
       "n": "Adam Fantilli",
       "t": "CBJ",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -2703,7 +2859,8 @@
       "fpg": 3.35,
       "gp": 82.8,
       "adp": {
-        "average": 93.7,
+        "average": 111,
+        "espn": 122.8,
         "yahoo": 93.7
       },
       "mark": ""
@@ -2714,7 +2871,8 @@
       "n": "Bo Horvat",
       "t": "NYI",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -2730,7 +2888,8 @@
       "fpg": 3.404,
       "gp": 81.2,
       "adp": {
-        "average": 120.2,
+        "average": 119.7,
+        "espn": 111.3,
         "yahoo": 120.2
       },
       "mark": ""
@@ -2755,9 +2914,10 @@
       "dropoff": 1.03,
       "fp": 275.39,
       "fpg": 3.531,
-      "gp": 78.0,
+      "gp": 78,
       "adp": {
-        "average": 113.4,
+        "average": 125.7,
+        "espn": 126.3,
         "yahoo": 113.4
       },
       "mark": ""
@@ -2784,7 +2944,8 @@
       "fpg": 3.375,
       "gp": 81.8,
       "adp": {
-        "average": 99.7,
+        "average": 121.8,
+        "espn": 127.4,
         "yahoo": 99.7
       },
       "mark": ""
@@ -2811,7 +2972,8 @@
       "fpg": 3.678,
       "gp": 59.7,
       "adp": {
-        "average": 135.3,
+        "average": 131.2,
+        "espn": 155.9,
         "yahoo": 135.3
       },
       "mark": ""
@@ -2839,7 +3001,8 @@
       "fpg": 3.297,
       "gp": 83.2,
       "adp": {
-        "average": 75.8,
+        "average": 84.8,
+        "espn": 97.9,
         "yahoo": 75.8
       },
       "mark": ""
@@ -2868,7 +3031,8 @@
       "fpg": 3.278,
       "gp": 83.6,
       "adp": {
-        "average": 117.8,
+        "average": 94.4,
+        "espn": 63.6,
         "yahoo": 117.8
       },
       "mark": ""
@@ -2897,7 +3061,8 @@
       "fpg": 3.375,
       "gp": 80.6,
       "adp": {
-        "average": 132.7,
+        "average": 152.8,
+        "espn": 165.1,
         "yahoo": 132.7
       },
       "mark": ""
@@ -2925,7 +3090,8 @@
       "fpg": 3.307,
       "gp": 82.2,
       "adp": {
-        "average": 108.3,
+        "average": 135.2,
+        "espn": 139.7,
         "yahoo": 108.3
       },
       "mark": ""
@@ -2952,7 +3118,8 @@
       "fpg": 2.196,
       "gp": 81.2,
       "adp": {
-        "average": 124.8,
+        "average": 151,
+        "espn": 184.1,
         "yahoo": 124.8
       },
       "mark": ""
@@ -2978,9 +3145,10 @@
       "dropoff": 3.14,
       "fp": 270.83,
       "fpg": 3.428,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 86.8,
+        "average": 71.9,
+        "espn": 43.2,
         "yahoo": 86.8
       },
       "mark": ""
@@ -3005,9 +3173,10 @@
       "dropoff": 0.2,
       "fp": 215.45,
       "fpg": 3.917,
-      "gp": 55.0,
+      "gp": 55,
       "adp": {
-        "average": 163.6,
+        "average": 176.8,
+        "espn": 217.3,
         "yahoo": 163.6
       },
       "mark": ""
@@ -3032,9 +3201,10 @@
       "dropoff": 6.04,
       "fp": 215.24,
       "fpg": 3.913,
-      "gp": 55.0,
+      "gp": 55,
       "adp": {
-        "average": 162.2,
+        "average": 102.2,
+        "espn": 73.2,
         "yahoo": 162.2
       },
       "mark": ""
@@ -3061,8 +3231,8 @@
       "fpg": 2.241,
       "gp": 78.4,
       "adp": {
-        "average": 107.0,
-        "yahoo": 107.0
+        "average": 107,
+        "yahoo": 107
       },
       "mark": ""
     },
@@ -3088,9 +3258,10 @@
       "dropoff": 4.53,
       "fp": 267.69,
       "fpg": 4.056,
-      "gp": 66.0,
+      "gp": 66,
       "adp": {
-        "average": 53.4,
+        "average": 57.1,
+        "espn": 50.5,
         "yahoo": 53.4
       },
       "mark": ""
@@ -3117,7 +3288,8 @@
       "fpg": 2.109,
       "gp": 82.6,
       "adp": {
-        "average": 116.4,
+        "average": 81.4,
+        "espn": 50.1,
         "yahoo": 116.4
       },
       "mark": ""
@@ -3144,7 +3316,8 @@
       "fpg": 2.233,
       "gp": 77.6,
       "adp": {
-        "average": 168.4,
+        "average": 120.1,
+        "espn": 98.3,
         "yahoo": 168.4
       },
       "mark": ""
@@ -3171,7 +3344,8 @@
       "fpg": 3.827,
       "gp": 54.7,
       "adp": {
-        "average": 195.9,
+        "average": 175.5,
+        "espn": 211.3,
         "yahoo": 195.9
       },
       "mark": ""
@@ -3182,7 +3356,8 @@
       "n": "John Tavares",
       "t": "TOR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -3198,7 +3373,8 @@
       "fpg": 3.221,
       "gp": 82.2,
       "adp": {
-        "average": 122.9,
+        "average": 124.7,
+        "espn": 119.5,
         "yahoo": 122.9
       },
       "mark": ""
@@ -3209,7 +3385,8 @@
       "n": "Dylan Cozens",
       "t": "OTT",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -3225,7 +3402,8 @@
       "fpg": 3.154,
       "gp": 83.8,
       "adp": {
-        "average": 158.1,
+        "average": 129.5,
+        "espn": 116.4,
         "yahoo": 158.1
       },
       "mark": ""
@@ -3252,7 +3430,8 @@
       "fpg": 2.046,
       "gp": 83.2,
       "adp": {
-        "average": 129.8,
+        "average": 93.4,
+        "espn": 77.2,
         "yahoo": 129.8
       },
       "mark": ""
@@ -3280,7 +3459,8 @@
       "fpg": 3.306,
       "gp": 79.6,
       "adp": {
-        "average": 80.5,
+        "average": 118.2,
+        "espn": 171.5,
         "yahoo": 80.5
       },
       "mark": ""
@@ -3309,7 +3489,8 @@
       "fpg": 3.165,
       "gp": 82.6,
       "adp": {
-        "average": 102.7,
+        "average": 105.3,
+        "espn": 112.3,
         "yahoo": 102.7
       },
       "mark": ""
@@ -3336,7 +3517,8 @@
       "fpg": 3.169,
       "gp": 82.4,
       "adp": {
-        "average": 105.3,
+        "average": 127.3,
+        "espn": 150.3,
         "yahoo": 105.3
       },
       "mark": ""
@@ -3366,8 +3548,9 @@
       "fpg": 3.204,
       "gp": 81.4,
       "adp": {
-        "average": 111.0,
-        "yahoo": 111.0
+        "average": 115.3,
+        "espn": 115.7,
+        "yahoo": 111
       },
       "mark": ""
     },
@@ -3393,7 +3576,8 @@
       "fpg": 3.231,
       "gp": 80.6,
       "adp": {
-        "average": 107.6,
+        "average": 123.3,
+        "espn": 120.1,
         "yahoo": 107.6
       },
       "mark": ""
@@ -3421,7 +3605,8 @@
       "fpg": 3.164,
       "gp": 82.2,
       "adp": {
-        "average": 89.2,
+        "average": 75.5,
+        "espn": 57.7,
         "yahoo": 89.2
       },
       "mark": ""
@@ -3451,7 +3636,8 @@
       "fpg": 3.278,
       "gp": 79.2,
       "adp": {
-        "average": 147.2,
+        "average": 160.9,
+        "espn": 180.4,
         "yahoo": 147.2
       },
       "mark": ""
@@ -3477,9 +3663,10 @@
       "dropoff": 0.03,
       "fp": 259.24,
       "fpg": 3.123,
-      "gp": 83.0,
+      "gp": 83,
       "adp": {
-        "average": 104.2,
+        "average": 136.8,
+        "espn": 153.1,
         "yahoo": 104.2
       },
       "mark": ""
@@ -3507,7 +3694,8 @@
       "fpg": 3.154,
       "gp": 82.2,
       "adp": {
-        "average": 88.2,
+        "average": 62.5,
+        "espn": 30.7,
         "yahoo": 88.2
       },
       "mark": ""
@@ -3518,7 +3706,8 @@
       "n": "Elias Pettersson",
       "t": "VAN",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -3532,9 +3721,10 @@
       "dropoff": 1.39,
       "fp": 259.01,
       "fpg": 3.238,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
-        "average": 159.2,
+        "average": 113.3,
+        "espn": 88.2,
         "yahoo": 159.2
       },
       "mark": ""
@@ -3563,7 +3753,8 @@
       "fpg": 3.218,
       "gp": 79.8,
       "adp": {
-        "average": 162.5,
+        "average": 157.6,
+        "espn": 169.2,
         "yahoo": 162.5
       },
       "mark": ""
@@ -3574,7 +3765,8 @@
       "n": "Roope Hintz",
       "t": "DAL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -3588,9 +3780,10 @@
       "dropoff": 0.82,
       "fp": 257.62,
       "fpg": 3.261,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 122.2,
+        "average": 140.7,
+        "espn": 161.5,
         "yahoo": 122.2
       },
       "mark": ""
@@ -3618,9 +3811,10 @@
       "dropoff": 0.36,
       "fp": 256.12,
       "fpg": 3.161,
-      "gp": 81.0,
+      "gp": 81,
       "adp": {
-        "average": 123.7,
+        "average": 151.1,
+        "espn": 168.4,
         "yahoo": 123.7
       },
       "mark": ""
@@ -3676,7 +3870,8 @@
       "fpg": 3.147,
       "gp": 81.4,
       "adp": {
-        "average": 160.2,
+        "average": 142.4,
+        "espn": 139.9,
         "yahoo": 160.2
       },
       "mark": ""
@@ -3703,7 +3898,8 @@
       "fpg": 3.14,
       "gp": 81.4,
       "adp": {
-        "average": 149.9,
+        "average": 109.6,
+        "espn": 70.5,
         "yahoo": 149.9
       },
       "mark": ""
@@ -3730,7 +3926,8 @@
       "fpg": 4.039,
       "gp": 49.3,
       "adp": {
-        "average": 160.5,
+        "average": 149.3,
+        "espn": 158.1,
         "yahoo": 160.5
       },
       "mark": ""
@@ -3757,7 +3954,8 @@
       "fpg": 3.15,
       "gp": 80.4,
       "adp": {
-        "average": 150.8,
+        "average": 176,
+        "espn": 219.2,
         "yahoo": 150.8
       },
       "mark": ""
@@ -3784,7 +3982,8 @@
       "fpg": 3.037,
       "gp": 83.2,
       "adp": {
-        "average": 89.5,
+        "average": 129.7,
+        "espn": 173.9,
         "yahoo": 89.5
       },
       "mark": ""
@@ -3811,7 +4010,8 @@
       "fpg": 1.947,
       "gp": 81.6,
       "adp": {
-        "average": 189.7,
+        "average": 180.4,
+        "espn": 226.3,
         "yahoo": 189.7
       },
       "mark": ""
@@ -3822,7 +4022,8 @@
       "n": "Dylan Strome",
       "t": "WSH",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -3838,7 +4039,8 @@
       "fpg": 3.037,
       "gp": 83.2,
       "adp": {
-        "average": 179.1,
+        "average": 157.8,
+        "espn": 170.8,
         "yahoo": 179.1
       },
       "mark": ""
@@ -3863,9 +4065,10 @@
       "dropoff": 0.19,
       "fp": 196.54,
       "fpg": 4.469,
-      "gp": 44.0,
+      "gp": 44,
       "adp": {
-        "average": 135.8,
+        "average": 53.4,
+        "espn": 53,
         "yahoo": 135.8
       },
       "mark": ""
@@ -3892,7 +4095,8 @@
       "fpg": 4.123,
       "gp": 47.6,
       "adp": {
-        "average": 120.2,
+        "average": 163,
+        "espn": 193.1,
         "yahoo": 120.2
       },
       "mark": ""
@@ -3917,9 +4121,10 @@
       "dropoff": 0.71,
       "fp": 196.02,
       "fpg": 4.168,
-      "gp": 47.0,
+      "gp": 47,
       "adp": {
-        "average": 123.6,
+        "average": 130.2,
+        "espn": 126.3,
         "yahoo": 123.6
       },
       "mark": ""
@@ -3946,7 +4151,8 @@
       "fpg": 1.927,
       "gp": 81.8,
       "adp": {
-        "average": 197.6,
+        "average": 164.3,
+        "espn": 199.8,
         "yahoo": 197.6
       },
       "mark": ""
@@ -3973,7 +4179,8 @@
       "fpg": 1.883,
       "gp": 83.6,
       "adp": {
-        "average": 219.8,
+        "average": 160,
+        "espn": 179.8,
         "yahoo": 219.8
       },
       "mark": ""
@@ -4000,7 +4207,8 @@
       "fpg": 3.806,
       "gp": 51.3,
       "adp": {
-        "average": 137.2,
+        "average": 183.9,
+        "espn": 229.5,
         "yahoo": 137.2
       },
       "mark": "avoid"
@@ -4027,7 +4235,8 @@
       "fpg": 3.949,
       "gp": 49.4,
       "adp": {
-        "average": 233.8,
+        "average": 150.8,
+        "espn": 166.1,
         "yahoo": 233.8
       },
       "mark": ""
@@ -4054,7 +4263,8 @@
       "fpg": 1.917,
       "gp": 81.8,
       "adp": {
-        "average": 279.1,
+        "average": 228.8,
+        "espn": 228.8,
         "yahoo": 279.1
       },
       "mark": ""
@@ -4065,7 +4275,8 @@
       "n": "Ryan O'Reilly",
       "t": "NSH",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -4079,9 +4290,10 @@
       "dropoff": 0.12,
       "fp": 250.27,
       "fpg": 3.052,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 176.2,
+        "average": 144.9,
+        "espn": 145.8,
         "yahoo": 176.2
       },
       "mark": ""
@@ -4110,7 +4322,8 @@
       "fpg": 3.119,
       "gp": 80.2,
       "adp": {
-        "average": 148.3,
+        "average": 174.3,
+        "espn": 174.3,
         "yahoo": 148.3
       },
       "mark": ""
@@ -4135,10 +4348,11 @@
       "dropoff": 0.22,
       "fp": 156.16,
       "fpg": 1.904,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 222.0,
-        "yahoo": 222.0
+        "average": 146.3,
+        "espn": 154.6,
+        "yahoo": 222
       },
       "mark": ""
     },
@@ -4164,7 +4378,8 @@
       "fpg": 1.967,
       "gp": 79.3,
       "adp": {
-        "average": 176.6,
+        "average": 185.9,
+        "espn": 229,
         "yahoo": 176.6
       },
       "mark": ""
@@ -4191,7 +4406,8 @@
       "fpg": 1.956,
       "gp": 79.6,
       "adp": {
-        "average": 157.3,
+        "average": 181.6,
+        "espn": 229.1,
         "yahoo": 157.3
       },
       "mark": ""
@@ -4216,9 +4432,10 @@
       "dropoff": 1.55,
       "fp": 154.38,
       "fpg": 1.93,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
-        "average": 226.2,
+        "average": 177.4,
+        "espn": 219.6,
         "yahoo": 226.2
       },
       "mark": ""
@@ -4246,7 +4463,8 @@
       "fpg": 2.994,
       "gp": 82.6,
       "adp": {
-        "average": 93.4,
+        "average": 97.5,
+        "espn": 92.4,
         "yahoo": 93.4
       },
       "mark": ""
@@ -4273,7 +4491,8 @@
       "fpg": 1.832,
       "gp": 83.4,
       "adp": {
-        "average": 183.6,
+        "average": 174.3,
+        "espn": 209,
         "yahoo": 183.6
       },
       "mark": ""
@@ -4301,7 +4520,8 @@
       "fpg": 2.924,
       "gp": 83.8,
       "adp": {
-        "average": 141.4,
+        "average": 164.8,
+        "espn": 187.1,
         "yahoo": 141.4
       },
       "mark": ""
@@ -4328,7 +4548,8 @@
       "fpg": 4.153,
       "gp": 45.7,
       "adp": {
-        "average": 154.3,
+        "average": 131,
+        "espn": 137.9,
         "yahoo": 154.3
       },
       "mark": ""
@@ -4339,7 +4560,8 @@
       "n": "Brock Nelson",
       "t": "COL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -4355,7 +4577,8 @@
       "fpg": 2.944,
       "gp": 82.8,
       "adp": {
-        "average": 156.8,
+        "average": 121,
+        "espn": 108,
         "yahoo": 156.8
       },
       "mark": ""
@@ -4366,7 +4589,8 @@
       "n": "Quinton Byfield",
       "t": "LAK",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -4382,7 +4606,8 @@
       "fpg": 2.949,
       "gp": 82.4,
       "adp": {
-        "average": 155.3,
+        "average": 157.6,
+        "espn": 180.3,
         "yahoo": 155.3
       },
       "mark": ""
@@ -4409,7 +4634,8 @@
       "fpg": 1.835,
       "gp": 81.2,
       "adp": {
-        "average": 236.6,
+        "average": 154.2,
+        "espn": 167.5,
         "yahoo": 236.6
       },
       "mark": ""
@@ -4436,9 +4662,10 @@
       "dropoff": 0.22,
       "fp": 242.7,
       "fpg": 2.924,
-      "gp": 83.0,
+      "gp": 83,
       "adp": {
-        "average": 168.3,
+        "average": 139.8,
+        "espn": 133.2,
         "yahoo": 168.3
       },
       "mark": ""
@@ -4463,9 +4690,10 @@
       "dropoff": 0.31,
       "fp": 186.84,
       "fpg": 3.739,
-      "gp": 50.0,
+      "gp": 50,
       "adp": {
-        "average": 122.3,
+        "average": 144.2,
+        "espn": 211.5,
         "yahoo": 122.3
       },
       "mark": ""
@@ -4476,7 +4704,8 @@
       "n": "Joel Eriksson Ek",
       "t": "MIN",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -4492,7 +4721,8 @@
       "fpg": 3.092,
       "gp": 78.4,
       "adp": {
-        "average": 165.6,
+        "average": 158.5,
+        "espn": 176,
         "yahoo": 165.6
       },
       "mark": ""
@@ -4519,7 +4749,8 @@
       "fpg": 4.024,
       "gp": 46.4,
       "adp": {
-        "average": 144.4,
+        "average": 168.7,
+        "espn": 191.8,
         "yahoo": 144.4
       },
       "mark": ""
@@ -4544,9 +4775,10 @@
       "dropoff": 4.28,
       "fp": 241.36,
       "fpg": 2.943,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 160.1,
+        "average": 150,
+        "espn": 159.7,
         "yahoo": 160.1
       },
       "mark": ""
@@ -4573,7 +4805,8 @@
       "fpg": 1.842,
       "gp": 80.4,
       "adp": {
-        "average": 204.6,
+        "average": 228,
+        "espn": 228,
         "yahoo": 204.6
       },
       "mark": ""
@@ -4600,7 +4833,8 @@
       "fpg": 1.794,
       "gp": 82.2,
       "adp": {
-        "average": 177.7,
+        "average": 121.6,
+        "espn": 107.5,
         "yahoo": 177.7
       },
       "mark": ""
@@ -4627,7 +4861,8 @@
       "fpg": 1.81,
       "gp": 81.2,
       "adp": {
-        "average": 246.6,
+        "average": 167.9,
+        "espn": 204.4,
         "yahoo": 246.6
       },
       "mark": ""
@@ -4654,7 +4889,8 @@
       "fpg": 1.824,
       "gp": 80.4,
       "adp": {
-        "average": 226.1,
+        "average": 166.1,
+        "espn": 199.1,
         "yahoo": 226.1
       },
       "mark": ""
@@ -4665,7 +4901,8 @@
       "n": "Vincent Trocheck",
       "t": "UTA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -4679,9 +4916,10 @@
       "dropoff": 4.47,
       "fp": 240.41,
       "fpg": 2.931,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 162.2,
+        "average": 113.6,
+        "espn": 89.9,
         "yahoo": 162.2
       },
       "mark": ""
@@ -4708,7 +4946,8 @@
       "fpg": 1.764,
       "gp": 82.4,
       "adp": {
-        "average": 184.3,
+        "average": 144,
+        "espn": 151.1,
         "yahoo": 184.3
       },
       "mark": ""
@@ -4735,7 +4974,8 @@
       "fpg": 1.776,
       "gp": 81.8,
       "adp": {
-        "average": 244.8,
+        "average": 157.4,
+        "espn": 173.5,
         "yahoo": 244.8
       },
       "mark": ""
@@ -4762,7 +5002,8 @@
       "fpg": 1.822,
       "gp": 79.6,
       "adp": {
-        "average": 276.6,
+        "average": 230,
+        "espn": 230,
         "yahoo": 276.6
       },
       "mark": ""
@@ -4790,7 +5031,8 @@
       "fpg": 3.023,
       "gp": 78.4,
       "adp": {
-        "average": 153.1,
+        "average": 157.1,
+        "espn": 167.9,
         "yahoo": 153.1
       },
       "mark": ""
@@ -4817,7 +5059,8 @@
       "fpg": 1.752,
       "gp": 82.2,
       "adp": {
-        "average": 239.2,
+        "average": 222.7,
+        "espn": 222.7,
         "yahoo": 239.2
       },
       "mark": ""
@@ -4842,9 +5085,10 @@
       "dropoff": 0.1,
       "fp": 142.14,
       "fpg": 1.733,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 167.1,
+        "average": 135.5,
+        "espn": 132.5,
         "yahoo": 167.1
       },
       "mark": ""
@@ -4866,15 +5110,16 @@
       "posLabel": "C/F",
       "tier": "RW13",
       "prnk": "C53 L46 R55",
-      "vorp": 0.0,
-      "rawVorp": 0.0,
-      "adjVorp": 0.0,
+      "vorp": 0,
+      "rawVorp": 0,
+      "adjVorp": 0,
       "dropoff": 2.07,
       "fp": 235.11,
       "fpg": 2.952,
       "gp": 79.6,
       "adp": {
-        "average": 130.1,
+        "average": 159.4,
+        "espn": 184.6,
         "yahoo": 130.1
       },
       "mark": ""
@@ -4895,15 +5140,16 @@
       "posLabel": "C/F",
       "tier": "C12",
       "prnk": "C52 L45",
-      "vorp": 0.0,
-      "rawVorp": 0.0,
-      "adjVorp": 0.0,
+      "vorp": 0,
+      "rawVorp": 0,
+      "adjVorp": 0,
       "dropoff": 0.83,
       "fp": 235.94,
       "fpg": 2.892,
       "gp": 81.6,
       "adp": {
-        "average": 174.6,
+        "average": 167.2,
+        "espn": 196.3,
         "yahoo": 174.6
       },
       "mark": ""
@@ -4922,16 +5168,17 @@
       "posLabel": "D",
       "tier": "D18",
       "prnk": "D58",
-      "vorp": 0.0,
-      "rawVorp": 0.0,
-      "adjVorp": 0.0,
+      "vorp": 0,
+      "rawVorp": 0,
+      "adjVorp": 0,
       "dropoff": 1.41,
       "fp": 142.05,
       "fpg": 1.72,
       "gp": 82.6,
       "adp": {
-        "average": 232.0,
-        "yahoo": 232.0
+        "average": 160.1,
+        "espn": 182.9,
+        "yahoo": 232
       },
       "mark": ""
     },
@@ -4949,15 +5196,16 @@
       "posLabel": "G",
       "tier": "G5",
       "prnk": "G24",
-      "vorp": 0.0,
-      "rawVorp": 0.0,
-      "adjVorp": 0.0,
+      "vorp": 0,
+      "rawVorp": 0,
+      "adjVorp": 0,
       "dropoff": 2.31,
       "fp": 180.12,
       "fpg": 3.857,
       "gp": 46.7,
       "adp": {
-        "average": 185.5,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 185.5
       },
       "mark": ""
@@ -4984,7 +5232,8 @@
       "fpg": 1.718,
       "gp": 81.8,
       "adp": {
-        "average": 201.6,
+        "average": 183.8,
+        "espn": 226.8,
         "yahoo": 201.6
       },
       "mark": ""
@@ -5012,7 +5261,8 @@
       "fpg": 2.885,
       "gp": 80.8,
       "adp": {
-        "average": 208.2,
+        "average": 155.2,
+        "espn": 179,
         "yahoo": 208.2
       },
       "mark": ""
@@ -5039,7 +5289,8 @@
       "fpg": 3.981,
       "gp": 44.7,
       "adp": {
-        "average": 235.3,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 235.3
       },
       "mark": ""
@@ -5066,7 +5317,8 @@
       "fpg": 1.666,
       "gp": 83.8,
       "adp": {
-        "average": 240.7,
+        "average": 172.1,
+        "espn": 200.7,
         "yahoo": 240.7
       },
       "mark": ""
@@ -5093,7 +5345,8 @@
       "fpg": 1.767,
       "gp": 78.3,
       "adp": {
-        "average": 287.1,
+        "average": 230,
+        "espn": 230,
         "yahoo": 287.1
       },
       "mark": ""
@@ -5119,9 +5372,10 @@
       "dropoff": 4.88,
       "fp": 231.31,
       "fpg": 2.821,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 163.8,
+        "average": 166.4,
+        "espn": 194.2,
         "yahoo": 163.8
       },
       "mark": ""
@@ -5148,7 +5402,8 @@
       "fpg": 1.708,
       "gp": 80.6,
       "adp": {
-        "average": 240.6,
+        "average": 181.2,
+        "espn": 228.8,
         "yahoo": 240.6
       },
       "mark": ""
@@ -5202,7 +5457,8 @@
       "fpg": 1.761,
       "gp": 77.4,
       "adp": {
-        "average": 153.5,
+        "average": 157.5,
+        "espn": 185.7,
         "yahoo": 153.5
       },
       "mark": ""
@@ -5229,7 +5485,8 @@
       "fpg": 1.631,
       "gp": 83.6,
       "adp": {
-        "average": 293.4,
+        "average": 216.4,
+        "espn": 216.4,
         "yahoo": 293.4
       },
       "mark": ""
@@ -5256,7 +5513,8 @@
       "fpg": 1.722,
       "gp": 79.1,
       "adp": {
-        "average": 198.8,
+        "average": 181,
+        "espn": 226.9,
         "yahoo": 198.8
       },
       "mark": ""
@@ -5283,7 +5541,8 @@
       "fpg": 1.771,
       "gp": 76.8,
       "adp": {
-        "average": 238.2,
+        "average": 179.8,
+        "espn": 226.8,
         "yahoo": 238.2
       },
       "mark": ""
@@ -5337,7 +5596,8 @@
       "fpg": 1.632,
       "gp": 82.8,
       "adp": {
-        "average": 289.5,
+        "average": 227.5,
+        "espn": 227.5,
         "yahoo": 289.5
       },
       "mark": ""
@@ -5362,9 +5622,10 @@
       "dropoff": 1.83,
       "fp": 171.93,
       "fpg": 3.909,
-      "gp": 44.0,
+      "gp": 44,
       "adp": {
-        "average": 174.4,
+        "average": 128.7,
+        "espn": 141.4,
         "yahoo": 174.4
       },
       "mark": ""
@@ -5391,7 +5652,7 @@
       "fpg": 1.661,
       "gp": 80.4,
       "adp": {
-        "average": 289.6,
+        "average": 135.8,
         "yahoo": 289.6
       },
       "mark": ""
@@ -5419,7 +5680,8 @@
       "fpg": 2.748,
       "gp": 82.4,
       "adp": {
-        "average": 173.9,
+        "average": 173.1,
+        "espn": 209.1,
         "yahoo": 173.9
       },
       "mark": ""
@@ -5446,7 +5708,8 @@
       "fpg": 1.656,
       "gp": 80.4,
       "adp": {
-        "average": 292.1,
+        "average": 229.7,
+        "espn": 229.7,
         "yahoo": 292.1
       },
       "mark": ""
@@ -5473,7 +5736,8 @@
       "fpg": 1.635,
       "gp": 81.4,
       "adp": {
-        "average": 245.2,
+        "average": 181.2,
+        "espn": 229.4,
         "yahoo": 245.2
       },
       "mark": ""
@@ -5498,9 +5762,10 @@
       "dropoff": 0.12,
       "fp": 132.92,
       "fpg": 1.682,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 291.5,
+        "average": 185.9,
+        "espn": 229.6,
         "yahoo": 291.5
       },
       "mark": ""
@@ -5554,7 +5819,8 @@
       "fpg": 1.586,
       "gp": 83.6,
       "adp": {
-        "average": 240.8,
+        "average": 166.5,
+        "espn": 190.4,
         "yahoo": 240.8
       },
       "mark": ""
@@ -5583,8 +5849,9 @@
       "fpg": 2.842,
       "gp": 79.6,
       "adp": {
-        "average": 192.0,
-        "yahoo": 192.0
+        "average": 188.9,
+        "espn": 188.9,
+        "yahoo": 192
       },
       "mark": ""
     },
@@ -5610,7 +5877,8 @@
       "fpg": 1.63,
       "gp": 81.2,
       "adp": {
-        "average": 244.1,
+        "average": 143.7,
+        "espn": 153.9,
         "yahoo": 244.1
       },
       "mark": ""
@@ -5636,7 +5904,7 @@
       "fp": 132.25,
       "fpg": 1.645,
       "gp": 80.4,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -5688,7 +5956,8 @@
       "fpg": 3.838,
       "gp": 44.3,
       "adp": {
-        "average": 244.8,
+        "average": 183.6,
+        "espn": 229.6,
         "yahoo": 244.8
       },
       "mark": ""
@@ -5699,7 +5968,8 @@
       "n": "Sam Bennett",
       "t": "FLA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -5713,9 +5983,10 @@
       "dropoff": 3.68,
       "fp": 225.65,
       "fpg": 2.821,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
-        "average": 166.2,
+        "average": 142.5,
+        "espn": 147.3,
         "yahoo": 166.2
       },
       "mark": ""
@@ -5742,7 +6013,8 @@
       "fpg": 1.592,
       "gp": 82.6,
       "adp": {
-        "average": 243.8,
+        "average": 179.6,
+        "espn": 218.3,
         "yahoo": 243.8
       },
       "mark": ""
@@ -5770,7 +6042,8 @@
       "fpg": 2.716,
       "gp": 82.6,
       "adp": {
-        "average": 135.2,
+        "average": 112,
+        "espn": 112,
         "yahoo": 135.2
       },
       "mark": ""
@@ -5822,9 +6095,10 @@
       "dropoff": 0.23,
       "fp": 130.5,
       "fpg": 2.175,
-      "gp": 60.0,
+      "gp": 60,
       "adp": {
-        "average": 292.1,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 292.1
       },
       "mark": ""
@@ -5852,7 +6126,8 @@
       "fpg": 2.72,
       "gp": 82.2,
       "adp": {
-        "average": 164.2,
+        "average": 178.4,
+        "espn": 215.8,
         "yahoo": 164.2
       },
       "mark": ""
@@ -5879,8 +6154,8 @@
       "fpg": 1.691,
       "gp": 77.1,
       "adp": {
-        "average": 291.0,
-        "yahoo": 291.0
+        "average": 291,
+        "yahoo": 291
       },
       "mark": ""
     },
@@ -5906,8 +6181,9 @@
       "fpg": 2.878,
       "gp": 77.4,
       "adp": {
-        "average": 171.0,
-        "yahoo": 171.0
+        "average": 162.8,
+        "espn": 191.7,
+        "yahoo": 171
       },
       "mark": ""
     },
@@ -5933,7 +6209,8 @@
       "fpg": 1.671,
       "gp": 77.6,
       "adp": {
-        "average": 289.4,
+        "average": 229.5,
+        "espn": 229.5,
         "yahoo": 289.4
       },
       "mark": ""
@@ -5987,7 +6264,8 @@
       "fpg": 1.572,
       "gp": 82.3,
       "adp": {
-        "average": 247.7,
+        "average": 221.9,
+        "espn": 221.9,
         "yahoo": 247.7
       },
       "mark": ""
@@ -6014,7 +6292,8 @@
       "fpg": 3.973,
       "gp": 42.1,
       "adp": {
-        "average": 214.6,
+        "average": 179.5,
+        "espn": 217.5,
         "yahoo": 214.6
       },
       "mark": ""
@@ -6041,7 +6320,8 @@
       "fpg": 2.713,
       "gp": 82.2,
       "adp": {
-        "average": 182.5,
+        "average": 150.1,
+        "espn": 167.9,
         "yahoo": 182.5
       },
       "mark": ""
@@ -6068,9 +6348,10 @@
       "dropoff": 0.24,
       "fp": 221.97,
       "fpg": 2.706,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 189.1,
+        "average": 146.8,
+        "espn": 155.7,
         "yahoo": 189.1
       },
       "mark": ""
@@ -6124,7 +6405,8 @@
       "fpg": 2.696,
       "gp": 82.3,
       "adp": {
-        "average": 186.4,
+        "average": 181.5,
+        "espn": 226.7,
         "yahoo": 186.4
       },
       "mark": ""
@@ -6151,7 +6433,8 @@
       "fpg": 1.623,
       "gp": 79.2,
       "adp": {
-        "average": 290.8,
+        "average": 214.4,
+        "espn": 214.4,
         "yahoo": 290.8
       },
       "mark": ""
@@ -6162,7 +6445,8 @@
       "n": "Marco Rossi",
       "t": "VAN",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -6173,13 +6457,14 @@
       "vorp": -14.36,
       "rawVorp": -14.36,
       "adjVorp": -14.36,
-      "dropoff": 0.0,
+      "dropoff": 0,
       "fp": 221.59,
       "fpg": 2.805,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 267.0,
-        "yahoo": 267.0
+        "average": 214.6,
+        "espn": 214.6,
+        "yahoo": 267
       },
       "mark": ""
     },
@@ -6189,7 +6474,8 @@
       "n": "Anton Frondell",
       "t": "CHI",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -6205,7 +6491,8 @@
       "fpg": 2.797,
       "gp": 79.2,
       "adp": {
-        "average": 187.7,
+        "average": 183.1,
+        "espn": 225.9,
         "yahoo": 187.7
       },
       "mark": ""
@@ -6233,7 +6520,8 @@
       "fpg": 2.673,
       "gp": 82.4,
       "adp": {
-        "average": 207.8,
+        "average": 166.1,
+        "espn": 192.4,
         "yahoo": 207.8
       },
       "mark": ""
@@ -6260,7 +6548,8 @@
       "fpg": 4.068,
       "gp": 40.6,
       "adp": {
-        "average": 285.6,
+        "average": 94.6,
+        "espn": 114.4,
         "yahoo": 285.6
       },
       "mark": ""
@@ -6282,11 +6571,14 @@
       "vorp": -15.25,
       "rawVorp": -15.25,
       "adjVorp": -15.25,
-      "dropoff": 2.0,
+      "dropoff": 2,
       "fp": 126.8,
       "fpg": 1.528,
-      "gp": 83.0,
-      "adp": null,
+      "gp": 83,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -6311,7 +6603,8 @@
       "fpg": 2.652,
       "gp": 82.8,
       "adp": {
-        "average": 192.6,
+        "average": 218.7,
+        "espn": 218.7,
         "yahoo": 192.6
       },
       "mark": ""
@@ -6338,7 +6631,8 @@
       "fpg": 4.211,
       "gp": 39.1,
       "adp": {
-        "average": 137.3,
+        "average": 112,
+        "espn": 128.1,
         "yahoo": 137.3
       },
       "mark": ""
@@ -6364,10 +6658,11 @@
       "dropoff": 3.4,
       "fp": 218.51,
       "fpg": 2.633,
-      "gp": 83.0,
+      "gp": 83,
       "adp": {
-        "average": 222.0,
-        "yahoo": 222.0
+        "average": 166.5,
+        "espn": 166.5,
+        "yahoo": 222
       },
       "mark": ""
     },
@@ -6391,9 +6686,10 @@
       "dropoff": 4.76,
       "fp": 163.42,
       "fpg": 3.888,
-      "gp": 42.0,
+      "gp": 42,
       "adp": {
-        "average": 145.6,
+        "average": 179.6,
+        "espn": 221,
         "yahoo": 145.6
       },
       "mark": ""
@@ -6404,7 +6700,8 @@
       "n": "Matty Beniers",
       "t": "SEA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -6420,7 +6717,8 @@
       "fpg": 2.618,
       "gp": 83.6,
       "adp": {
-        "average": 267.7,
+        "average": 209,
+        "espn": 209,
         "yahoo": 267.7
       },
       "mark": ""
@@ -6447,7 +6745,8 @@
       "fpg": 1.568,
       "gp": 79.6,
       "adp": {
-        "average": 288.5,
+        "average": 182.4,
+        "espn": 229.8,
         "yahoo": 288.5
       },
       "mark": ""
@@ -6474,7 +6773,8 @@
       "fpg": 1.556,
       "gp": 79.5,
       "adp": {
-        "average": 283.3,
+        "average": 227.6,
+        "espn": 227.6,
         "yahoo": 283.3
       },
       "mark": ""
@@ -6499,8 +6799,11 @@
       "dropoff": 1.23,
       "fp": 123.21,
       "fpg": 1.503,
-      "gp": 82.0,
-      "adp": null,
+      "gp": 82,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -6509,7 +6812,8 @@
       "n": "Mason McTavish",
       "t": "STL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -6523,9 +6827,10 @@
       "dropoff": 6.97,
       "fp": 216.14,
       "fpg": 2.668,
-      "gp": 81.0,
+      "gp": 81,
       "adp": {
-        "average": 211.1,
+        "average": 181.6,
+        "espn": 227.2,
         "yahoo": 211.1
       },
       "mark": ""
@@ -6552,7 +6857,8 @@
       "fpg": 2.611,
       "gp": 82.4,
       "adp": {
-        "average": 179.9,
+        "average": 176.3,
+        "espn": 211,
         "yahoo": 179.9
       },
       "mark": ""
@@ -6577,8 +6883,8 @@
       "dropoff": 0.02,
       "fp": 121.98,
       "fpg": 1.564,
-      "gp": 78.0,
-      "adp": null,
+      "gp": 78,
+      "adp": {},
       "mark": ""
     },
     {
@@ -6601,9 +6907,10 @@
       "dropoff": 0.92,
       "fp": 121.96,
       "fpg": 1.452,
-      "gp": 84.0,
+      "gp": 84,
       "adp": {
-        "average": 239.1,
+        "average": 167.3,
+        "espn": 197.3,
         "yahoo": 239.1
       },
       "mark": ""
@@ -6630,7 +6937,8 @@
       "fpg": 2.627,
       "gp": 81.6,
       "adp": {
-        "average": 282.1,
+        "average": 222.9,
+        "espn": 222.9,
         "yahoo": 282.1
       },
       "mark": ""
@@ -6657,7 +6965,8 @@
       "fpg": 1.444,
       "gp": 83.8,
       "adp": {
-        "average": 292.5,
+        "average": 219.7,
+        "espn": 219.7,
         "yahoo": 292.5
       },
       "mark": ""
@@ -6682,9 +6991,10 @@
       "dropoff": 0.68,
       "fp": 120.99,
       "fpg": 1.475,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 246.9,
+        "average": 183.3,
+        "espn": 229.8,
         "yahoo": 246.9
       },
       "mark": ""
@@ -6711,7 +7021,8 @@
       "fpg": 3.635,
       "gp": 43.6,
       "adp": {
-        "average": 244.1,
+        "average": 181.6,
+        "espn": 229,
         "yahoo": 244.1
       },
       "mark": ""
@@ -6738,7 +7049,8 @@
       "fpg": 2.661,
       "gp": 80.2,
       "adp": {
-        "average": 195.7,
+        "average": 179.2,
+        "espn": 224.2,
         "yahoo": 195.7
       },
       "mark": ""
@@ -6791,8 +7103,11 @@
       "dropoff": 0.91,
       "fp": 212.8,
       "fpg": 2.764,
-      "gp": 77.0,
-      "adp": null,
+      "gp": 77,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -6818,7 +7133,8 @@
       "fpg": 2.802,
       "gp": 75.6,
       "adp": {
-        "average": 177.4,
+        "average": 169.1,
+        "espn": 198,
         "yahoo": 177.4
       },
       "mark": ""
@@ -6846,7 +7162,8 @@
       "fpg": 2.584,
       "gp": 81.6,
       "adp": {
-        "average": 207.7,
+        "average": 186.1,
+        "espn": 227.8,
         "yahoo": 207.7
       },
       "mark": ""
@@ -6898,7 +7215,7 @@
       "dropoff": 0.31,
       "fp": 117.15,
       "fpg": 1.521,
-      "gp": 77.0,
+      "gp": 77,
       "adp": {
         "average": 291.1,
         "yahoo": 291.1
@@ -6925,9 +7242,10 @@
       "dropoff": 1.62,
       "fp": 210.79,
       "fpg": 2.571,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 192.1,
+        "average": 179.7,
+        "espn": 217.8,
         "yahoo": 192.1
       },
       "mark": ""
@@ -6981,7 +7299,8 @@
       "fpg": 1.481,
       "gp": 78.8,
       "adp": {
-        "average": 292.5,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 292.5
       },
       "mark": ""
@@ -7008,7 +7327,8 @@
       "fpg": 1.413,
       "gp": 82.4,
       "adp": {
-        "average": 285.8,
+        "average": 226.8,
+        "espn": 226.8,
         "yahoo": 285.8
       },
       "mark": ""
@@ -7034,9 +7354,10 @@
       "dropoff": 0.94,
       "fp": 209.04,
       "fpg": 3.669,
-      "gp": 57.0,
+      "gp": 57,
       "adp": {
-        "average": 111.7,
+        "average": 105.3,
+        "espn": 88.7,
         "yahoo": 111.7
       },
       "mark": ""
@@ -7063,7 +7384,8 @@
       "fpg": 1.49,
       "gp": 77.8,
       "adp": {
-        "average": 249.5,
+        "average": 181.3,
+        "espn": 230,
         "yahoo": 249.5
       },
       "mark": ""
@@ -7092,7 +7414,8 @@
       "fpg": 2.539,
       "gp": 82.4,
       "adp": {
-        "average": 184.7,
+        "average": 171,
+        "espn": 197.3,
         "yahoo": 184.7
       },
       "mark": ""
@@ -7112,15 +7435,16 @@
       "posLabel": "F",
       "tier": "RW14",
       "prnk": "L63 R74",
-      "vorp": -27.0,
-      "rawVorp": -27.0,
-      "adjVorp": -27.0,
+      "vorp": -27,
+      "rawVorp": -27,
+      "adjVorp": -27,
       "dropoff": 0.07,
       "fp": 208.1,
       "fpg": 2.601,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
-        "average": 208.6,
+        "average": 174.3,
+        "espn": 212.4,
         "yahoo": 208.6
       },
       "mark": ""
@@ -7159,7 +7483,8 @@
       "n": "Frank Nazar",
       "t": "CHI",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -7175,7 +7500,8 @@
       "fpg": 2.62,
       "gp": 79.6,
       "adp": {
-        "average": 186.8,
+        "average": 224.3,
+        "espn": 224.3,
         "yahoo": 186.8
       },
       "mark": ""
@@ -7201,7 +7527,10 @@
       "fp": 114.7,
       "fpg": 1.438,
       "gp": 79.8,
-      "adp": null,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -7226,8 +7555,9 @@
       "fpg": 2.613,
       "gp": 79.5,
       "adp": {
-        "average": 281.0,
-        "yahoo": 281.0
+        "average": 229.7,
+        "espn": 229.7,
+        "yahoo": 281
       },
       "mark": ""
     },
@@ -7280,7 +7610,8 @@
       "fpg": 4.175,
       "gp": 36.4,
       "adp": {
-        "average": 198.1,
+        "average": 180.9,
+        "espn": 229.3,
         "yahoo": 198.1
       },
       "mark": ""
@@ -7307,8 +7638,9 @@
       "fpg": 2.574,
       "gp": 80.2,
       "adp": {
-        "average": 232.0,
-        "yahoo": 232.0
+        "average": 227.7,
+        "espn": 227.7,
+        "yahoo": 232
       },
       "mark": ""
     },
@@ -7334,7 +7666,8 @@
       "fpg": 1.373,
       "gp": 82.6,
       "adp": {
-        "average": 292.7,
+        "average": 229.6,
+        "espn": 229.6,
         "yahoo": 292.7
       },
       "mark": ""
@@ -7388,9 +7721,10 @@
       "dropoff": 0.49,
       "fp": 206.4,
       "fpg": 2.457,
-      "gp": 84.0,
+      "gp": 84,
       "adp": {
-        "average": 189.6,
+        "average": 187.8,
+        "espn": 187.8,
         "yahoo": 189.6
       },
       "mark": ""
@@ -7401,7 +7735,8 @@
       "n": "Anthony Cirelli",
       "t": "TBL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -7417,7 +7752,8 @@
       "fpg": 2.564,
       "gp": 80.8,
       "adp": {
-        "average": 233.4,
+        "average": 178.7,
+        "espn": 218.7,
         "yahoo": 233.4
       },
       "mark": ""
@@ -7455,7 +7791,8 @@
       "n": "Charlie Coyle",
       "t": "CBJ",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -7471,8 +7808,9 @@
       "fpg": 2.469,
       "gp": 83.8,
       "adp": {
-        "average": 212.0,
-        "yahoo": 212.0
+        "average": 199.3,
+        "espn": 199.3,
+        "yahoo": 212
       },
       "mark": ""
     },
@@ -7499,7 +7837,8 @@
       "fpg": 2.524,
       "gp": 81.6,
       "adp": {
-        "average": 184.7,
+        "average": 182.3,
+        "espn": 223.2,
         "yahoo": 184.7
       },
       "mark": ""
@@ -7524,7 +7863,7 @@
       "dropoff": 0.17,
       "fp": 112.22,
       "fpg": 1.402,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
         "average": 248.2,
         "yahoo": 248.2
@@ -7551,9 +7890,10 @@
       "dropoff": 0.03,
       "fp": 112.06,
       "fpg": 1.455,
-      "gp": 77.0,
+      "gp": 77,
       "adp": {
-        "average": 292.9,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 292.9
       },
       "mark": ""
@@ -7579,7 +7919,10 @@
       "fp": 112.02,
       "fpg": 1.475,
       "gp": 75.9,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -7605,8 +7948,9 @@
       "fpg": 2.546,
       "gp": 80.5,
       "adp": {
-        "average": 200.0,
-        "yahoo": 200.0
+        "average": 182.3,
+        "espn": 229.7,
+        "yahoo": 200
       },
       "mark": ""
     },
@@ -7630,9 +7974,10 @@
       "dropoff": 5.74,
       "fp": 149.77,
       "fpg": 3.945,
-      "gp": 38.0,
+      "gp": 38,
       "adp": {
-        "average": 241.3,
+        "average": 131.6,
+        "espn": 171.3,
         "yahoo": 241.3
       },
       "mark": ""
@@ -7659,7 +8004,8 @@
       "fpg": 2.555,
       "gp": 80.4,
       "adp": {
-        "average": 208.9,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 208.9
       },
       "mark": ""
@@ -7686,8 +8032,9 @@
       "fpg": 1.382,
       "gp": 80.3,
       "adp": {
-        "average": 293.0,
-        "yahoo": 293.0
+        "average": 224.6,
+        "espn": 224.6,
+        "yahoo": 293
       },
       "mark": ""
     },
@@ -7713,7 +8060,8 @@
       "fpg": 1.363,
       "gp": 80.6,
       "adp": {
-        "average": 266.7,
+        "average": 229.2,
+        "espn": 229.2,
         "yahoo": 266.7
       },
       "mark": ""
@@ -7740,8 +8088,9 @@
       "fpg": 1.456,
       "gp": 75.3,
       "adp": {
-        "average": 293.0,
-        "yahoo": 293.0
+        "average": 229.9,
+        "espn": 229.9,
+        "yahoo": 293
       },
       "mark": ""
     },
@@ -7767,7 +8116,8 @@
       "fpg": 1.39,
       "gp": 78.8,
       "adp": {
-        "average": 291.4,
+        "average": 230,
+        "espn": 230,
         "yahoo": 291.4
       },
       "mark": ""
@@ -7794,7 +8144,8 @@
       "fpg": 2.49,
       "gp": 81.3,
       "adp": {
-        "average": 204.2,
+        "average": 178.2,
+        "espn": 224.7,
         "yahoo": 204.2
       },
       "mark": ""
@@ -7819,7 +8170,7 @@
       "dropoff": 0.08,
       "fp": 109.03,
       "fpg": 1.346,
-      "gp": 81.0,
+      "gp": 81,
       "adp": {
         "average": 293.5,
         "yahoo": 293.5
@@ -7848,7 +8199,8 @@
       "fpg": 1.549,
       "gp": 70.3,
       "adp": {
-        "average": 291.9,
+        "average": 229.5,
+        "espn": 229.5,
         "yahoo": 291.9
       },
       "mark": ""
@@ -7874,7 +8226,10 @@
       "fp": 108.84,
       "fpg": 1.427,
       "gp": 76.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -7897,9 +8252,10 @@
       "dropoff": 0.38,
       "fp": 202.53,
       "fpg": 2.564,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 187.6,
+        "average": 187.2,
+        "espn": 227.7,
         "yahoo": 187.6
       },
       "mark": ""
@@ -7926,7 +8282,8 @@
       "fpg": 2.606,
       "gp": 77.6,
       "adp": {
-        "average": 211.4,
+        "average": 182.3,
+        "espn": 228.9,
         "yahoo": 211.4
       },
       "mark": ""
@@ -7937,7 +8294,8 @@
       "n": "Shane Pinto",
       "t": "OTT",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -7945,15 +8303,16 @@
       "posLabel": "C",
       "tier": "C14",
       "prnk": "C65",
-      "vorp": -34.0,
-      "rawVorp": -34.0,
-      "adjVorp": -34.0,
+      "vorp": -34,
+      "rawVorp": -34,
+      "adjVorp": -34,
       "dropoff": 0.84,
       "fp": 201.94,
       "fpg": 2.549,
       "gp": 79.2,
       "adp": {
-        "average": 270.8,
+        "average": 227.4,
+        "espn": 227.4,
         "yahoo": 270.8
       },
       "mark": ""
@@ -7975,15 +8334,16 @@
       "posLabel": "C/F",
       "tier": "RW14",
       "prnk": "C66 L72 R83",
-      "vorp": -34.0,
-      "rawVorp": -34.0,
-      "adjVorp": -34.0,
+      "vorp": -34,
+      "rawVorp": -34,
+      "adjVorp": -34,
       "dropoff": 0.79,
       "fp": 201.1,
       "fpg": 2.429,
       "gp": 82.8,
       "adp": {
-        "average": 179.4,
+        "average": 165.5,
+        "espn": 184.6,
         "yahoo": 179.4
       },
       "mark": ""
@@ -8010,9 +8370,10 @@
       "dropoff": 0.02,
       "fp": 200.32,
       "fpg": 2.536,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 204.5,
+        "average": 199,
+        "espn": 199,
         "yahoo": 204.5
       },
       "mark": ""
@@ -8039,9 +8400,10 @@
       "dropoff": 0.6,
       "fp": 200.29,
       "fpg": 2.443,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 194.7,
+        "average": 177.4,
+        "espn": 219.8,
         "yahoo": 194.7
       },
       "mark": ""
@@ -8052,7 +8414,8 @@
       "n": "Josh Norris",
       "t": "BUF",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -8094,7 +8457,7 @@
       "dropoff": 0.74,
       "fp": 199.69,
       "fpg": 2.464,
-      "gp": 81.0,
+      "gp": 81,
       "adp": {
         "average": 286.2,
         "yahoo": 286.2
@@ -8122,7 +8485,10 @@
       "fp": 106.39,
       "fpg": 1.331,
       "gp": 79.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -8158,7 +8524,8 @@
       "n": "Elias Lindholm",
       "t": "BOS",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -8174,7 +8541,8 @@
       "fpg": 2.443,
       "gp": 81.8,
       "adp": {
-        "average": 239.8,
+        "average": 218.8,
+        "espn": 218.8,
         "yahoo": 239.8
       },
       "mark": ""
@@ -8201,8 +8569,9 @@
       "fpg": 3.925,
       "gp": 36.7,
       "adp": {
-        "average": 248.0,
-        "yahoo": 248.0
+        "average": 179.8,
+        "espn": 229.8,
+        "yahoo": 248
       },
       "mark": ""
     },
@@ -8229,7 +8598,8 @@
       "fpg": 2.498,
       "gp": 79.7,
       "adp": {
-        "average": 202.1,
+        "average": 181.1,
+        "espn": 219,
         "yahoo": 202.1
       },
       "mark": ""
@@ -8254,10 +8624,11 @@
       "dropoff": 0.86,
       "fp": 105.87,
       "fpg": 1.308,
-      "gp": 81.0,
+      "gp": 81,
       "adp": {
-        "average": 291.0,
-        "yahoo": 291.0
+        "average": 228.5,
+        "espn": 228.5,
+        "yahoo": 291
       },
       "mark": ""
     },
@@ -8267,7 +8638,8 @@
       "n": "Michael Misa",
       "t": "SJS",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -8281,9 +8653,10 @@
       "dropoff": 4.89,
       "fp": 199.68,
       "fpg": 2.527,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 211.5,
+        "average": 179.3,
+        "espn": 227.2,
         "yahoo": 211.5
       },
       "mark": ""
@@ -8311,7 +8684,8 @@
       "fpg": 2.535,
       "gp": 78.3,
       "adp": {
-        "average": 192.8,
+        "average": 180.9,
+        "espn": 229.3,
         "yahoo": 192.8
       },
       "mark": ""
@@ -8336,8 +8710,11 @@
       "dropoff": 0.27,
       "fp": 105.01,
       "fpg": 1.313,
-      "gp": 80.0,
-      "adp": null,
+      "gp": 80,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -8361,7 +8738,10 @@
       "fp": 104.74,
       "fpg": 1.352,
       "gp": 77.5,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -8386,7 +8766,8 @@
       "fpg": 3.974,
       "gp": 35.7,
       "adp": {
-        "average": 237.5,
+        "average": 225.5,
+        "espn": 225.5,
         "yahoo": 237.5
       },
       "mark": ""
@@ -8414,7 +8795,8 @@
       "fpg": 2.527,
       "gp": 77.4,
       "adp": {
-        "average": 195.2,
+        "average": 183.2,
+        "espn": 226,
         "yahoo": 195.2
       },
       "mark": ""
@@ -8440,7 +8822,7 @@
       "fp": 102.49,
       "fpg": 1.374,
       "gp": 74.6,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -8468,7 +8850,8 @@
       "fpg": 2.382,
       "gp": 81.8,
       "adp": {
-        "average": 233.3,
+        "average": 178.2,
+        "espn": 221.7,
         "yahoo": 233.3
       },
       "mark": ""
@@ -8523,7 +8906,8 @@
       "fpg": 2.461,
       "gp": 79.1,
       "adp": {
-        "average": 278.2,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 278.2
       },
       "mark": ""
@@ -8549,7 +8933,10 @@
       "fp": 101.04,
       "fpg": 1.255,
       "gp": 80.5,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -8573,7 +8960,7 @@
       "fp": 100.92,
       "fpg": 1.358,
       "gp": 74.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -8626,7 +9013,10 @@
       "fp": 100.62,
       "fpg": 1.223,
       "gp": 82.2,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -8650,7 +9040,10 @@
       "fp": 100.44,
       "fpg": 1.283,
       "gp": 78.3,
-      "adp": null,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -8673,9 +9066,10 @@
       "dropoff": 1.07,
       "fp": 138.33,
       "fpg": 3.841,
-      "gp": 36.0,
+      "gp": 36,
       "adp": {
-        "average": 287.7,
+        "average": 182.1,
+        "espn": 229.5,
         "yahoo": 287.7
       },
       "mark": ""
@@ -8700,9 +9094,10 @@
       "dropoff": 0.7,
       "fp": 99.9,
       "fpg": 1.297,
-      "gp": 77.0,
+      "gp": 77,
       "adp": {
-        "average": 293.3,
+        "average": 229.7,
+        "espn": 229.7,
         "yahoo": 293.3
       },
       "mark": ""
@@ -8713,7 +9108,8 @@
       "n": "Thomas Bordeleau",
       "t": "NJD",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -8727,8 +9123,11 @@
       "dropoff": 0.54,
       "fp": 193.7,
       "fpg": 2.452,
-      "gp": 79.0,
-      "adp": null,
+      "gp": 79,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -8737,7 +9136,8 @@
       "n": "Morgan Frost",
       "t": "CGY",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -8778,8 +9178,8 @@
       "dropoff": 0.04,
       "fp": 99.2,
       "fpg": 1.24,
-      "gp": 80.0,
-      "adp": null,
+      "gp": 80,
+      "adp": {},
       "mark": ""
     },
     {
@@ -8829,8 +9229,8 @@
       "dropoff": 0.26,
       "fp": 99.16,
       "fpg": 1.34,
-      "gp": 74.0,
-      "adp": null,
+      "gp": 74,
+      "adp": {},
       "mark": ""
     },
     {
@@ -8854,7 +9254,10 @@
       "fp": 98.9,
       "fpg": 1.197,
       "gp": 82.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -8905,7 +9308,7 @@
       "fp": 98.46,
       "fpg": 1.211,
       "gp": 81.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -8929,7 +9332,10 @@
       "fp": 98.41,
       "fpg": 1.29,
       "gp": 76.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -8953,7 +9359,7 @@
       "fp": 191.37,
       "fpg": 2.416,
       "gp": 79.2,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -8976,10 +9382,10 @@
       "dropoff": 0.61,
       "fp": 97.86,
       "fpg": 1.288,
-      "gp": 76.0,
+      "gp": 76,
       "adp": {
-        "average": 293.0,
-        "yahoo": 293.0
+        "average": 293,
+        "yahoo": 293
       },
       "mark": ""
     },
@@ -9005,7 +9411,8 @@
       "fpg": 1.315,
       "gp": 73.9,
       "adp": {
-        "average": 288.5,
+        "average": 230,
+        "espn": 230,
         "yahoo": 288.5
       },
       "mark": ""
@@ -9032,7 +9439,8 @@
       "fpg": 1.388,
       "gp": 69.9,
       "adp": {
-        "average": 291.8,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 291.8
       },
       "mark": ""
@@ -9043,7 +9451,8 @@
       "n": "Anton Lundell",
       "t": "FLA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -9059,7 +9468,8 @@
       "fpg": 2.398,
       "gp": 79.6,
       "adp": {
-        "average": 278.9,
+        "average": 227.4,
+        "espn": 227.4,
         "yahoo": 278.9
       },
       "mark": ""
@@ -9084,8 +9494,11 @@
       "dropoff": 0.5,
       "fp": 96.6,
       "fpg": 1.421,
-      "gp": 68.0,
-      "adp": null,
+      "gp": 68,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -9109,7 +9522,10 @@
       "fp": 96.1,
       "fpg": 1.259,
       "gp": 76.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -9133,7 +9549,10 @@
       "fp": 95.67,
       "fpg": 1.202,
       "gp": 79.6,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -9157,7 +9576,7 @@
       "fp": 95.42,
       "fpg": 1.268,
       "gp": 75.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -9183,7 +9602,8 @@
       "fpg": 2.361,
       "gp": 79.8,
       "adp": {
-        "average": 193.2,
+        "average": 169.4,
+        "espn": 204.4,
         "yahoo": 193.2
       },
       "mark": ""
@@ -9210,9 +9630,10 @@
       "dropoff": 0.48,
       "fp": 189.22,
       "fpg": 2.308,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 273.1,
+        "average": 229.7,
+        "espn": 229.7,
         "yahoo": 273.1
       },
       "mark": ""
@@ -9241,7 +9662,8 @@
       "fpg": 2.324,
       "gp": 81.2,
       "adp": {
-        "average": 261.1,
+        "average": 189.9,
+        "espn": 189.9,
         "yahoo": 261.1
       },
       "mark": ""
@@ -9252,7 +9674,8 @@
       "n": "Chandler Stephenson",
       "t": "SEA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -9263,7 +9686,7 @@
       "vorp": -47.39,
       "rawVorp": -47.39,
       "adjVorp": -47.39,
-      "dropoff": 1.0,
+      "dropoff": 1,
       "fp": 188.56,
       "fpg": 2.294,
       "gp": 82.2,
@@ -9291,12 +9714,13 @@
       "rawVorp": -48.12,
       "adjVorp": -48.12,
       "dropoff": 1.63,
-      "fp": 132.0,
+      "fp": 132,
       "fpg": 4.205,
       "gp": 31.4,
       "adp": {
-        "average": 248.0,
-        "yahoo": 248.0
+        "average": 111,
+        "espn": 140.5,
+        "yahoo": 248
       },
       "mark": ""
     },
@@ -9320,8 +9744,11 @@
       "dropoff": 0.26,
       "fp": 93.86,
       "fpg": 1.252,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -9348,7 +9775,8 @@
       "fpg": 2.249,
       "gp": 83.4,
       "adp": {
-        "average": 288.9,
+        "average": 226.8,
+        "espn": 226.8,
         "yahoo": 288.9
       },
       "mark": ""
@@ -9373,8 +9801,8 @@
       "dropoff": 0.9,
       "fp": 93.6,
       "fpg": 1.44,
-      "gp": 65.0,
-      "adp": null,
+      "gp": 65,
+      "adp": {},
       "mark": ""
     },
     {
@@ -9426,8 +9854,8 @@
       "dropoff": 0.08,
       "fp": 92.7,
       "fpg": 1.448,
-      "gp": 64.0,
-      "adp": null,
+      "gp": 64,
+      "adp": {},
       "mark": ""
     },
     {
@@ -9450,8 +9878,11 @@
       "dropoff": 0.28,
       "fp": 92.62,
       "fpg": 1.173,
-      "gp": 79.0,
-      "adp": null,
+      "gp": 79,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -9476,8 +9907,8 @@
       "fpg": 2.378,
       "gp": 78.4,
       "adp": {
-        "average": 183.0,
-        "yahoo": 183.0
+        "average": 183,
+        "yahoo": 183
       },
       "mark": ""
     },
@@ -9504,7 +9935,8 @@
       "fpg": 2.517,
       "gp": 73.7,
       "adp": {
-        "average": 187.1,
+        "average": 182.7,
+        "espn": 228.4,
         "yahoo": 187.1
       },
       "mark": ""
@@ -9530,7 +9962,10 @@
       "fp": 92.34,
       "fpg": 1.242,
       "gp": 74.4,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -9555,7 +9990,8 @@
       "fpg": 3.798,
       "gp": 34.3,
       "adp": {
-        "average": 226.2,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 226.2
       },
       "mark": ""
@@ -9582,7 +10018,8 @@
       "fpg": 2.224,
       "gp": 83.6,
       "adp": {
-        "average": 274.5,
+        "average": 207.1,
+        "espn": 207.1,
         "yahoo": 274.5
       },
       "mark": ""
@@ -9609,7 +10046,8 @@
       "fpg": 3.544,
       "gp": 36.7,
       "adp": {
-        "average": 247.6,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 247.6
       },
       "mark": ""
@@ -9636,7 +10074,8 @@
       "fpg": 1.204,
       "gp": 76.3,
       "adp": {
-        "average": 290.8,
+        "average": 229.7,
+        "espn": 229.7,
         "yahoo": 290.8
       },
       "mark": ""
@@ -9663,7 +10102,8 @@
       "fpg": 1.111,
       "gp": 82.5,
       "adp": {
-        "average": 291.7,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 291.7
       },
       "mark": ""
@@ -9690,7 +10130,8 @@
       "fpg": 3.739,
       "gp": 34.7,
       "adp": {
-        "average": 244.5,
+        "average": 179,
+        "espn": 228.8,
         "yahoo": 244.5
       },
       "mark": ""
@@ -9716,7 +10157,10 @@
       "fp": 91.49,
       "fpg": 1.149,
       "gp": 79.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -9742,7 +10186,8 @@
       "fpg": 2.312,
       "gp": 79.8,
       "adp": {
-        "average": 289.5,
+        "average": 208.9,
+        "espn": 208.9,
         "yahoo": 289.5
       },
       "mark": ""
@@ -9770,7 +10215,8 @@
       "fpg": 2.255,
       "gp": 81.8,
       "adp": {
-        "average": 249.5,
+        "average": 197.4,
+        "espn": 197.4,
         "yahoo": 249.5
       },
       "mark": ""
@@ -9823,7 +10269,10 @@
       "fp": 91.04,
       "fpg": 1.188,
       "gp": 76.6,
-      "adp": null,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -9847,7 +10296,10 @@
       "fp": 90.8,
       "fpg": 1.175,
       "gp": 77.3,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -9870,8 +10322,11 @@
       "dropoff": 0.21,
       "fp": 90.3,
       "fpg": 1.309,
-      "gp": 69.0,
-      "adp": null,
+      "gp": 69,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -9895,7 +10350,10 @@
       "fp": 90.09,
       "fpg": 1.281,
       "gp": 70.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -9919,7 +10377,10 @@
       "fp": 89.53,
       "fpg": 1.28,
       "gp": 69.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -9943,7 +10404,10 @@
       "fp": 89.52,
       "fpg": 1.162,
       "gp": 77.1,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -9966,8 +10430,11 @@
       "dropoff": 0.79,
       "fp": 88.59,
       "fpg": 1.181,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -9991,9 +10458,10 @@
       "dropoff": 0.5,
       "fp": 181.6,
       "fpg": 2.27,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
-        "average": 292.1,
+        "average": 212.4,
+        "espn": 212.4,
         "yahoo": 292.1
       },
       "mark": ""
@@ -10019,9 +10487,10 @@
       "dropoff": 0.66,
       "fp": 181.1,
       "fpg": 2.236,
-      "gp": 81.0,
+      "gp": 81,
       "adp": {
-        "average": 290.2,
+        "average": 228.7,
+        "espn": 228.7,
         "yahoo": 290.2
       },
       "mark": ""
@@ -10046,8 +10515,8 @@
       "dropoff": 0.21,
       "fp": 87.8,
       "fpg": 1.058,
-      "gp": 83.0,
-      "adp": null,
+      "gp": 83,
+      "adp": {},
       "mark": ""
     },
     {
@@ -10099,7 +10568,8 @@
       "fpg": 1.16,
       "gp": 75.4,
       "adp": {
-        "average": 293.2,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 293.2
       },
       "mark": ""
@@ -10127,7 +10597,7 @@
       "fpg": 2.233,
       "gp": 80.8,
       "adp": {
-        "average": 241.2,
+        "average": 135.1,
         "yahoo": 241.2
       },
       "mark": ""
@@ -10153,7 +10623,10 @@
       "fp": 87.07,
       "fpg": 1.112,
       "gp": 78.3,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -10177,7 +10650,10 @@
       "fp": 87.03,
       "fpg": 1.198,
       "gp": 72.6,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -10201,7 +10677,10 @@
       "fp": 86.85,
       "fpg": 1.086,
       "gp": 79.9,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -10225,7 +10704,7 @@
       "fp": 86.84,
       "fpg": 1.156,
       "gp": 75.1,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -10250,7 +10729,8 @@
       "fpg": 1.125,
       "gp": 77.1,
       "adp": {
-        "average": 290.9,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 290.9
       },
       "mark": ""
@@ -10276,7 +10756,10 @@
       "fp": 86.64,
       "fpg": 1.036,
       "gp": 83.7,
-      "adp": null,
+      "adp": {
+        "average": 229.6,
+        "espn": 229.6
+      },
       "mark": ""
     },
     {
@@ -10328,7 +10811,8 @@
       "fpg": 1.133,
       "gp": 76.3,
       "adp": {
-        "average": 292.3,
+        "average": 230,
+        "espn": 230,
         "yahoo": 292.3
       },
       "mark": ""
@@ -10355,7 +10839,8 @@
       "fpg": 3.92,
       "gp": 31.7,
       "adp": {
-        "average": 227.9,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 227.9
       },
       "mark": ""
@@ -10383,8 +10868,9 @@
       "fpg": 2.301,
       "gp": 77.8,
       "adp": {
-        "average": 229.0,
-        "yahoo": 229.0
+        "average": 181,
+        "espn": 229.6,
+        "yahoo": 229
       },
       "mark": ""
     },
@@ -10410,7 +10896,8 @@
       "fpg": 2.252,
       "gp": 79.8,
       "adp": {
-        "average": 288.9,
+        "average": 229.2,
+        "espn": 229.2,
         "yahoo": 288.9
       },
       "mark": ""
@@ -10436,7 +10923,11 @@
       "fp": 123.98,
       "fpg": 3.922,
       "gp": 31.6,
-      "adp": null,
+      "adp": {
+        "average": 178.2,
+        "espn": 227.9,
+        "yahoo": 128.5
+      },
       "mark": ""
     },
     {
@@ -10491,9 +10982,10 @@
       "dropoff": 2.23,
       "fp": 178.73,
       "fpg": 2.128,
-      "gp": 84.0,
+      "gp": 84,
       "adp": {
-        "average": 291.3,
+        "average": 229.3,
+        "espn": 229.3,
         "yahoo": 291.3
       },
       "mark": ""
@@ -10519,7 +11011,10 @@
       "fp": 85.59,
       "fpg": 1.174,
       "gp": 72.9,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -10543,7 +11038,10 @@
       "fp": 85.35,
       "fpg": 1.092,
       "gp": 78.1,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -10566,7 +11064,7 @@
       "dropoff": 0.28,
       "fp": 123.19,
       "fpg": 3.737,
-      "gp": 33.0,
+      "gp": 33,
       "adp": {
         "average": 290.7,
         "yahoo": 290.7
@@ -10594,7 +11092,7 @@
       "fp": 84.92,
       "fpg": 1.087,
       "gp": 78.1,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -10617,7 +11115,7 @@
       "dropoff": 0.54,
       "fp": 122.91,
       "fpg": 3.319,
-      "gp": 37.0,
+      "gp": 37,
       "adp": {
         "average": 291.5,
         "yahoo": 291.5
@@ -10630,7 +11128,8 @@
       "n": "Ben Kindel",
       "t": "PIT",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -10646,7 +11145,8 @@
       "fpg": 2.174,
       "gp": 82.2,
       "adp": {
-        "average": 279.2,
+        "average": 228.4,
+        "espn": 228.4,
         "yahoo": 279.2
       },
       "mark": ""
@@ -10657,7 +11157,8 @@
       "n": "Alexander Wennberg",
       "t": "SJS",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -10673,7 +11174,8 @@
       "fpg": 2.185,
       "gp": 81.6,
       "adp": {
-        "average": 286.5,
+        "average": 223.3,
+        "espn": 223.3,
         "yahoo": 286.5
       },
       "mark": ""
@@ -10726,7 +11228,10 @@
       "fp": 84.15,
       "fpg": 1.143,
       "gp": 73.6,
-      "adp": null,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -10750,7 +11255,10 @@
       "fp": 84.09,
       "fpg": 1.117,
       "gp": 75.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -10774,7 +11282,10 @@
       "fp": 83.59,
       "fpg": 1.125,
       "gp": 74.3,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -10798,7 +11309,10 @@
       "fp": 83.56,
       "fpg": 1.094,
       "gp": 76.4,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -10823,7 +11337,7 @@
       "dropoff": 1.2,
       "fp": 176.5,
       "fpg": 2.101,
-      "gp": 84.0,
+      "gp": 84,
       "adp": {
         "average": 290.5,
         "yahoo": 290.5
@@ -10852,7 +11366,8 @@
       "fpg": 3.647,
       "gp": 33.3,
       "adp": {
-        "average": 283.6,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 283.6
       },
       "mark": ""
@@ -10878,7 +11393,10 @@
       "fp": 82.67,
       "fpg": 1.123,
       "gp": 73.6,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -10901,8 +11419,8 @@
       "dropoff": 0.38,
       "fp": 82.5,
       "fpg": 0.994,
-      "gp": 83.0,
-      "adp": null,
+      "gp": 83,
+      "adp": {},
       "mark": ""
     },
     {
@@ -10927,9 +11445,10 @@
       "dropoff": 0.38,
       "fp": 175.3,
       "fpg": 2.218,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 289.2,
+        "average": 230,
+        "espn": 230,
         "yahoo": 289.2
       },
       "mark": ""
@@ -10954,8 +11473,8 @@
       "dropoff": 4.1,
       "fp": 120.21,
       "fpg": 3.643,
-      "gp": 33.0,
-      "adp": null,
+      "gp": 33,
+      "adp": {},
       "mark": ""
     },
     {
@@ -10979,7 +11498,10 @@
       "fp": 82.12,
       "fpg": 1.062,
       "gp": 77.3,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -11002,8 +11524,11 @@
       "dropoff": 0.04,
       "fp": 81.94,
       "fpg": 1.138,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -11028,7 +11553,8 @@
       "fpg": 1.098,
       "gp": 74.6,
       "adp": {
-        "average": 205.6,
+        "average": 230,
+        "espn": 230,
         "yahoo": 205.6
       },
       "mark": ""
@@ -11082,7 +11608,8 @@
       "fpg": 2.203,
       "gp": 79.4,
       "adp": {
-        "average": 225.4,
+        "average": 176.8,
+        "espn": 228.4,
         "yahoo": 225.4
       },
       "mark": ""
@@ -11093,7 +11620,8 @@
       "n": "Ryan McLeod",
       "t": "BUF",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -11137,7 +11665,8 @@
       "fpg": 2.099,
       "gp": 83.2,
       "adp": {
-        "average": 236.8,
+        "average": 179.6,
+        "espn": 225,
         "yahoo": 236.8
       },
       "mark": ""
@@ -11163,7 +11692,10 @@
       "fp": 81.42,
       "fpg": 0.977,
       "gp": 83.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -11187,7 +11719,10 @@
       "fp": 80.96,
       "fpg": 1.168,
       "gp": 69.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -11211,7 +11746,10 @@
       "fp": 80.7,
       "fpg": 1.082,
       "gp": 74.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -11235,7 +11773,10 @@
       "fp": 80.02,
       "fpg": 1.071,
       "gp": 74.7,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -11259,7 +11800,7 @@
       "fp": 79.53,
       "fpg": 0.962,
       "gp": 82.6,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -11283,7 +11824,10 @@
       "fp": 79.51,
       "fpg": 1.105,
       "gp": 71.9,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -11306,8 +11850,8 @@
       "dropoff": 0.07,
       "fp": 79.3,
       "fpg": 1.117,
-      "gp": 71.0,
-      "adp": null,
+      "gp": 71,
+      "adp": {},
       "mark": ""
     },
     {
@@ -11357,8 +11901,8 @@
       "dropoff": 0.17,
       "fp": 78.28,
       "fpg": 1.073,
-      "gp": 73.0,
-      "adp": null,
+      "gp": 73,
+      "adp": {},
       "mark": ""
     },
     {
@@ -11382,7 +11926,10 @@
       "fp": 78.12,
       "fpg": 1.007,
       "gp": 77.6,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -11407,8 +11954,9 @@
       "fpg": 4.19,
       "gp": 27.7,
       "adp": {
-        "average": 289.0,
-        "yahoo": 289.0
+        "average": 209.3,
+        "espn": 209.3,
+        "yahoo": 289
       },
       "mark": ""
     },
@@ -11432,8 +11980,11 @@
       "dropoff": 1.57,
       "fp": 77.59,
       "fpg": 1.078,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -11442,7 +11993,8 @@
       "n": "Sean Monahan",
       "t": "CBJ",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -11485,7 +12037,8 @@
       "fpg": 3.076,
       "gp": 55.4,
       "adp": {
-        "average": 164.1,
+        "average": 228.6,
+        "espn": 228.6,
         "yahoo": 164.1
       },
       "mark": ""
@@ -11496,7 +12049,8 @@
       "n": "Vitali Pinchuk",
       "t": "NSH",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -11511,7 +12065,7 @@
       "fp": 171.19,
       "fpg": 2.298,
       "gp": 74.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -11532,13 +12086,13 @@
       "vorp": -65.27,
       "rawVorp": -65.27,
       "adjVorp": -65.27,
-      "dropoff": 5.0,
+      "dropoff": 5,
       "fp": 169.83,
       "fpg": 2.087,
       "gp": 81.4,
       "adp": {
-        "average": 292.0,
-        "yahoo": 292.0
+        "average": 292,
+        "yahoo": 292
       },
       "mark": ""
     },
@@ -11563,7 +12117,10 @@
       "fp": 76.02,
       "fpg": 0.966,
       "gp": 78.7,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -11587,7 +12144,10 @@
       "fp": 75.32,
       "fpg": 1.152,
       "gp": 65.4,
-      "adp": null,
+      "adp": {
+        "average": 229.6,
+        "espn": 229.6
+      },
       "mark": ""
     },
     {
@@ -11610,8 +12170,8 @@
       "dropoff": 0.18,
       "fp": 74.4,
       "fpg": 1.094,
-      "gp": 68.0,
-      "adp": null,
+      "gp": 68,
+      "adp": {},
       "mark": ""
     },
     {
@@ -11634,7 +12194,7 @@
       "dropoff": 4.44,
       "fp": 112.41,
       "fpg": 3.747,
-      "gp": 30.0,
+      "gp": 30,
       "adp": {
         "average": 292.2,
         "yahoo": 292.2
@@ -11662,7 +12222,10 @@
       "fp": 74.22,
       "fpg": 1.038,
       "gp": 71.5,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -11671,7 +12234,8 @@
       "n": "Christian Dvorak",
       "t": "PHI",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -11712,8 +12276,11 @@
       "dropoff": 0.1,
       "fp": 73.9,
       "fpg": 1.071,
-      "gp": 69.0,
-      "adp": null,
+      "gp": 69,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -11736,8 +12303,11 @@
       "dropoff": 0.01,
       "fp": 73.8,
       "fpg": 1.054,
-      "gp": 70.0,
-      "adp": null,
+      "gp": 70,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -11760,8 +12330,8 @@
       "dropoff": 0.58,
       "fp": 73.79,
       "fpg": 1.153,
-      "gp": 64.0,
-      "adp": null,
+      "gp": 64,
+      "adp": {},
       "mark": ""
     },
     {
@@ -11785,7 +12355,7 @@
       "fp": 73.21,
       "fpg": 1.088,
       "gp": 67.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -11794,7 +12364,8 @@
       "n": "James Hagens",
       "t": "BOS",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -11835,8 +12406,8 @@
       "dropoff": 0.23,
       "fp": 72.53,
       "fpg": 1.099,
-      "gp": 66.0,
-      "adp": null,
+      "gp": 66,
+      "adp": {},
       "mark": ""
     },
     {
@@ -11860,7 +12431,10 @@
       "fp": 72.3,
       "fpg": 1.08,
       "gp": 66.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -11886,7 +12460,8 @@
       "fpg": 2.071,
       "gp": 79.6,
       "adp": {
-        "average": 292.5,
+        "average": 229.7,
+        "espn": 229.7,
         "yahoo": 292.5
       },
       "mark": ""
@@ -11911,8 +12486,11 @@
       "dropoff": 0.12,
       "fp": 71.5,
       "fpg": 1.117,
-      "gp": 64.0,
-      "adp": null,
+      "gp": 64,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -11936,7 +12514,7 @@
       "fp": 71.38,
       "fpg": 1.13,
       "gp": 63.2,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12021,7 +12599,8 @@
       "fpg": 1.987,
       "gp": 82.2,
       "adp": {
-        "average": 277.9,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 277.9
       },
       "mark": ""
@@ -12044,10 +12623,13 @@
       "rawVorp": -72.04,
       "adjVorp": -72.04,
       "dropoff": 0.48,
-      "fp": 70.0,
+      "fp": 70,
       "fpg": 0.972,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -12072,7 +12654,8 @@
       "fpg": 3.672,
       "gp": 29.4,
       "adp": {
-        "average": 289.6,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 289.6
       },
       "mark": ""
@@ -12083,7 +12666,8 @@
       "n": "Noah Cates",
       "t": "PHI",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -12127,7 +12711,8 @@
       "fpg": 2.019,
       "gp": 80.6,
       "adp": {
-        "average": 278.1,
+        "average": 230,
+        "espn": 230,
         "yahoo": 278.1
       },
       "mark": ""
@@ -12153,7 +12738,7 @@
       "fp": 69.52,
       "fpg": 0.911,
       "gp": 76.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12176,8 +12761,8 @@
       "dropoff": 0.06,
       "fp": 69.5,
       "fpg": 0.927,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12201,7 +12786,10 @@
       "fp": 69.44,
       "fpg": 0.919,
       "gp": 75.6,
-      "adp": null,
+      "adp": {
+        "average": 229.4,
+        "espn": 229.4
+      },
       "mark": ""
     },
     {
@@ -12225,7 +12813,10 @@
       "fp": 69.28,
       "fpg": 0.913,
       "gp": 75.9,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -12245,11 +12836,11 @@
       "vorp": -72.95,
       "rawVorp": -72.95,
       "adjVorp": -72.95,
-      "dropoff": 0.0,
+      "dropoff": 0,
       "fp": 69.1,
       "fpg": 0.96,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12269,11 +12860,11 @@
       "vorp": -72.95,
       "rawVorp": -72.95,
       "adjVorp": -72.95,
-      "dropoff": 1.0,
+      "dropoff": 1,
       "fp": 69.1,
       "fpg": 1.08,
-      "gp": 64.0,
-      "adp": null,
+      "gp": 64,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12295,7 +12886,7 @@
       "rawVorp": -73.11,
       "adjVorp": -73.11,
       "dropoff": 0.5,
-      "fp": 162.0,
+      "fp": 162,
       "fpg": 1.943,
       "gp": 83.4,
       "adp": {
@@ -12325,8 +12916,11 @@
       "dropoff": 1.08,
       "fp": 161.5,
       "fpg": 2.212,
-      "gp": 73.0,
-      "adp": null,
+      "gp": 73,
+      "adp": {
+        "average": 229.6,
+        "espn": 229.6
+      },
       "mark": ""
     },
     {
@@ -12351,7 +12945,8 @@
       "fpg": 3.615,
       "gp": 29.4,
       "adp": {
-        "average": 293.4,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 293.4
       },
       "mark": ""
@@ -12376,8 +12971,11 @@
       "dropoff": 0.11,
       "fp": 68.1,
       "fpg": 0.946,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -12401,7 +12999,10 @@
       "fp": 67.99,
       "fpg": 1.001,
       "gp": 67.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -12426,8 +13027,8 @@
       "dropoff": 0.27,
       "fp": 160.42,
       "fpg": 1.956,
-      "gp": 82.0,
-      "adp": null,
+      "gp": 82,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12453,7 +13054,7 @@
       "fp": 161.13,
       "fpg": 1.999,
       "gp": 80.6,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12503,9 +13104,10 @@
       "dropoff": 1.49,
       "fp": 160.57,
       "fpg": 2.032,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 291.2,
+        "average": 229.1,
+        "espn": 229.1,
         "yahoo": 291.2
       },
       "mark": ""
@@ -12530,8 +13132,8 @@
       "dropoff": 0.22,
       "fp": 66.5,
       "fpg": 0.911,
-      "gp": 73.0,
-      "adp": null,
+      "gp": 73,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12555,7 +13157,10 @@
       "fp": 66.28,
       "fpg": 0.973,
       "gp": 68.1,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -12579,7 +13184,11 @@
       "fp": 104.25,
       "fpg": 3.905,
       "gp": 26.7,
-      "adp": null,
+      "adp": {
+        "average": 189.4,
+        "espn": 227.6,
+        "yahoo": 151.2
+      },
       "mark": ""
     },
     {
@@ -12603,7 +13212,10 @@
       "fp": 66.14,
       "fpg": 1.004,
       "gp": 65.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -12686,7 +13298,8 @@
       "fpg": 1.963,
       "gp": 80.8,
       "adp": {
-        "average": 292.8,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 292.8
       },
       "mark": ""
@@ -12712,7 +13325,10 @@
       "fp": 65.41,
       "fpg": 0.978,
       "gp": 66.8,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -12737,7 +13353,8 @@
       "fpg": 1.918,
       "gp": 82.6,
       "adp": {
-        "average": 288.7,
+        "average": 226,
+        "espn": 226,
         "yahoo": 288.7
       },
       "mark": ""
@@ -12762,8 +13379,8 @@
       "dropoff": 0.1,
       "fp": 65.2,
       "fpg": 0.988,
-      "gp": 66.0,
-      "adp": null,
+      "gp": 66,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12815,8 +13432,8 @@
       "dropoff": 0.22,
       "fp": 65.1,
       "fpg": 0.904,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12842,7 +13459,8 @@
       "fpg": 1.958,
       "gp": 80.7,
       "adp": {
-        "average": 289.4,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 289.4
       },
       "mark": ""
@@ -12868,7 +13486,7 @@
       "fp": 64.88,
       "fpg": 0.847,
       "gp": 76.6,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -12894,7 +13512,8 @@
       "fpg": 2.019,
       "gp": 78.2,
       "adp": {
-        "average": 261.5,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 261.5
       },
       "mark": ""
@@ -12905,7 +13524,8 @@
       "n": "Jiri Kulich",
       "t": "BUF",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -12920,7 +13540,10 @@
       "fp": 158.55,
       "fpg": 2.147,
       "gp": 73.8,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -12945,9 +13568,10 @@
       "dropoff": 0.38,
       "fp": 158.47,
       "fpg": 1.981,
-      "gp": 80.0,
+      "gp": 80,
       "adp": {
-        "average": 288.5,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 288.5
       },
       "mark": ""
@@ -12985,7 +13609,8 @@
       "n": "Jordan Staal",
       "t": "CAR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -13001,7 +13626,8 @@
       "fpg": 1.947,
       "gp": 81.2,
       "adp": {
-        "average": 290.9,
+        "average": 229.1,
+        "espn": 229.1,
         "yahoo": 290.9
       },
       "mark": ""
@@ -13027,7 +13653,7 @@
       "fp": 157.15,
       "fpg": 1.945,
       "gp": 80.8,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13036,7 +13662,8 @@
       "n": "Viggo Bjorck",
       "t": "WPG",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -13050,8 +13677,8 @@
       "dropoff": 0.75,
       "fp": 157.84,
       "fpg": 1.879,
-      "gp": 84.0,
-      "adp": null,
+      "gp": 84,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13128,8 +13755,11 @@
       "dropoff": 0.18,
       "fp": 63.3,
       "fpg": 0.945,
-      "gp": 67.0,
-      "adp": null,
+      "gp": 67,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -13154,7 +13784,8 @@
       "fpg": 3.845,
       "gp": 26.4,
       "adp": {
-        "average": 291.2,
+        "average": 176.9,
+        "espn": 201.5,
         "yahoo": 291.2
       },
       "mark": ""
@@ -13183,7 +13814,8 @@
       "fpg": 1.897,
       "gp": 82.8,
       "adp": {
-        "average": 282.1,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 282.1
       },
       "mark": ""
@@ -13208,8 +13840,11 @@
       "dropoff": 0.3,
       "fp": 63.12,
       "fpg": 0.853,
-      "gp": 74.0,
-      "adp": null,
+      "gp": 74,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -13236,7 +13871,7 @@
       "fpg": 1.954,
       "gp": 79.8,
       "adp": {
-        "average": 244.3,
+        "average": 130.3,
         "yahoo": 244.3
       },
       "mark": ""
@@ -13261,8 +13896,11 @@
       "dropoff": 1.12,
       "fp": 62.82,
       "fpg": 1.142,
-      "gp": 55.0,
-      "adp": null,
+      "gp": 55,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -13287,7 +13925,8 @@
       "fpg": 3.683,
       "gp": 27.4,
       "adp": {
-        "average": 289.9,
+        "average": 181.2,
+        "espn": 226.4,
         "yahoo": 289.9
       },
       "mark": ""
@@ -13298,7 +13937,8 @@
       "n": "William Karlsson",
       "t": "VGK",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -13366,8 +14006,11 @@
       "dropoff": 0.47,
       "fp": 61.7,
       "fpg": 0.921,
-      "gp": 67.0,
-      "adp": null,
+      "gp": 67,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -13419,8 +14062,8 @@
       "dropoff": 0.02,
       "fp": 61.23,
       "fpg": 1.113,
-      "gp": 55.0,
-      "adp": null,
+      "gp": 55,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13444,7 +14087,10 @@
       "fp": 61.21,
       "fpg": 0.835,
       "gp": 73.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -13468,7 +14114,10 @@
       "fp": 61.09,
       "fpg": 0.973,
       "gp": 62.8,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -13494,7 +14143,7 @@
       "dropoff": 0.67,
       "fp": 153.82,
       "fpg": 1.899,
-      "gp": 81.0,
+      "gp": 81,
       "adp": {
         "average": 292.9,
         "yahoo": 292.9
@@ -13521,9 +14170,10 @@
       "dropoff": 1.75,
       "fp": 98.72,
       "fpg": 3.949,
-      "gp": 25.0,
+      "gp": 25,
       "adp": {
-        "average": 293.4,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 293.4
       },
       "mark": ""
@@ -13549,7 +14199,10 @@
       "fp": 60.54,
       "fpg": 0.872,
       "gp": 69.4,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -13574,9 +14227,10 @@
       "dropoff": 0.6,
       "fp": 153.15,
       "fpg": 1.867,
-      "gp": 82.0,
+      "gp": 82,
       "adp": {
-        "average": 244.3,
+        "average": 181.7,
+        "espn": 229.9,
         "yahoo": 244.3
       },
       "mark": ""
@@ -13601,8 +14255,8 @@
       "dropoff": 0.09,
       "fp": 59.69,
       "fpg": 1.085,
-      "gp": 55.0,
-      "adp": null,
+      "gp": 55,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13625,8 +14279,8 @@
       "dropoff": 0.2,
       "fp": 59.6,
       "fpg": 0.851,
-      "gp": 70.0,
-      "adp": null,
+      "gp": 70,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13652,7 +14306,8 @@
       "fpg": 1.833,
       "gp": 83.2,
       "adp": {
-        "average": 292.5,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 292.5
       },
       "mark": ""
@@ -13674,11 +14329,14 @@
       "vorp": -82.65,
       "rawVorp": -82.65,
       "adjVorp": -82.65,
-      "dropoff": 1.0,
+      "dropoff": 1,
       "fp": 59.4,
       "fpg": 0.928,
-      "gp": 64.0,
-      "adp": null,
+      "gp": 64,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -13703,7 +14361,7 @@
       "fp": 152.46,
       "fpg": 2.001,
       "gp": 76.2,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13730,7 +14388,8 @@
       "fpg": 1.926,
       "gp": 79.5,
       "adp": {
-        "average": 291.4,
+        "average": 229.4,
+        "espn": 229.4,
         "yahoo": 291.4
       },
       "mark": ""
@@ -13784,8 +14443,11 @@
       "dropoff": 0.66,
       "fp": 96.97,
       "fpg": 3.587,
-      "gp": 27.0,
-      "adp": null,
+      "gp": 27,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -13811,7 +14473,8 @@
       "fpg": 1.86,
       "gp": 81.6,
       "adp": {
-        "average": 291.4,
+        "average": 229.5,
+        "espn": 229.5,
         "yahoo": 291.4
       },
       "mark": ""
@@ -13836,8 +14499,11 @@
       "dropoff": 0.3,
       "fp": 58.4,
       "fpg": 0.8,
-      "gp": 73.0,
-      "adp": null,
+      "gp": 73,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -13861,7 +14527,7 @@
       "fp": 96.31,
       "fpg": 3.654,
       "gp": 26.4,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13886,7 +14552,7 @@
       "fp": 151.22,
       "fpg": 1.928,
       "gp": 78.4,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13909,8 +14575,8 @@
       "dropoff": 0.2,
       "fp": 58.1,
       "fpg": 0.922,
-      "gp": 63.0,
-      "adp": null,
+      "gp": 63,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13933,8 +14599,8 @@
       "dropoff": 0.2,
       "fp": 57.9,
       "fpg": 0.815,
-      "gp": 71.0,
-      "adp": null,
+      "gp": 71,
+      "adp": {},
       "mark": ""
     },
     {
@@ -13958,7 +14624,10 @@
       "fp": 57.7,
       "fpg": 0.845,
       "gp": 68.3,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -13981,8 +14650,11 @@
       "dropoff": 0.15,
       "fp": 57.1,
       "fpg": 1.142,
-      "gp": 50.0,
-      "adp": null,
+      "gp": 50,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -14009,7 +14681,10 @@
       "fp": 150.11,
       "fpg": 1.886,
       "gp": 79.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -14018,7 +14693,8 @@
       "n": "Mikael Backlund",
       "t": "CGY",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -14034,8 +14710,8 @@
       "fpg": 1.823,
       "gp": 82.8,
       "adp": {
-        "average": 291.0,
-        "yahoo": 291.0
+        "average": 291,
+        "yahoo": 291
       },
       "mark": ""
     },
@@ -14060,7 +14736,7 @@
       "fp": 56.95,
       "fpg": 0.897,
       "gp": 63.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14084,7 +14760,7 @@
       "fp": 149.75,
       "fpg": 1.89,
       "gp": 79.2,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14107,8 +14783,11 @@
       "dropoff": 0.79,
       "fp": 56.6,
       "fpg": 0.871,
-      "gp": 65.0,
-      "adp": null,
+      "gp": 65,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -14132,7 +14811,10 @@
       "fp": 55.81,
       "fpg": 0.865,
       "gp": 64.5,
-      "adp": null,
+      "adp": {
+        "average": 228.1,
+        "espn": 228.1
+      },
       "mark": ""
     },
     {
@@ -14183,7 +14865,10 @@
       "fp": 55.06,
       "fpg": 0.908,
       "gp": 60.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -14235,8 +14920,8 @@
       "dropoff": 0.89,
       "fp": 54.49,
       "fpg": 0.826,
-      "gp": 66.0,
-      "adp": null,
+      "gp": 66,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14260,7 +14945,7 @@
       "fp": 146.86,
       "fpg": 1.853,
       "gp": 79.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14269,7 +14954,8 @@
       "n": "Fraser Minten",
       "t": "BOS",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -14285,7 +14971,8 @@
       "fpg": 1.85,
       "gp": 79.8,
       "adp": {
-        "average": 286.7,
+        "average": 228.3,
+        "espn": 228.3,
         "yahoo": 286.7
       },
       "mark": ""
@@ -14310,8 +14997,11 @@
       "dropoff": 0.32,
       "fp": 53.6,
       "fpg": 0.975,
-      "gp": 55.0,
-      "adp": null,
+      "gp": 55,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -14349,7 +15039,8 @@
       "n": "Jean-Gabriel Pageau",
       "t": "NYI",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -14391,7 +15082,7 @@
       "fp": 53.28,
       "fpg": 0.906,
       "gp": 58.8,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14417,7 +15108,7 @@
       "fp": 146.32,
       "fpg": 1.825,
       "gp": 80.2,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14468,8 +15159,8 @@
       "dropoff": 0.05,
       "fp": 145.81,
       "fpg": 1.756,
-      "gp": 83.0,
-      "adp": null,
+      "gp": 83,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14497,8 +15188,8 @@
       "fpg": 1.789,
       "gp": 81.5,
       "adp": {
-        "average": 291.0,
-        "yahoo": 291.0
+        "average": 291,
+        "yahoo": 291
       },
       "mark": ""
     },
@@ -14522,8 +15213,11 @@
       "dropoff": 2.02,
       "fp": 145.6,
       "fpg": 2.173,
-      "gp": 67.0,
-      "adp": null,
+      "gp": 67,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -14546,8 +15240,11 @@
       "dropoff": 0.7,
       "fp": 51.6,
       "fpg": 0.938,
-      "gp": 55.0,
-      "adp": null,
+      "gp": 55,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -14571,7 +15268,7 @@
       "fp": 89.59,
       "fpg": 3.273,
       "gp": 27.4,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14594,8 +15291,8 @@
       "dropoff": 0.7,
       "fp": 50.9,
       "fpg": 0.808,
-      "gp": 63.0,
-      "adp": null,
+      "gp": 63,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14620,7 +15317,8 @@
       "fpg": 1.858,
       "gp": 77.9,
       "adp": {
-        "average": 290.5,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 290.5
       },
       "mark": ""
@@ -14645,8 +15343,8 @@
       "dropoff": 1.02,
       "fp": 144.6,
       "fpg": 1.928,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14673,7 +15371,10 @@
       "fp": 143.58,
       "fpg": 1.822,
       "gp": 78.8,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -14696,8 +15397,8 @@
       "dropoff": 0.3,
       "fp": 50.2,
       "fpg": 1.004,
-      "gp": 50.0,
-      "adp": null,
+      "gp": 50,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14706,7 +15407,8 @@
       "n": "Ryan Poehling",
       "t": "ANA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -14747,8 +15449,11 @@
       "dropoff": 0.54,
       "fp": 49.9,
       "fpg": 0.792,
-      "gp": 63.0,
-      "adp": null,
+      "gp": 63,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -14801,7 +15506,7 @@
       "fp": 49.36,
       "fpg": 0.822,
       "gp": 60.1,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14853,7 +15558,8 @@
       "fpg": 3.765,
       "gp": 23.1,
       "adp": {
-        "average": 293.3,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 293.3
       },
       "mark": ""
@@ -14864,7 +15570,8 @@
       "n": "Oliver Kapanen",
       "t": "MTL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -14891,7 +15598,8 @@
       "n": "Konsta Helenius",
       "t": "BUF",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -14907,7 +15615,8 @@
       "fpg": 1.797,
       "gp": 79.2,
       "adp": {
-        "average": 249.1,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 249.1
       },
       "mark": ""
@@ -14930,10 +15639,10 @@
       "rawVorp": -94.05,
       "adjVorp": -94.05,
       "dropoff": 0.1,
-      "fp": 48.0,
+      "fp": 48,
       "fpg": 0.828,
-      "gp": 58.0,
-      "adp": null,
+      "gp": 58,
+      "adp": {},
       "mark": ""
     },
     {
@@ -14953,11 +15662,14 @@
       "vorp": -94.05,
       "rawVorp": -94.05,
       "adjVorp": -94.05,
-      "dropoff": 0.0,
-      "fp": 48.0,
+      "dropoff": 0,
+      "fp": 48,
       "fpg": 0.96,
-      "gp": 50.0,
-      "adp": null,
+      "gp": 50,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -15009,7 +15721,10 @@
       "fp": 47.9,
       "fpg": 0.8,
       "gp": 59.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -15032,8 +15747,11 @@
       "dropoff": 1.92,
       "fp": 47.8,
       "fpg": 0.937,
-      "gp": 51.0,
-      "adp": null,
+      "gp": 51,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -15058,7 +15776,7 @@
       "fp": 140.42,
       "fpg": 1.822,
       "gp": 77.1,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15084,7 +15802,7 @@
       "fp": 140.88,
       "fpg": 1.795,
       "gp": 78.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15093,7 +15811,8 @@
       "n": "Filip Chytil",
       "t": "VAN",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -15108,7 +15827,10 @@
       "fp": 140.82,
       "fpg": 1.931,
       "gp": 72.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -15131,8 +15853,8 @@
       "dropoff": 1.28,
       "fp": 45.88,
       "fpg": 0.62,
-      "gp": 74.0,
-      "adp": null,
+      "gp": 74,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15157,7 +15879,7 @@
       "dropoff": 0.11,
       "fp": 139.46,
       "fpg": 1.811,
-      "gp": 77.0,
+      "gp": 77,
       "adp": {
         "average": 288.4,
         "yahoo": 288.4
@@ -15170,7 +15892,8 @@
       "n": "Dalibor Dvorsky",
       "t": "STL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -15186,7 +15909,8 @@
       "fpg": 1.716,
       "gp": 81.2,
       "adp": {
-        "average": 291.2,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 291.2
       },
       "mark": ""
@@ -15211,8 +15935,11 @@
       "dropoff": 1.3,
       "fp": 44.6,
       "fpg": 0.875,
-      "gp": 51.0,
-      "adp": null,
+      "gp": 51,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -15238,7 +15965,7 @@
       "dropoff": 1.05,
       "fp": 137.64,
       "fpg": 1.7,
-      "gp": 81.0,
+      "gp": 81,
       "adp": {
         "average": 292.8,
         "yahoo": 292.8
@@ -15268,7 +15995,10 @@
       "fp": 137.7,
       "fpg": 1.663,
       "gp": 82.8,
-      "adp": null,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -15321,7 +16051,8 @@
       "fpg": 1.757,
       "gp": 77.8,
       "adp": {
-        "average": 292.8,
+        "average": 230,
+        "espn": 230,
         "yahoo": 292.8
       },
       "mark": ""
@@ -15346,8 +16077,8 @@
       "dropoff": 0.06,
       "fp": 43.3,
       "fpg": 1.083,
-      "gp": 40.0,
-      "adp": null,
+      "gp": 40,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15371,7 +16102,10 @@
       "fp": 43.24,
       "fpg": 0.639,
       "gp": 67.7,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -15395,8 +16129,8 @@
       "dropoff": 0.55,
       "fp": 136.1,
       "fpg": 1.815,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15419,8 +16153,8 @@
       "dropoff": 0.7,
       "fp": 42.8,
       "fpg": 0.951,
-      "gp": 45.0,
-      "adp": null,
+      "gp": 45,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15445,7 +16179,7 @@
       "fp": 135.55,
       "fpg": 1.702,
       "gp": 79.6,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15465,11 +16199,14 @@
       "vorp": -99.95,
       "rawVorp": -99.95,
       "adjVorp": -99.95,
-      "dropoff": 4.0,
+      "dropoff": 4,
       "fp": 42.1,
       "fpg": 0.936,
-      "gp": 45.0,
-      "adp": null,
+      "gp": 45,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -15494,8 +16231,11 @@
       "dropoff": 1.13,
       "fp": 135.1,
       "fpg": 1.826,
-      "gp": 74.0,
-      "adp": null,
+      "gp": 74,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -15519,7 +16259,10 @@
       "fp": 135.59,
       "fpg": 1.824,
       "gp": 74.3,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -15528,7 +16271,8 @@
       "n": "Barrett Hayton",
       "t": "UTA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -15543,7 +16287,10 @@
       "fp": 135.38,
       "fpg": 1.709,
       "gp": 79.2,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -15567,7 +16314,7 @@
       "fp": 79.21,
       "fpg": 3.399,
       "gp": 23.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15590,8 +16337,8 @@
       "dropoff": 1.6,
       "fp": 79.13,
       "fpg": 3.956,
-      "gp": 20.0,
-      "adp": null,
+      "gp": 20,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15644,7 +16391,10 @@
       "fp": 133.53,
       "fpg": 1.644,
       "gp": 81.2,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -15653,7 +16403,8 @@
       "n": "Sean Couturier",
       "t": "PHI",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -15668,7 +16419,7 @@
       "fp": 134.13,
       "fpg": 1.67,
       "gp": 80.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15692,8 +16443,8 @@
       "dropoff": 1.94,
       "fp": 132.98,
       "fpg": 1.583,
-      "gp": 84.0,
-      "adp": null,
+      "gp": 84,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15719,7 +16470,10 @@
       "fp": 133.8,
       "fpg": 1.711,
       "gp": 78.2,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -15742,8 +16496,12 @@
       "dropoff": 2.79,
       "fp": 77.53,
       "fpg": 3.877,
-      "gp": 20.0,
-      "adp": null,
+      "gp": 20,
+      "adp": {
+        "average": 179.7,
+        "espn": 228.8,
+        "yahoo": 130.6
+      },
       "mark": ""
     },
     {
@@ -15767,7 +16525,7 @@
       "fp": 133.21,
       "fpg": 1.737,
       "gp": 76.7,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15805,7 +16563,8 @@
       "n": "Noah Ostlund",
       "t": "BUF",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -15820,7 +16579,10 @@
       "fp": 132.1,
       "fpg": 1.689,
       "gp": 78.2,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -15843,8 +16605,11 @@
       "dropoff": 0.9,
       "fp": 38.1,
       "fpg": 0.847,
-      "gp": 45.0,
-      "adp": null,
+      "gp": 45,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -15870,7 +16635,8 @@
       "fpg": 1.632,
       "gp": 80.3,
       "adp": {
-        "average": 291.6,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 291.6
       },
       "mark": ""
@@ -15898,7 +16664,10 @@
       "fp": 130.53,
       "fpg": 1.586,
       "gp": 82.3,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -15924,7 +16693,10 @@
       "fp": 131.11,
       "fpg": 1.654,
       "gp": 79.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -15947,8 +16719,8 @@
       "dropoff": 2.6,
       "fp": 37.2,
       "fpg": 0.676,
-      "gp": 55.0,
-      "adp": null,
+      "gp": 55,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15971,8 +16743,8 @@
       "dropoff": 1.29,
       "fp": 74.75,
       "fpg": 3.737,
-      "gp": 20.0,
-      "adp": null,
+      "gp": 20,
+      "adp": {},
       "mark": ""
     },
     {
@@ -15981,7 +16753,8 @@
       "n": "Adam Lowry",
       "t": "WPG",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -15996,7 +16769,10 @@
       "fp": 130.13,
       "fpg": 1.632,
       "gp": 79.7,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16021,7 +16797,7 @@
       "fp": 129.29,
       "fpg": 1.59,
       "gp": 81.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16048,7 +16824,8 @@
       "fpg": 1.549,
       "gp": 83.7,
       "adp": {
-        "average": 291.9,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 291.9
       },
       "mark": ""
@@ -16074,7 +16851,7 @@
       "fp": 73.46,
       "fpg": 4.198,
       "gp": 17.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16094,11 +16871,14 @@
       "vorp": -107.45,
       "rawVorp": -107.45,
       "adjVorp": -107.45,
-      "dropoff": 0.0,
+      "dropoff": 0,
       "fp": 34.6,
       "fpg": 0.865,
-      "gp": 40.0,
-      "adp": null,
+      "gp": 40,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16152,8 +16932,11 @@
       "dropoff": 0.14,
       "fp": 127.39,
       "fpg": 1.93,
-      "gp": 66.0,
-      "adp": null,
+      "gp": 66,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -16177,7 +16960,10 @@
       "fp": 127.25,
       "fpg": 1.702,
       "gp": 74.8,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16202,8 +16988,8 @@
       "fpg": 1.689,
       "gp": 75.3,
       "adp": {
-        "average": 291.0,
-        "yahoo": 291.0
+        "average": 291,
+        "yahoo": 291
       },
       "mark": ""
     },
@@ -16229,7 +17015,10 @@
       "fp": 126.68,
       "fpg": 1.591,
       "gp": 79.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16253,7 +17042,10 @@
       "fp": 127.34,
       "fpg": 1.81,
       "gp": 70.3,
-      "adp": null,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -16279,7 +17071,7 @@
       "fp": 126.06,
       "fpg": 1.566,
       "gp": 80.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16300,10 +17092,13 @@
       "rawVorp": -109.11,
       "adjVorp": -109.11,
       "dropoff": 2.46,
-      "fp": 126.0,
+      "fp": 126,
       "fpg": 1.518,
-      "gp": 83.0,
-      "adp": null,
+      "gp": 83,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -16312,7 +17107,8 @@
       "n": "Noah Laba",
       "t": "NYR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -16327,7 +17123,10 @@
       "fp": 125.51,
       "fpg": 1.564,
       "gp": 80.2,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -16336,7 +17135,8 @@
       "n": "Luca Del Bel Belluz",
       "t": "CBJ",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -16350,8 +17150,11 @@
       "dropoff": 1.29,
       "fp": 124.6,
       "fpg": 1.888,
-      "gp": 66.0,
-      "adp": null,
+      "gp": 66,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -16376,7 +17179,7 @@
       "fp": 123.54,
       "fpg": 1.743,
       "gp": 70.9,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16400,7 +17203,10 @@
       "fp": 124.36,
       "fpg": 1.58,
       "gp": 78.7,
-      "adp": null,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -16421,10 +17227,13 @@
       "rawVorp": -111.94,
       "adjVorp": -111.94,
       "dropoff": 0.46,
-      "fp": 124.0,
+      "fp": 124,
       "fpg": 1.746,
-      "gp": 71.0,
-      "adp": null,
+      "gp": 71,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -16448,8 +17257,11 @@
       "dropoff": 0.24,
       "fp": 122.49,
       "fpg": 1.531,
-      "gp": 80.0,
-      "adp": null,
+      "gp": 80,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16458,7 +17270,8 @@
       "n": "Dominic James",
       "t": "TBL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -16473,7 +17286,10 @@
       "fp": 123.31,
       "fpg": 1.631,
       "gp": 75.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16526,7 +17342,10 @@
       "fp": 122.96,
       "fpg": 1.577,
       "gp": 77.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16552,7 +17371,7 @@
       "fp": 122.91,
       "fpg": 1.537,
       "gp": 79.9,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16561,7 +17380,8 @@
       "n": "Yanni Gourde",
       "t": "TBL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -16575,8 +17395,8 @@
       "dropoff": 0.07,
       "fp": 122.88,
       "fpg": 1.536,
-      "gp": 80.0,
-      "adp": null,
+      "gp": 80,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16585,7 +17405,8 @@
       "n": "Jake Evans",
       "t": "MTL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -16600,7 +17421,10 @@
       "fp": 122.81,
       "fpg": 1.542,
       "gp": 79.6,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -16624,10 +17448,11 @@
       "dropoff": 0.23,
       "fp": 121.8,
       "fpg": 1.74,
-      "gp": 70.0,
+      "gp": 70,
       "adp": {
-        "average": 292.0,
-        "yahoo": 292.0
+        "average": 229.9,
+        "espn": 229.9,
+        "yahoo": 292
       },
       "mark": ""
     },
@@ -16652,7 +17477,10 @@
       "fp": 121.57,
       "fpg": 1.528,
       "gp": 79.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16675,8 +17503,8 @@
       "dropoff": 1.73,
       "fp": 121.3,
       "fpg": 1.733,
-      "gp": 70.0,
-      "adp": null,
+      "gp": 70,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16685,7 +17513,8 @@
       "n": "Ryan Strome",
       "t": "CGY",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -16700,7 +17529,10 @@
       "fp": 121.27,
       "fpg": 1.511,
       "gp": 80.3,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -16724,7 +17556,7 @@
       "fp": 120.9,
       "fpg": 1.63,
       "gp": 74.2,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16749,7 +17581,10 @@
       "fp": 119.57,
       "fpg": 1.675,
       "gp": 71.4,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16775,7 +17610,7 @@
       "fp": 120.32,
       "fpg": 1.495,
       "gp": 80.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16796,10 +17631,10 @@
       "rawVorp": -115.94,
       "adjVorp": -115.94,
       "dropoff": 0.43,
-      "fp": 120.0,
+      "fp": 120,
       "fpg": 1.765,
-      "gp": 68.0,
-      "adp": null,
+      "gp": 68,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16851,7 +17686,7 @@
       "fp": 119.18,
       "fpg": 1.575,
       "gp": 75.7,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -16875,7 +17710,10 @@
       "fp": 118.14,
       "fpg": 1.58,
       "gp": 74.8,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -16884,7 +17722,8 @@
       "n": "J.T. Compher",
       "t": "DET",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -16899,7 +17738,10 @@
       "fp": 118.77,
       "fpg": 1.458,
       "gp": 81.5,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16925,7 +17767,10 @@
       "fp": 117.71,
       "fpg": 1.486,
       "gp": 79.2,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -16950,7 +17795,8 @@
       "fpg": 1.516,
       "gp": 76.8,
       "adp": {
-        "average": 290.9,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 290.9
       },
       "mark": ""
@@ -16978,7 +17824,7 @@
       "fp": 116.3,
       "fpg": 1.487,
       "gp": 78.2,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17004,7 +17850,7 @@
       "fp": 116.56,
       "fpg": 1.734,
       "gp": 67.2,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17032,7 +17878,8 @@
       "fpg": 1.403,
       "gp": 82.4,
       "adp": {
-        "average": 284.4,
+        "average": 229.9,
+        "espn": 229.9,
         "yahoo": 284.4
       },
       "mark": ""
@@ -17060,7 +17907,10 @@
       "fp": 116.12,
       "fpg": 1.479,
       "gp": 78.5,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -17069,7 +17919,8 @@
       "n": "Nate Danielson",
       "t": "DET",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -17084,7 +17935,7 @@
       "fp": 115.93,
       "fpg": 1.744,
       "gp": 66.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17107,8 +17958,8 @@
       "dropoff": 0.18,
       "fp": 115.8,
       "fpg": 1.485,
-      "gp": 78.0,
-      "adp": null,
+      "gp": 78,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17134,7 +17985,7 @@
       "fp": 114.19,
       "fpg": 1.517,
       "gp": 75.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17158,7 +18009,7 @@
       "fp": 113.36,
       "fpg": 1.477,
       "gp": 76.8,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17175,14 +18026,17 @@
       "posLabel": "F",
       "tier": "RW16",
       "prnk": "R176",
-      "vorp": -122.0,
-      "rawVorp": -122.0,
-      "adjVorp": -122.0,
+      "vorp": -122,
+      "rawVorp": -122,
+      "adjVorp": -122,
       "dropoff": 0.6,
       "fp": 113.1,
       "fpg": 1.469,
-      "gp": 77.0,
-      "adp": null,
+      "gp": 77,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -17206,7 +18060,10 @@
       "fp": 113.68,
       "fpg": 1.489,
       "gp": 76.3,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -17231,8 +18088,8 @@
       "dropoff": 0.55,
       "fp": 113.53,
       "fpg": 1.493,
-      "gp": 76.0,
-      "adp": null,
+      "gp": 76,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17255,8 +18112,11 @@
       "dropoff": 15.23,
       "fp": 57.53,
       "fpg": 3.835,
-      "gp": 15.0,
-      "adp": null,
+      "gp": 15,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -17279,8 +18139,8 @@
       "dropoff": 1.3,
       "fp": 112.5,
       "fpg": 1.607,
-      "gp": 70.0,
-      "adp": null,
+      "gp": 70,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17289,7 +18149,8 @@
       "n": "Teddy Blueger",
       "t": "TOR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -17304,7 +18165,10 @@
       "fp": 112.98,
       "fpg": 1.549,
       "gp": 72.9,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -17313,7 +18177,8 @@
       "n": "Jack Drury",
       "t": "NSH",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -17327,8 +18192,11 @@
       "dropoff": 1.56,
       "fp": 112.87,
       "fpg": 1.394,
-      "gp": 81.0,
-      "adp": null,
+      "gp": 81,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -17352,8 +18220,8 @@
       "dropoff": 0.1,
       "fp": 111.2,
       "fpg": 1.566,
-      "gp": 71.0,
-      "adp": null,
+      "gp": 71,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17376,8 +18244,11 @@
       "dropoff": 1.07,
       "fp": 111.1,
       "fpg": 1.481,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -17386,7 +18257,8 @@
       "n": "Phillip Danault",
       "t": "MTL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -17400,8 +18272,11 @@
       "dropoff": 0.21,
       "fp": 111.32,
       "fpg": 1.375,
-      "gp": 81.0,
-      "adp": null,
+      "gp": 81,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -17426,9 +18301,10 @@
       "dropoff": 0.71,
       "fp": 111.11,
       "fpg": 1.407,
-      "gp": 79.0,
+      "gp": 79,
       "adp": {
-        "average": 292.3,
+        "average": 230,
+        "espn": 230,
         "yahoo": 292.3
       },
       "mark": ""
@@ -17454,7 +18330,10 @@
       "fp": 110.03,
       "fpg": 1.449,
       "gp": 75.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -17475,10 +18354,13 @@
       "rawVorp": -125.11,
       "adjVorp": -125.11,
       "dropoff": 0.1,
-      "fp": 110.0,
+      "fp": 110,
       "fpg": 1.964,
-      "gp": 56.0,
-      "adp": null,
+      "gp": 56,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -17501,8 +18383,11 @@
       "dropoff": 0.27,
       "fp": 109.9,
       "fpg": 1.57,
-      "gp": 70.0,
-      "adp": null,
+      "gp": 70,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -17527,7 +18412,10 @@
       "fp": 109.63,
       "fpg": 1.431,
       "gp": 76.6,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -17536,7 +18424,8 @@
       "n": "Adam Henrique",
       "t": "EDM",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -17550,8 +18439,8 @@
       "dropoff": 0.09,
       "fp": 110.4,
       "fpg": 1.453,
-      "gp": 76.0,
-      "adp": null,
+      "gp": 76,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17576,8 +18465,11 @@
       "dropoff": 1.53,
       "fp": 110.31,
       "fpg": 1.533,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -17603,7 +18495,10 @@
       "fp": 108.78,
       "fpg": 1.484,
       "gp": 73.3,
-      "adp": null,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -17629,7 +18524,10 @@
       "fp": 108.13,
       "fpg": 1.447,
       "gp": 74.7,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -17653,7 +18551,7 @@
       "fp": 107.43,
       "fpg": 1.3,
       "gp": 82.6,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17679,7 +18577,10 @@
       "fp": 107.92,
       "fpg": 1.434,
       "gp": 75.3,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -17702,8 +18603,11 @@
       "dropoff": 0.16,
       "fp": 107.77,
       "fpg": 1.437,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -17727,7 +18631,7 @@
       "fp": 107.61,
       "fpg": 1.307,
       "gp": 82.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17751,7 +18655,7 @@
       "fp": 106.67,
       "fpg": 1.351,
       "gp": 78.9,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17777,8 +18681,11 @@
       "dropoff": 0.27,
       "fp": 106.27,
       "fpg": 1.417,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -17799,10 +18706,10 @@
       "rawVorp": -129.11,
       "adjVorp": -129.11,
       "dropoff": 1.34,
-      "fp": 106.0,
+      "fp": 106,
       "fpg": 1.472,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17825,8 +18732,11 @@
       "dropoff": 0.23,
       "fp": 106.5,
       "fpg": 1.479,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -17851,7 +18761,7 @@
       "fp": 104.66,
       "fpg": 1.608,
       "gp": 65.1,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17874,8 +18784,11 @@
       "dropoff": 0.3,
       "fp": 105.2,
       "fpg": 1.349,
-      "gp": 78.0,
-      "adp": null,
+      "gp": 78,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -17884,7 +18797,8 @@
       "n": "Conor Geekie",
       "t": "TBL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -17899,7 +18813,10 @@
       "fp": 104.97,
       "fpg": 1.552,
       "gp": 67.6,
-      "adp": null,
+      "adp": {
+        "average": 229.7,
+        "espn": 229.7
+      },
       "mark": ""
     },
     {
@@ -17922,8 +18839,11 @@
       "dropoff": 0.24,
       "fp": 104.9,
       "fpg": 1.499,
-      "gp": 70.0,
-      "adp": null,
+      "gp": 70,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -17948,8 +18868,8 @@
       "dropoff": 0.19,
       "fp": 103.68,
       "fpg": 1.313,
-      "gp": 79.0,
-      "adp": null,
+      "gp": 79,
+      "adp": {},
       "mark": ""
     },
     {
@@ -17973,7 +18893,10 @@
       "fp": 103.49,
       "fpg": 1.353,
       "gp": 76.5,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -17996,8 +18919,11 @@
       "dropoff": 0.2,
       "fp": 103.3,
       "fpg": 1.435,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {
+        "average": 229.6,
+        "espn": 229.6
+      },
       "mark": ""
     },
     {
@@ -18020,8 +18946,8 @@
       "dropoff": 2.51,
       "fp": 103.1,
       "fpg": 1.289,
-      "gp": 80.0,
-      "adp": null,
+      "gp": 80,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18047,7 +18973,7 @@
       "fp": 101.69,
       "fpg": 1.363,
       "gp": 74.6,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18056,7 +18982,8 @@
       "n": "Brad Lambert",
       "t": "WPG",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18071,7 +18998,7 @@
       "fp": 101.6,
       "fpg": 1.551,
       "gp": 65.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18095,7 +19022,10 @@
       "fp": 101.45,
       "fpg": 1.258,
       "gp": 80.6,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -18122,7 +19052,8 @@
       "fpg": 1.324,
       "gp": 75.9,
       "adp": {
-        "average": 289.8,
+        "average": 229.8,
+        "espn": 229.8,
         "yahoo": 289.8
       },
       "mark": ""
@@ -18133,7 +19064,8 @@
       "n": "Jason Dickinson",
       "t": "EDM",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18148,7 +19080,10 @@
       "fp": 101.4,
       "fpg": 1.326,
       "gp": 76.5,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18157,7 +19092,8 @@
       "n": "Michael McCarron",
       "t": "MIN",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18172,7 +19108,10 @@
       "fp": 101.37,
       "fpg": 1.295,
       "gp": 78.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18198,7 +19137,10 @@
       "fp": 100.38,
       "fpg": 1.446,
       "gp": 69.4,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -18221,8 +19163,8 @@
       "dropoff": 0.38,
       "fp": 100.8,
       "fpg": 1.326,
-      "gp": 76.0,
-      "adp": null,
+      "gp": 76,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18246,7 +19188,10 @@
       "fp": 100.42,
       "fpg": 1.305,
       "gp": 76.9,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -18270,7 +19215,10 @@
       "fp": 100.29,
       "fpg": 1.392,
       "gp": 72.1,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18291,10 +19239,10 @@
       "rawVorp": -135.94,
       "adjVorp": -135.94,
       "dropoff": 0.5,
-      "fp": 100.0,
+      "fp": 100,
       "fpg": 1.667,
-      "gp": 60.0,
-      "adp": null,
+      "gp": 60,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18318,7 +19266,10 @@
       "fp": 99.5,
       "fpg": 1.25,
       "gp": 79.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18342,8 +19293,8 @@
       "dropoff": 0.19,
       "fp": 98.1,
       "fpg": 1.533,
-      "gp": 64.0,
-      "adp": null,
+      "gp": 64,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18369,7 +19320,7 @@
       "fp": 97.91,
       "fpg": 1.281,
       "gp": 76.4,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18395,7 +19346,7 @@
       "fp": 98.59,
       "fpg": 1.292,
       "gp": 76.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18418,8 +19369,8 @@
       "dropoff": 3.33,
       "fp": 42.3,
       "fpg": 4.23,
-      "gp": 10.0,
-      "adp": null,
+      "gp": 10,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18428,7 +19379,8 @@
       "n": "Nic Dowd",
       "t": "VGK",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18443,7 +19395,10 @@
       "fp": 96.93,
       "fpg": 1.249,
       "gp": 77.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18468,8 +19423,11 @@
       "dropoff": 1.25,
       "fp": 96.9,
       "fpg": 1.346,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18493,7 +19451,10 @@
       "fp": 95.41,
       "fpg": 1.359,
       "gp": 70.2,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18517,8 +19478,11 @@
       "dropoff": 0.01,
       "fp": 95.13,
       "fpg": 1.175,
-      "gp": 81.0,
-      "adp": null,
+      "gp": 81,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18543,7 +19507,10 @@
       "fp": 95.12,
       "fpg": 1.275,
       "gp": 74.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18552,7 +19519,8 @@
       "n": "Blake Lizotte",
       "t": "PIT",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18566,8 +19534,11 @@
       "dropoff": 0.34,
       "fp": 95.65,
       "fpg": 1.311,
-      "gp": 73.0,
-      "adp": null,
+      "gp": 73,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18576,7 +19547,8 @@
       "n": "Aatu Raty",
       "t": "VAN",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18591,7 +19563,10 @@
       "fp": 95.31,
       "fpg": 1.293,
       "gp": 73.7,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -18614,8 +19589,11 @@
       "dropoff": 0.55,
       "fp": 38.97,
       "fpg": 3.897,
-      "gp": 10.0,
-      "adp": null,
+      "gp": 10,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18624,7 +19602,8 @@
       "n": "Jesperi Kotkaniemi",
       "t": "CAR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18638,8 +19617,11 @@
       "dropoff": 0.25,
       "fp": 94.7,
       "fpg": 1.457,
-      "gp": 65.0,
-      "adp": null,
+      "gp": 65,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18648,7 +19630,8 @@
       "n": "Kevin Stenlund",
       "t": "UTA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18663,7 +19646,10 @@
       "fp": 94.45,
       "fpg": 1.203,
       "gp": 78.5,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18687,7 +19673,10 @@
       "fp": 93.57,
       "fpg": 1.358,
       "gp": 68.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18710,8 +19699,8 @@
       "dropoff": 0.95,
       "fp": 38.41,
       "fpg": 3.841,
-      "gp": 10.0,
-      "adp": null,
+      "gp": 10,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18737,7 +19726,10 @@
       "fp": 93.13,
       "fpg": 1.254,
       "gp": 74.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18746,7 +19738,8 @@
       "n": "Tyson Kozak",
       "t": "BUF",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18760,8 +19753,11 @@
       "dropoff": 0.36,
       "fp": 93.8,
       "fpg": 1.303,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18785,7 +19781,10 @@
       "fp": 93.71,
       "fpg": 1.196,
       "gp": 78.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18809,7 +19808,10 @@
       "fp": 93.53,
       "fpg": 1.312,
       "gp": 71.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18832,8 +19834,8 @@
       "dropoff": 0.06,
       "fp": 93.5,
       "fpg": 1.23,
-      "gp": 76.0,
-      "adp": null,
+      "gp": 76,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18859,7 +19861,10 @@
       "fp": 93.44,
       "fpg": 1.326,
       "gp": 70.5,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -18879,11 +19884,11 @@
       "vorp": -142.66,
       "rawVorp": -142.66,
       "adjVorp": -142.66,
-      "dropoff": 0.0,
+      "dropoff": 0,
       "fp": 37.46,
       "fpg": 3.746,
-      "gp": 10.0,
-      "adp": null,
+      "gp": 10,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18907,8 +19912,11 @@
       "dropoff": 0.39,
       "fp": 92.4,
       "fpg": 1.359,
-      "gp": 68.0,
-      "adp": null,
+      "gp": 68,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -18933,7 +19941,7 @@
       "fp": 92.01,
       "fpg": 1.282,
       "gp": 71.8,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -18957,7 +19965,10 @@
       "fp": 92.83,
       "fpg": 1.166,
       "gp": 79.6,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -18966,7 +19977,8 @@
       "n": "Kevin Hayes",
       "t": "PIT",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -18980,8 +19992,8 @@
       "dropoff": 0.7,
       "fp": 92.3,
       "fpg": 1.538,
-      "gp": 60.0,
-      "adp": null,
+      "gp": 60,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19005,8 +20017,8 @@
       "dropoff": 0.09,
       "fp": 91.1,
       "fpg": 1.215,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19031,7 +20043,10 @@
       "fp": 91.01,
       "fpg": 1.22,
       "gp": 74.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19040,7 +20055,8 @@
       "n": "Travis Boyd",
       "t": "TOR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -19054,8 +20070,11 @@
       "dropoff": 0.03,
       "fp": 91.6,
       "fpg": 1.19,
-      "gp": 77.0,
-      "adp": null,
+      "gp": 77,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19080,8 +20099,8 @@
       "dropoff": 1.42,
       "fp": 91.57,
       "fpg": 1.131,
-      "gp": 81.0,
-      "adp": null,
+      "gp": 81,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19104,8 +20123,11 @@
       "dropoff": 0.09,
       "fp": 91.1,
       "fpg": 1.423,
-      "gp": 64.0,
-      "adp": null,
+      "gp": 64,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19129,7 +20151,7 @@
       "fp": 90.87,
       "fpg": 1.251,
       "gp": 72.7,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19156,7 +20178,10 @@
       "fp": 89.64,
       "fpg": 1.17,
       "gp": 76.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19180,7 +20205,10 @@
       "fp": 90.42,
       "fpg": 1.345,
       "gp": 67.2,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19189,7 +20217,8 @@
       "n": "Fedor Svechkov",
       "t": "COL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -19204,7 +20233,10 @@
       "fp": 90.15,
       "fpg": 1.144,
       "gp": 78.8,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19230,7 +20262,10 @@
       "fp": 89.3,
       "fpg": 1.107,
       "gp": 80.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19255,8 +20290,8 @@
       "dropoff": 0.56,
       "fp": 89.1,
       "fpg": 1.273,
-      "gp": 70.0,
-      "adp": null,
+      "gp": 70,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19280,7 +20315,7 @@
       "fp": 88.83,
       "fpg": 1.176,
       "gp": 75.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19304,7 +20339,10 @@
       "fp": 88.76,
       "fpg": 1.223,
       "gp": 72.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19313,7 +20351,8 @@
       "n": "Ty Dellandrea",
       "t": "SJS",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -19328,7 +20367,10 @@
       "fp": 88.54,
       "fpg": 1.205,
       "gp": 73.5,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19352,7 +20394,10 @@
       "fp": 87.53,
       "fpg": 1.145,
       "gp": 76.5,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -19377,8 +20422,11 @@
       "dropoff": 0.17,
       "fp": 87.37,
       "fpg": 1.121,
-      "gp": 78.0,
-      "adp": null,
+      "gp": 78,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19387,7 +20435,8 @@
       "n": "Vincent Hinostroza",
       "t": "COL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -19401,8 +20450,11 @@
       "dropoff": 0.73,
       "fp": 88.1,
       "fpg": 1.191,
-      "gp": 74.0,
-      "adp": null,
+      "gp": 74,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19427,8 +20479,11 @@
       "dropoff": 0.01,
       "fp": 87.2,
       "fpg": 1.195,
-      "gp": 73.0,
-      "adp": null,
+      "gp": 73,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19453,7 +20508,10 @@
       "fp": 87.19,
       "fpg": 1.149,
       "gp": 75.9,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19473,11 +20531,14 @@
       "vorp": -148.21,
       "rawVorp": -148.21,
       "adjVorp": -148.21,
-      "dropoff": 0.0,
+      "dropoff": 0,
       "fp": 86.9,
       "fpg": 1.347,
       "gp": 64.5,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19502,7 +20563,10 @@
       "fp": 86.9,
       "fpg": 1.209,
       "gp": 71.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19523,10 +20587,13 @@
       "rawVorp": -148.94,
       "adjVorp": -148.94,
       "dropoff": 0.1,
-      "fp": 87.0,
+      "fp": 87,
       "fpg": 1.217,
       "gp": 71.5,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19550,7 +20617,7 @@
       "fp": 86.05,
       "fpg": 1.164,
       "gp": 73.9,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19576,7 +20643,10 @@
       "fp": 86.19,
       "fpg": 1.26,
       "gp": 68.4,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19585,7 +20655,8 @@
       "n": "Mark Jankowski",
       "t": "CAR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -19600,7 +20671,10 @@
       "fp": 86.09,
       "fpg": 1.255,
       "gp": 68.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19609,7 +20683,8 @@
       "n": "Josh Samanski",
       "t": "EDM",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -19624,7 +20699,10 @@
       "fp": 85.55,
       "fpg": 1.147,
       "gp": 74.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19647,8 +20725,11 @@
       "dropoff": 0.45,
       "fp": 84.18,
       "fpg": 1.186,
-      "gp": 71.0,
-      "adp": null,
+      "gp": 71,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -19671,8 +20752,8 @@
       "dropoff": 0.06,
       "fp": 84.7,
       "fpg": 1.21,
-      "gp": 70.0,
-      "adp": null,
+      "gp": 70,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19695,8 +20776,11 @@
       "dropoff": 1.34,
       "fp": 84.64,
       "fpg": 1.411,
-      "gp": 60.0,
-      "adp": null,
+      "gp": 60,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19720,7 +20804,10 @@
       "fp": 83.73,
       "fpg": 1.103,
       "gp": 75.9,
-      "adp": null,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -19745,7 +20832,10 @@
       "fp": 83.27,
       "fpg": 0.999,
       "gp": 83.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19770,8 +20860,8 @@
       "dropoff": 1.38,
       "fp": 82.9,
       "fpg": 1.151,
-      "gp": 72.0,
-      "adp": null,
+      "gp": 72,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19794,8 +20884,11 @@
       "dropoff": 0.03,
       "fp": 83.3,
       "fpg": 1.344,
-      "gp": 62.0,
-      "adp": null,
+      "gp": 62,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19816,10 +20909,13 @@
       "rawVorp": -152.94,
       "adjVorp": -152.94,
       "dropoff": 2.97,
-      "fp": 83.0,
+      "fp": 83,
       "fpg": 1.317,
-      "gp": 63.0,
-      "adp": null,
+      "gp": 63,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19842,8 +20938,11 @@
       "dropoff": 0.92,
       "fp": 81.52,
       "fpg": 1.235,
-      "gp": 66.0,
-      "adp": null,
+      "gp": 66,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19866,8 +20965,11 @@
       "dropoff": 0.62,
       "fp": 80.6,
       "fpg": 1.185,
-      "gp": 68.0,
-      "adp": null,
+      "gp": 68,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19892,7 +20994,10 @@
       "fp": 79.98,
       "fpg": 1.17,
       "gp": 68.4,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -19901,7 +21006,8 @@
       "n": "Oskar Sundqvist",
       "t": "STL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -19915,8 +21021,8 @@
       "dropoff": 0.03,
       "fp": 80.7,
       "fpg": 1.302,
-      "gp": 62.0,
-      "adp": null,
+      "gp": 62,
+      "adp": {},
       "mark": ""
     },
     {
@@ -19925,7 +21031,8 @@
       "n": "Tim Washe",
       "t": "ANA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -19963,11 +21070,14 @@
       "vorp": -155.91,
       "rawVorp": -155.91,
       "adjVorp": -155.91,
-      "dropoff": 0.0,
+      "dropoff": 0,
       "fp": 79.2,
       "fpg": 1.164,
       "gp": 68.1,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -19987,11 +21097,14 @@
       "vorp": -155.91,
       "rawVorp": -155.91,
       "adjVorp": -155.91,
-      "dropoff": 0.0,
+      "dropoff": 0,
       "fp": 79.2,
       "fpg": 0.966,
-      "gp": 82.0,
-      "adp": null,
+      "gp": 82,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20014,8 +21127,8 @@
       "dropoff": 1.09,
       "fp": 79.2,
       "fpg": 1.44,
-      "gp": 55.0,
-      "adp": null,
+      "gp": 55,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20039,7 +21152,7 @@
       "fp": 80.03,
       "fpg": 1.196,
       "gp": 66.9,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20048,7 +21161,8 @@
       "n": "Hendrix Lapierre",
       "t": "PIT",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20063,7 +21177,7 @@
       "fp": 79.15,
       "fpg": 1.123,
       "gp": 70.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20089,7 +21203,10 @@
       "fp": 79.06,
       "fpg": 1.089,
       "gp": 72.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20106,14 +21223,17 @@
       "posLabel": "F",
       "tier": "RW16",
       "prnk": "R227",
-      "vorp": -157.0,
-      "rawVorp": -157.0,
-      "adjVorp": -157.0,
+      "vorp": -157,
+      "rawVorp": -157,
+      "adjVorp": -157,
       "dropoff": 0.29,
       "fp": 78.11,
       "fpg": 1.042,
       "gp": 74.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20122,7 +21242,8 @@
       "n": "Otto Stenberg",
       "t": "STL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20130,14 +21251,14 @@
       "posLabel": "C",
       "tier": "C15",
       "prnk": "C211",
-      "vorp": -157.0,
-      "rawVorp": -157.0,
-      "adjVorp": -157.0,
+      "vorp": -157,
+      "rawVorp": -157,
+      "adjVorp": -157,
       "dropoff": 0.52,
       "fp": 78.94,
       "fpg": 1.253,
-      "gp": 63.0,
-      "adp": null,
+      "gp": 63,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20162,7 +21283,10 @@
       "fp": 77.82,
       "fpg": 1.042,
       "gp": 74.6,
-      "adp": null,
+      "adp": {
+        "average": 228.2,
+        "espn": 228.2
+      },
       "mark": ""
     },
     {
@@ -20186,7 +21310,7 @@
       "fp": 77.6,
       "fpg": 1.142,
       "gp": 67.9,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20195,7 +21319,8 @@
       "n": "Lars Eller",
       "t": "FLA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20210,7 +21335,7 @@
       "fp": 78.42,
       "fpg": 0.997,
       "gp": 78.6,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20236,7 +21361,10 @@
       "fp": 77.44,
       "fpg": 1.365,
       "gp": 56.7,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20245,7 +21373,8 @@
       "n": "Radek Faksa",
       "t": "DAL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20260,7 +21389,10 @@
       "fp": 78.27,
       "fpg": 1.073,
       "gp": 72.9,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20269,7 +21401,8 @@
       "n": "Nick Bjugstad",
       "t": "NJD",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20284,7 +21417,7 @@
       "fp": 77.93,
       "fpg": 1.04,
       "gp": 74.9,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20293,7 +21426,8 @@
       "n": "Joe Veleno",
       "t": "NYR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20308,7 +21442,10 @@
       "fp": 77.49,
       "fpg": 1.029,
       "gp": 75.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20317,7 +21454,8 @@
       "n": "David Kampf",
       "t": "BUF",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20331,8 +21469,8 @@
       "dropoff": 2.1,
       "fp": 76.9,
       "fpg": 1.148,
-      "gp": 67.0,
-      "adp": null,
+      "gp": 67,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20356,7 +21494,10 @@
       "fp": 75.91,
       "fpg": 1.167,
       "gp": 65.1,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -20365,7 +21506,8 @@
       "n": "John Beecher",
       "t": "FLA",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20379,8 +21521,8 @@
       "dropoff": 0.97,
       "fp": 74.8,
       "fpg": 1.151,
-      "gp": 65.0,
-      "adp": null,
+      "gp": 65,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20403,8 +21545,8 @@
       "dropoff": 1.04,
       "fp": 74.8,
       "fpg": 1.206,
-      "gp": 62.0,
-      "adp": null,
+      "gp": 62,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20428,8 +21570,11 @@
       "dropoff": 1.84,
       "fp": 73.76,
       "fpg": 1.039,
-      "gp": 71.0,
-      "adp": null,
+      "gp": 71,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20438,7 +21583,8 @@
       "n": "Sam Carrick",
       "t": "BUF",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20453,7 +21599,7 @@
       "fp": 73.83,
       "fpg": 1.007,
       "gp": 73.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20476,8 +21622,8 @@
       "dropoff": 1.1,
       "fp": 73.7,
       "fpg": 1.208,
-      "gp": 61.0,
-      "adp": null,
+      "gp": 61,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20501,7 +21647,10 @@
       "fp": 71.93,
       "fpg": 1.15,
       "gp": 62.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20524,8 +21673,11 @@
       "dropoff": 0.77,
       "fp": 72.6,
       "fpg": 0.968,
-      "gp": 75.0,
-      "adp": null,
+      "gp": 75,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -20548,8 +21700,8 @@
       "dropoff": 2.4,
       "fp": 71.83,
       "fpg": 1.306,
-      "gp": 55.0,
-      "adp": null,
+      "gp": 55,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20558,7 +21710,8 @@
       "n": "Bo Groulx",
       "t": "TOR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20572,8 +21725,11 @@
       "dropoff": 1.97,
       "fp": 71.4,
       "fpg": 1.587,
-      "gp": 45.0,
-      "adp": null,
+      "gp": 45,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20596,8 +21752,8 @@
       "dropoff": 1.23,
       "fp": 69.5,
       "fpg": 1.037,
-      "gp": 67.0,
-      "adp": null,
+      "gp": 67,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20622,8 +21778,8 @@
       "dropoff": 0.17,
       "fp": 69.43,
       "fpg": 1.102,
-      "gp": 63.0,
-      "adp": null,
+      "gp": 63,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20632,7 +21788,8 @@
       "n": "Samuel Helenius",
       "t": "LAK",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20647,7 +21804,10 @@
       "fp": 69.25,
       "fpg": 1.009,
       "gp": 68.6,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20672,7 +21832,10 @@
       "fp": 68.27,
       "fpg": 0.949,
       "gp": 71.9,
-      "adp": null,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -20694,10 +21857,10 @@
       "rawVorp": -167.11,
       "adjVorp": -167.11,
       "dropoff": 1.16,
-      "fp": 68.0,
+      "fp": 68,
       "fpg": 1.047,
-      "gp": 65.0,
-      "adp": null,
+      "gp": 65,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20706,7 +21869,8 @@
       "n": "Nico Sturm",
       "t": "MIN",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20720,8 +21884,8 @@
       "dropoff": 1.17,
       "fp": 68.01,
       "fpg": 0.919,
-      "gp": 74.0,
-      "adp": null,
+      "gp": 74,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20747,7 +21911,10 @@
       "fp": 66.84,
       "fpg": 1.008,
       "gp": 66.3,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -20770,10 +21937,10 @@
       "rawVorp": -169.11,
       "adjVorp": -169.11,
       "dropoff": 3.92,
-      "fp": 66.0,
+      "fp": 66,
       "fpg": 1.015,
-      "gp": 65.0,
-      "adp": null,
+      "gp": 65,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20782,7 +21949,8 @@
       "n": "Jack Finley",
       "t": "STL",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20797,7 +21965,7 @@
       "fp": 66.53,
       "fpg": 0.944,
       "gp": 70.5,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20806,7 +21974,8 @@
       "n": "Curtis Lazar",
       "t": "EDM",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20818,10 +21987,10 @@
       "rawVorp": -170.94,
       "adjVorp": -170.94,
       "dropoff": 2.86,
-      "fp": 65.0,
+      "fp": 65,
       "fpg": 1.016,
-      "gp": 64.0,
-      "adp": null,
+      "gp": 64,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20845,7 +22014,7 @@
       "fp": 63.11,
       "fpg": 0.981,
       "gp": 64.3,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20870,7 +22039,7 @@
       "fp": 62.08,
       "fpg": 0.964,
       "gp": 64.4,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20879,7 +22048,8 @@
       "n": "Isac Lundestrom",
       "t": "CBJ",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -20894,7 +22064,7 @@
       "fp": 62.14,
       "fpg": 0.931,
       "gp": 66.7,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20917,8 +22087,8 @@
       "dropoff": 7.06,
       "fp": 61.26,
       "fpg": 0.988,
-      "gp": 62.0,
-      "adp": null,
+      "gp": 62,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20944,7 +22114,7 @@
       "fp": 61.91,
       "fpg": 1.174,
       "gp": 52.7,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20970,7 +22140,7 @@
       "fp": 61.38,
       "fpg": 0.798,
       "gp": 76.9,
-      "adp": null,
+      "adp": {},
       "mark": ""
     },
     {
@@ -20993,8 +22163,11 @@
       "dropoff": 3.31,
       "fp": 58.61,
       "fpg": 0.825,
-      "gp": 71.0,
-      "adp": null,
+      "gp": 71,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -21003,7 +22176,8 @@
       "n": "Zack Ostapchuk",
       "t": "SJS",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -21014,11 +22188,14 @@
       "vorp": -177.44,
       "rawVorp": -177.44,
       "adjVorp": -177.44,
-      "dropoff": 2.0,
+      "dropoff": 2,
       "fp": 58.5,
       "fpg": 0.84,
       "gp": 69.7,
-      "adp": null,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -21027,7 +22204,8 @@
       "n": "Luke Glendening",
       "t": "PHI",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -21041,8 +22219,11 @@
       "dropoff": 4.54,
       "fp": 56.5,
       "fpg": 0.819,
-      "gp": 69.0,
-      "adp": null,
+      "gp": 69,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -21065,8 +22246,11 @@
       "dropoff": 3.36,
       "fp": 55.3,
       "fpg": 1.229,
-      "gp": 45.0,
-      "adp": null,
+      "gp": 45,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -21089,8 +22273,8 @@
       "dropoff": 0.18,
       "fp": 54.2,
       "fpg": 0.874,
-      "gp": 62.0,
-      "adp": null,
+      "gp": 62,
+      "adp": {},
       "mark": ""
     },
     {
@@ -21114,7 +22298,10 @@
       "fp": 54.02,
       "fpg": 0.99,
       "gp": 54.5,
-      "adp": null,
+      "adp": {
+        "average": 229.2,
+        "espn": 229.2
+      },
       "mark": ""
     },
     {
@@ -21123,7 +22310,8 @@
       "n": "Jacob Quillan",
       "t": "TOR",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -21137,8 +22325,8 @@
       "dropoff": 0.26,
       "fp": 51.96,
       "fpg": 0.866,
-      "gp": 60.0,
-      "adp": null,
+      "gp": 60,
+      "adp": {},
       "mark": ""
     },
     {
@@ -21155,14 +22343,17 @@
       "posLabel": "F",
       "tier": "LW13",
       "prnk": "L244",
-      "vorp": -184.0,
-      "rawVorp": -184.0,
-      "adjVorp": -184.0,
+      "vorp": -184,
+      "rawVorp": -184,
+      "adjVorp": -184,
       "dropoff": 3.63,
       "fp": 51.94,
       "fpg": 0.928,
-      "gp": 56.0,
-      "adp": null,
+      "gp": 56,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -21171,7 +22362,8 @@
       "n": "Noah Gregor",
       "t": "WPG",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -21185,8 +22377,11 @@
       "dropoff": 5.93,
       "fp": 51.7,
       "fpg": 1.077,
-      "gp": 48.0,
-      "adp": null,
+      "gp": 48,
+      "adp": {
+        "average": 229.8,
+        "espn": 229.8
+      },
       "mark": ""
     },
     {
@@ -21209,8 +22404,8 @@
       "dropoff": 0.71,
       "fp": 50.5,
       "fpg": 1.122,
-      "gp": 45.0,
-      "adp": null,
+      "gp": 45,
+      "adp": {},
       "mark": ""
     },
     {
@@ -21233,8 +22428,8 @@
       "dropoff": 6.39,
       "fp": 49.79,
       "fpg": 0.922,
-      "gp": 54.0,
-      "adp": null,
+      "gp": 54,
+      "adp": {},
       "mark": ""
     },
     {
@@ -21257,8 +22452,8 @@
       "dropoff": 0.59,
       "fp": 48.31,
       "fpg": 0.792,
-      "gp": 61.0,
-      "adp": null,
+      "gp": 61,
+      "adp": {},
       "mark": ""
     },
     {
@@ -21281,8 +22476,11 @@
       "dropoff": 4.32,
       "fp": 47.72,
       "fpg": 0.852,
-      "gp": 56.0,
-      "adp": null,
+      "gp": 56,
+      "adp": {
+        "average": 230,
+        "espn": 230
+      },
       "mark": ""
     },
     {
@@ -21291,7 +22489,8 @@
       "n": "Justin Kirkland",
       "t": "MIN",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -21305,8 +22504,8 @@
       "dropoff": 4.57,
       "fp": 45.77,
       "fpg": 0.803,
-      "gp": 57.0,
-      "adp": null,
+      "gp": 57,
+      "adp": {},
       "mark": ""
     },
     {
@@ -21327,11 +22526,14 @@
       "vorp": -191.71,
       "rawVorp": -191.71,
       "adjVorp": -191.71,
-      "dropoff": 0.0,
+      "dropoff": 0,
       "fp": 43.4,
       "fpg": 0.678,
-      "gp": 64.0,
-      "adp": null,
+      "gp": 64,
+      "adp": {
+        "average": 229.9,
+        "espn": 229.9
+      },
       "mark": ""
     },
     {
@@ -21340,7 +22542,8 @@
       "n": "Mattias Janmark",
       "t": "EDM",
       "p": [
-        "C"
+        "C",
+        "F"
       ],
       "rawPos": [
         "C"
@@ -21351,11 +22554,11 @@
       "vorp": -194.74,
       "rawVorp": -194.74,
       "adjVorp": -194.74,
-      "dropoff": 0.0,
+      "dropoff": 0,
       "fp": 41.2,
       "fpg": 0.808,
-      "gp": 51.0,
-      "adp": null,
+      "gp": 51,
+      "adp": {},
       "mark": ""
     }
   ]

@@ -13,19 +13,40 @@ const DATA_FILE = path.join(__dirname, 'draft_data.json');
 const GameTheory = require('./public/js/gametheory.js');
 
 // Lazily cached master player board for report grading
-let playersCache = null;
+let dataCache = null;
+function loadData() {
+  if (!dataCache) dataCache = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  return dataCache;
+}
 function loadPlayers() {
-  if (!playersCache) {
-    playersCache = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8')).players || [];
-  }
-  return playersCache;
+  return loadData().players || [];
+}
+
+// Starting-slot limits (C/F/D/G) from the league config baked into the board data
+function leagueRosterLimits() {
+  const slots = (loadData().config && loadData().config.league && loadData().config.league.slots) || {};
+  return {
+    C: slots.C || 3, F: slots.F || 5, D: slots.D || 4, G: slots.G || 2,
+    UTIL: slots.UTIL || 0,
+    FLEX: (slots.UTIL || 0) + (slots.BN || 0) // UTIL (skater) then bench
+  };
+}
+
+function normName(s) {
+  return (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
+}
+
+// Master board row for a synced pick name (accent/punctuation-insensitive)
+function findPlayer(name) {
+  const key = normName(name);
+  return loadPlayers().find((p) => normName(p.n || p.name) === key) || null;
 }
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Enable CORS for Yahoo Fantasy Draft integration & companion tools
+// Enable CORS for ESPN & Yahoo Fantasy Draft integration & companion tools
 app.use((req, res, next) => {
   res.header('Access-Control-Allow-Origin', '*');
   res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
@@ -36,8 +57,15 @@ app.use((req, res, next) => {
   next();
 });
 
-// Serve frontend static assets
-app.use(express.static(path.join(__dirname, 'public')));
+// Serve frontend static assets with no-cache headers to ensure immediate updates in browser
+app.use(express.static(path.join(__dirname, 'public'), {
+  etag: false,
+  setHeaders: (res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
+  }
+}));
 
 // Default draft state
 const defaultState = {
@@ -45,10 +73,11 @@ const defaultState = {
   slot: 5,
   teams: 8,
   stdDev: 7.0,
-  rosterLimits: { C: 3, F: 5, D: 4, G: 2 },
+  rosterLimits: leagueRosterLimits(),
   drafted: {}, // name -> true
   mine: {},    // name -> true
-  pickHistory: [] // array of { pickNumber, name, team, pos, isMine, timestamp }
+  pickHistory: [], // array of { pickNumber, name, team, pos, isMine, timestamp }
+  resetId: Date.now()
 };
 
 let draftState = { ...defaultState };
@@ -58,7 +87,8 @@ function loadState() {
     if (fs.existsSync(STATE_FILE)) {
       const data = fs.readFileSync(STATE_FILE, 'utf8');
       const loaded = JSON.parse(data);
-      draftState = { ...defaultState, ...loaded };
+      // League slots always come from the board data, never from a stale saved state
+      draftState = { ...defaultState, ...loaded, rosterLimits: defaultState.rosterLimits };
       console.log(`Loaded state: Pick ${draftState.currentPick}, ${draftState.pickHistory.length} picks recorded.`);
     }
   } catch (err) {
@@ -80,8 +110,47 @@ loadState();
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server });
 
+// Live decision snapshot for the in-room HUD (headline, short list, top trade-off)
+function buildEvaluation() {
+  const res = GameTheory.evaluateBoard(loadPlayers(), {
+    currentPick: draftState.currentPick,
+    slot: draftState.slot,
+    teams: draftState.teams,
+    stdDev: draftState.stdDev,
+    drafted: draftState.drafted,
+    mine: draftState.mine,
+    rosterCounts: GameTheory.getRosterCounts(draftState.pickHistory, draftState.rosterLimits),
+    rosterLimits: draftState.rosterLimits
+  });
+  const live = res.liveProtocol || {};
+  return {
+    onTheClock: res.onTheClock,
+    currentPick: res.currentPick,
+    targetTurn: res.targetTurn,
+    picksUntilTurn: res.picksUntilTurn,
+    headline: live.headline || '',
+    subtext: live.subtext || '',
+    alertType: live.alertType || 'info',
+    shortlist: (res.shortlist || []).slice(0, 5).map((p) => ({
+      name: p.name,
+      pos: p.posLabel,
+      team: p.team || '',
+      action: p.action,
+      survivalProb: p.survivalProb,
+      adjVorp: p.adjVorp
+    })),
+    tradeoff: res.topMatchup && res.topMatchup.cmp ? res.topMatchup.cmp.verdict : ''
+  };
+}
+
 function broadcast(type, payload) {
-  const msg = JSON.stringify({ type, payload, state: draftState });
+  let evaluation = null;
+  try {
+    evaluation = buildEvaluation();
+  } catch (err) {
+    console.error('Evaluation failed:', err);
+  }
+  const msg = JSON.stringify({ type, payload, state: draftState, evaluation });
   wss.clients.forEach((client) => {
     if (client.readyState === 1) { // OPEN
       client.send(msg);
@@ -90,7 +159,13 @@ function broadcast(type, payload) {
 }
 
 wss.on('connection', (ws) => {
-  ws.send(JSON.stringify({ type: 'INIT_STATE', state: draftState }));
+  let evaluation = null;
+  try {
+    evaluation = buildEvaluation();
+  } catch (err) {
+    console.error('Evaluation failed:', err);
+  }
+  ws.send(JSON.stringify({ type: 'INIT_STATE', state: draftState, evaluation }));
 });
 
 // API Endpoints
@@ -98,21 +173,42 @@ app.get('/api/state', (req, res) => {
   res.json(draftState);
 });
 
+app.get('/api/evaluation', (req, res) => {
+  try {
+    res.json(buildEvaluation());
+  } catch (err) {
+    console.error('Evaluation failed:', err);
+    res.status(500).json({ error: 'Evaluation failed' });
+  }
+});
+
 app.post('/api/pick', (req, res) => {
-  const { name, team, pos, isMine } = req.body;
+  const { name, team, pos, round, pickInRound } = req.body;
   if (!name || typeof name !== 'string') {
     return res.status(400).json({ error: 'Player name is required' });
   }
 
-  const cleanName = name.trim();
+  // Store the board's own spelling so the player actually leaves the available list
+  const master = findPlayer(name);
+  const cleanName = master ? master.n : name.trim();
 
   // If already picked, avoid duplicate
   if (draftState.drafted[cleanName] || draftState.mine[cleanName]) {
     return res.json({ message: 'Player already drafted', state: draftState });
   }
 
-  const pickNum = draftState.currentPick;
-  const isMyPick = !!isMine;
+  // Overall pick number: exact when the draft room reports round/pick (P is
+  // the pick within the round), otherwise the running counter.
+  let pickNum = draftState.currentPick;
+  const rnd = parseInt(round, 10);
+  const pir = parseInt(pickInRound, 10);
+  if (rnd >= 1 && pir >= 1) {
+    pickNum = pir > draftState.teams ? pir : (rnd - 1) * draftState.teams + pir;
+  }
+
+  // Ownership comes from the snake schedule only: the page-scraped isMine flag
+  // proved unreliable (class selectors match whole wrappers).
+  const isMyPick = GameTheory.getPickDetails(pickNum, draftState.teams).ownerSlot === draftState.slot;
 
   if (isMyPick) {
     draftState.mine[cleanName] = true;
@@ -123,14 +219,14 @@ app.post('/api/pick', (req, res) => {
   const entry = {
     pickNumber: pickNum,
     name: cleanName,
-    team: team || '',
-    pos: pos || [],
+    team: team || (master && master.t) || '',
+    pos: (pos && pos.length) ? pos : ((master && master.p) || []),
     isMine: isMyPick,
     timestamp: new Date().toISOString()
   };
 
   draftState.pickHistory.push(entry);
-  draftState.currentPick += 1;
+  draftState.currentPick = Math.max(draftState.currentPick, pickNum) + 1;
   saveState();
 
   broadcast('PICK_MADE', entry);
@@ -148,7 +244,7 @@ app.post('/api/undo', (req, res) => {
   delete draftState.drafted[lastPick.name];
   delete draftState.mine[lastPick.name];
 
-  draftState.currentPick = Math.max(1, draftState.currentPick - 1);
+  draftState.currentPick = Math.max(1, lastPick.pickNumber || draftState.currentPick - 1);
   saveState();
 
   broadcast('PICK_UNDONE', lastPick);
@@ -162,10 +258,11 @@ app.post('/api/reset', (req, res) => {
   draftState.drafted = {};
   draftState.mine = {};
   draftState.pickHistory = [];
+  draftState.resetId = Date.now();
   saveState();
 
-  broadcast('RESET', null);
-  console.log('[RESET] Draft board cleared.');
+  broadcast('RESET', { resetId: draftState.resetId });
+  console.log(`[RESET] Draft board cleared (Reset ID: ${draftState.resetId}).`);
 
   res.json({ success: true, state: draftState });
 });
@@ -197,8 +294,9 @@ app.get('/api/report', (req, res) => {
 
 app.post('/api/settings', (req, res) => {
   const { slot, teams, stdDev, currentPick, rosterLimits } = req.body;
+  if (teams !== undefined) draftState.teams = Math.max(2, parseInt(teams, 10) || draftState.teams);
   if (slot !== undefined) draftState.slot = parseInt(slot, 10) || draftState.slot;
-  if (teams !== undefined) draftState.teams = parseInt(teams, 10) || draftState.teams;
+  draftState.slot = Math.min(Math.max(1, draftState.slot), draftState.teams);
   if (stdDev !== undefined) draftState.stdDev = parseFloat(stdDev) || draftState.stdDev;
   if (currentPick !== undefined) draftState.currentPick = parseInt(currentPick, 10) || draftState.currentPick;
   if (rosterLimits !== undefined) draftState.rosterLimits = { ...draftState.rosterLimits, ...rosterLimits };

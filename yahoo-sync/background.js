@@ -64,11 +64,13 @@ async function checkHealth() {
     // Expected error when popup is closed; safely ignore
   });
 
-  // Broadcast to all active Yahoo Draft tabs
+  // Broadcast to all active ESPN and Yahoo Draft tabs
   try {
     if (chrome.tabs && chrome.tabs.query) {
       const tabs = await chrome.tabs.query({
         url: [
+          "https://*.espn.com/*",
+          "https://espn.com/*",
           "https://hockey.fantasysports.yahoo.com/*",
           "https://draft.fantasysports.yahoo.com/*"
         ]

@@ -32,16 +32,19 @@ A live, high-contrast drafting co-pilot for macOS that pairs aggregate player pr
   - Deep Bench ($count = limit + 1$): **65%** utility
   - Excess ($count \ge limit + 2$): **35%** utility
 
-### 3. Packaged Hands-Free Yahoo Draft Room Sync (MV3)
+### 3. Packaged Hands-Free Live Draft Room Sync (ESPN & Yahoo MV3)
 Located in [`yahoo-sync/`](yahoo-sync/):
+- **ESPN & Yahoo Compatibility**:
+  - Automatically matches and observes ESPN Fantasy Hockey draft rooms (`https://fantasy.espn.com/hockey/draft*`) as well as Yahoo draft rooms.
+  - Intercepts ESPN draft boards, pick history feeds (`.Table__TR`, `a[href*="/player/"]`, `.player-column__athlete`), and live activity ticker announcements.
 - **Background Health Service Worker (`background.js`)**:
   - Runs periodic 5-second health checks against `http://localhost:3333/api/state`.
-  - Measures latency and broadcasts status updates to the popup and open Yahoo Draft tabs.
+  - Measures latency and broadcasts status updates to the popup and open ESPN/Yahoo Draft tabs.
 - **Extension Options Popup (`popup.html` / `popup.js`)**:
   - Displays live server status (`● Connected` with millisecond latency or `● Disconnected / Offline`).
   - Persists configurable server URL in `chrome.storage.local` with on-demand ping verification.
 - **In-Room Live Connection Badge (`status.css` / `content.js`)**:
-  - Injects a high-contrast badge pinned to the top-right corner of the Yahoo draft room DOM (`#copilot-yahoo-badge`).
+  - Injects a high-contrast badge pinned to the top-right corner of the ESPN / Yahoo draft room DOM (`#copilot-yahoo-badge`).
   - Green glowing dot indicates live synchronization; tracks synced pick counts.
   - Watches draft table rows with a `MutationObserver` and streaming fallback to push picks hands-free to `/api/pick`.
 
@@ -61,7 +64,7 @@ npm start
 ```
 The application will be live at [http://localhost:3333](http://localhost:3333).
 
-### 2. Load the Chrome Extension in Yahoo
+### 2. Load the Chrome Extension in ESPN (or Yahoo)
 1. In Google Chrome, go to `chrome://extensions`.
 2. Toggle on **Developer mode** in the upper right.
 3. Click **Load unpacked** in the top left.
@@ -69,7 +72,7 @@ The application will be live at [http://localhost:3333](http://localhost:3333).
    ```
    /Volumes/ExtSSD160/scripts/Hockey/yahoo-sync
    ```
-5. Open your Yahoo Draft Room. The green **`🏒 Co-Pilot: Live`** badge will appear in the top-right corner, streaming picks hands-free as they happen.
+5. Open your ESPN Draft Room (or Yahoo Draft Room). The green **`🏒 Co-Pilot: Live`** badge will appear in the top-right corner, streaming picks hands-free as they happen. Alternatively, use the 1-click **Sync ESPN Draft** bookmarklet provided in the app header modal.
 
 ---
 
@@ -95,5 +98,6 @@ Runs the full suite in [`test/test_gametheory.js`](test/test_gametheory.js) usin
 - `public/js/gametheory.js`: Mathematical game-theory engine implementing survival odds ($P_{survive}$), snake schedule calculations, diminishing returns, automated target trade-offs (`computeTargetTradeoffs`), top matchup selector (`getTopMatchup`), and 2-round EVONA comparator (`comparePlayersGameTheory`).
 - `public/js/app.js`: Client-side UI controller, search, reactive table rendering, shortlisted cards with trade-off callouts, auto-comparator handler, and WebSocket receiver.
 - `public/css/style.css`: High-contrast dark theme optimized for drafting under time pressure.
-- `draft_data.json`: Master 820-player aggregate projection dataset with custom scoring and C/F eligibility.
-- `yahoo-sync/`: Complete Manifest V3 extension, bookmarklet, and Tampermonkey script for `draft.fantasysports.yahoo.com`.
+- `draft_data.json`: Master 820-player aggregate projection dataset with custom scoring, C/F eligibility, and live 2026-27 ESPN ADP.
+- `scripts/ingest_espn_adp.js`: Extraction & ingestion pipeline merging live ESPN ADP from Hashtag Hockey & Daily Faceoff.
+- `yahoo-sync/`: Complete Manifest V3 extension, bookmarklet, and Tampermonkey script for `fantasy.espn.com` and `draft.fantasysports.yahoo.com`.

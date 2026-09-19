@@ -1,7 +1,7 @@
 {
   "name": "fantasy-hockey-draft-copilot",
   "version": "1.0.0",
-  "description": "Live Fantasy Hockey Draft Game Theory Co-Pilot with decision engine and Yahoo sync",
+  "description": "Live Fantasy Hockey Draft Game Theory Co-Pilot with decision engine, live ESPN ADP, and draft sync",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
