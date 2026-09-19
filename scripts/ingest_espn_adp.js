@@ -4,8 +4,8 @@ const path = require('path');
 const DRAFT_DATA_PATH = path.join(__dirname, '..', 'draft_data.json');
 const PUBLIC_DRAFT_DATA_PATH = path.join(__dirname, '..', 'public', 'draft_data.json');
 
-// Paths to saved source contents
-const HASHTAG_PATH = '/Users/mike/.gemini/antigravity/brain/d1f48d77-b40d-422a-9a6f-5b8d89c7f7cd/.system_generated/steps/86/content.md';
+// Saved HTML of the Hashtag Hockey ADP page: node scripts/ingest_espn_adp.js <file.html>
+const HASHTAG_PATH = process.argv[2] || process.env.HASHTAG_HTML || '';
 
 function normalizeName(name) {
   if (!name) return '';
@@ -55,7 +55,7 @@ function run() {
   const draftData = JSON.parse(fs.readFileSync(DRAFT_DATA_PATH, 'utf8'));
 
   let hashtagMap = new Map();
-  if (fs.existsSync(HASHTAG_PATH)) {
+  if (HASHTAG_PATH && fs.existsSync(HASHTAG_PATH)) {
     console.log('Parsing Hashtag Hockey data...');
     const htHtml = fs.readFileSync(HASHTAG_PATH, 'utf8');
     hashtagMap = parseHashtagHockey(htHtml);

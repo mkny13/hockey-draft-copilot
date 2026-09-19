@@ -1,12 +1,52 @@
 # Fantasy Hockey Draft Game Theory Co-Pilot
 
-A live, high-contrast drafting co-pilot for macOS that pairs aggregate player projections (DtZ, DFO, Apples & Ginos, The Athletic) with real-time Game Theory decision analysis on the clock.
+A live drafting co-pilot for fantasy hockey. It pairs aggregate player projections (DtZ, DFO, Apples & Ginos, The Athletic) with real-time game theory: on every pick it tells you who to take, who you can safely let slide, and why.
 
-Built for an 8-team ESPN league: **C2 · F6 · D6 · UTIL1 · G2 · BN5** (22 rounds). The league config lives in `draft_data.json` (`config.league.slots`) and drives every roster limit in the app.
+Built and tested for an 8-team ESPN league (**C2 · F6 · D6 · UTIL1 · G2 · BN5**, 22 rounds), but the roster limits are read from `draft_data.json`, so other league shapes are a config change away. A Chrome extension can stream picks from the ESPN or Yahoo draft room so you never type a pick by hand.
+
+![The Co-Pilot on the clock at pick 5](docs/screenshots/app.png)
+
+## How it helps
+
+- **Short list on the clock**: ranked targets with survival odds (will he still be there at my next turn?), VORP, 2-round expected value, and a one-line reason.
+- **Trade-off comparator**: "take the center now and gamble on the defenseman, or the reverse?" with the expected-value edge spelled out.
+- **Safe sleepers**: players likely to slide, so you can let them go.
+- **Live roster and history**: slot counts, total VORP, and every pick so far.
+- **Post-draft report and Monte Carlo**: graded surplus value, plus simulated survival odds.
+
+## Quick Start
+
+Requires [Node.js](https://nodejs.org) 18+.
+
+```bash
+git clone https://github.com/mkny13/hockey-draft-copilot.git
+cd hockey-draft-copilot
+./start.sh          # installs deps, runs quick tests, starts the server, opens the browser
+```
+
+Or manually: `npm install && npm start`, then open <http://localhost:3333>.
+
+### Using it in a draft
+
+1. Set **My Slot** (your draft position) and **Teams** in the header. The default slot of 5 is a placeholder.
+2. Open your ESPN or Yahoo draft room and connect it (below), or enter picks by hand with the **+ Mine** / **Taken** buttons.
+3. When the banner says **ON THE CLOCK**, read the headline and short list. **Undo Pick** and **Reset** fix mistakes.
+
+### Connect the draft room (Chrome extension)
+
+1. Go to `chrome://extensions` and enable **Developer mode**.
+2. Click **Load unpacked** and select this repo's `yahoo-sync/` folder.
+3. Open the draft room. A green **Co-Pilot: Live** badge appears top-right; click it for the in-room HUD with the same short list and verdict.
+
+After pulling new code, click **Reload** on the extension and refresh the draft tab. A bookmarklet (`yahoo-sync/bookmarklet.js`, also generated in the app's ESPN Sync dialog) and a Tampermonkey script are alternatives. The server must be running on `localhost:3333`.
+
+**Data note:** the bundled board is the author's own export with the author's league scoring, so VORP and FP reflect that league. ESPN ADP is refreshable with `node scripts/ingest_espn_adp.js <saved-hashtag-hockey.html>`.
 
 ---
 
-## Key Features
+# For developers
+
+## Features and Engine
 
 ### 1. Automated Game Theory Decision Engine (EVONA)
 - **Closed-Form 2-Round Expected Value ($\Delta EV$)**:
@@ -67,31 +107,6 @@ Located in [`yahoo-sync/`](yahoo-sync/):
 
 ---
 
-## Quick Start
-
-### 1. Start the Server
-```bash
-./start.sh
-```
-Or manually:
-```bash
-npm install
-npm test
-npm start
-```
-The application will be live at [http://localhost:3333](http://localhost:3333).
-
-### 2. Load the Chrome Extension in ESPN (or Yahoo)
-1. In Google Chrome, go to `chrome://extensions`.
-2. Toggle on **Developer mode** in the upper right.
-3. Click **Load unpacked** in the top left.
-4. Select the folder (always the **main checkout**, which is where `npm start` runs too; a copy inside `.claude/worktrees/` is not what Chrome loads):
-   ```
-   /Volumes/ExtSSD160/scripts/Hockey/yahoo-sync
-   ```
-   After pulling new code, click **Reload** on the extension and refresh the draft tab. Set your real draft slot in the app first (the default of 5 is a placeholder).
-5. Open your ESPN Draft Room (or Yahoo Draft Room). The green **`🏒 Co-Pilot: Live`** badge will appear in the top-right corner, streaming picks hands-free as they happen. Alternatively, use the 1-click **Sync ESPN Draft** bookmarklet provided in the app header modal.
-
 ---
 
 ## Running Tests
@@ -131,4 +146,5 @@ The Co-Pilot's recommended pick drives one team; the other seven draft from ESPN
 - `draft_data.json` (mirrored in `public/`): the 820-player board, an export of the aggregate app (`rankings.csv`) with the league's real scoring and roster settings, C/F eligibility, and ESPN ADP. **VORP/FP are the user's own numbers: do not recompute them from raw source data** (that loses The Athletic source). Only the ADP columns are regenerated.
 - `scripts/ingest_espn_adp.js`: merges ESPN ADP from Hashtag Hockey only. Values must be plain numbers with at most one decimal; Daily Faceoff's text has columns glued together and produced corrupt values, so it is no longer used.
 - `scripts/mock_draft.js`: seeded mock-draft / Monte Carlo simulator (see above).
+- `docs/screenshots/`: images used by this README.
 - `yahoo-sync/`: Complete Manifest V3 extension, bookmarklet, and Tampermonkey script for `fantasy.espn.com` and `draft.fantasysports.yahoo.com`.
