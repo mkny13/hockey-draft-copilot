@@ -155,9 +155,9 @@ The Co-Pilot's recommended pick drives one team; the other seven draft from ESPN
 
 ## Credits and data sources
 
-This is a personal project. It was built on top of an export from a fantasy hockey values aggregator that blends projections from DtZ, Daily Faceoff, Apples & Ginos and The Athletic, plus ESPN ADP from Hashtag Hockey. Thanks to the aggregator's developer and to those projection authors; the game-theory layer here would have nothing to work with without their valuations.
+This is a personal project. It was built on top of an export from [Fantasy Hockey Aggregate Draft Tool](https://github.com/ryanyeung1/FantasyHockeyAggregateDraftTool) ([live site](https://fantasy-hockey-aggregate.pages.dev/)) by [ryanyeung1](https://github.com/ryanyeung1), which blends projections from DatsyukToZetterberg (DtZ), Daily Faceoff and Apples & Ginos (the original board also folded in The Athletic), with ESPN ADP added from Hashtag Hockey. Thanks to ryanyeung1 and to those projection authors; the game-theory layer here would have nothing to work with without their valuations.
 
-This repo does not include or redistribute their projections. The bundled `draft_data.json` is a sample with synthetic values (see [Data note](#connect-the-draft-room-chrome-extension)). To use the Co-Pilot for a real draft you will need to adapt it to your own league and valuations:
+This repo does not include or redistribute their projections, and it is not affiliated with or endorsed by the aggregator. The bundled `draft_data.json` is a sample with synthetic values (see [Data note](#connect-the-draft-room-chrome-extension)). To use the Co-Pilot for a real draft you will need to adapt it to your own league and valuations:
 
 - set your league's roster slots and team count in `config.league` of your board file;
 - supply your own board (FP, VORP, positions, ADP) as `draft_data.local.json`, built from whatever rankings or projections you trust and are licensed to use;
