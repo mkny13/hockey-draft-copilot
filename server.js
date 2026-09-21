@@ -44,6 +44,56 @@ function findPlayer(name) {
   return loadPlayers().find((p) => normName(p.n || p.name) === key) || null;
 }
 
+// Pure pick-history integrity report for a draft state: every pick number below
+// currentPick with no recorded entry, pick numbers recorded more than once, and
+// canonical player names appearing in more than one entry. Never mutates state.
+function getPickHistoryIntegrity(state) {
+  const history = (state && state.pickHistory) || [];
+  const currentPick = Math.max(1, parseInt(state && state.currentPick, 10) || 1);
+  const byNumber = new Map();
+  const byName = new Map();
+  for (const entry of history) {
+    const num = parseInt(entry && entry.pickNumber, 10);
+    if (Number.isFinite(num) && num >= 1) {
+      if (!byNumber.has(num)) byNumber.set(num, []);
+      byNumber.get(num).push(entry);
+    }
+    const name = (entry && entry.name) || '';
+    if (name) {
+      if (!byName.has(name)) byName.set(name, new Set());
+      byName.get(name).add(num);
+    }
+  }
+  const missing = [];
+  for (let n = 1; n < currentPick; n++) {
+    if (!byNumber.has(n)) missing.push(n);
+  }
+  const repeated = [...byNumber.entries()]
+    .filter(([, entries]) => entries.length > 1)
+    .sort((a, b) => a[0] - b[0])
+    .map(([pickNumber, entries]) => ({
+      pickNumber,
+      count: entries.length,
+      names: entries.map((e) => e.name)
+    }));
+  const duplicateNames = [...byName.entries()]
+    .filter(([, nums]) => nums.size > 1)
+    .map(([name, nums]) => ({ name, pickNumbers: [...nums].sort((a, b) => a - b) }));
+  return {
+    checkedUpTo: currentPick,
+    missing,
+    repeated,
+    duplicateNames,
+    ok: missing.length === 0 && repeated.length === 0 && duplicateNames.length === 0
+  };
+}
+
+// Keep the live integrity snapshot on the state so every API/WS consumer sees it
+function refreshIntegrity() {
+  draftState.pickHistoryIntegrity = getPickHistoryIntegrity(draftState);
+  return draftState.pickHistoryIntegrity;
+}
+
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -124,6 +174,7 @@ function saveState() {
 }
 
 loadState();
+refreshIntegrity();
 
 // Create HTTP and WebSocket servers
 const server = http.createServer(app);
@@ -160,7 +211,9 @@ function buildEvaluation() {
       survivalProb: p.survivalProb,
       adjVorp: p.adjVorp
     })),
-    tradeoff: !res.draftComplete && res.topMatchup && res.topMatchup.cmp ? res.topMatchup.cmp.verdict : ''
+    tradeoff: !res.draftComplete && res.topMatchup && res.topMatchup.cmp ? res.topMatchup.cmp.verdict : '',
+    // Always fresh so the HUD banner can warn the moment a pick number goes dark
+    pickHistoryIntegrity: getPickHistoryIntegrity(draftState)
   };
 }
 
@@ -251,6 +304,7 @@ app.post('/api/pick', (req, res) => {
 
   draftState.pickHistory.push(entry);
   draftState.currentPick = Math.max(draftState.currentPick, pickNum) + 1;
+  refreshIntegrity();
   saveState();
 
   broadcast('PICK_MADE', entry);
@@ -264,17 +318,95 @@ app.post('/api/undo', (req, res) => {
     return res.json({ message: 'No picks to undo', state: draftState });
   }
 
-  const lastPick = draftState.pickHistory.pop();
-  delete draftState.drafted[lastPick.name];
-  delete draftState.mine[lastPick.name];
+  // Undo normally pops the latest entry; a pickNumber targets that exact entry,
+  // e.g. to remove a mis-entered historical pick without touching the counter.
+  const requested = parseInt(req.body && req.body.pickNumber, 10);
+  let idx;
+  if (Number.isFinite(requested)) {
+    idx = draftState.pickHistory.findIndex((e) => e.pickNumber === requested);
+    if (idx === -1) {
+      return res.status(404).json({ error: `Pick #${requested} is not in the draft history` });
+    }
+  } else {
+    idx = draftState.pickHistory.length - 1;
+  }
 
-  draftState.currentPick = Math.max(1, lastPick.pickNumber || draftState.currentPick - 1);
+  const wasLatest = idx === draftState.pickHistory.length - 1;
+  const removed = draftState.pickHistory.splice(idx, 1)[0];
+
+  // Only clear the ownership maps when no remaining entry still records the player
+  const stillRecorded = draftState.pickHistory.some((e) => e.name === removed.name);
+  if (!stillRecorded) {
+    delete draftState.drafted[removed.name];
+    delete draftState.mine[removed.name];
+  }
+
+  // Only a removed latest pick rewinds the counter; historical repairs undo in place
+  if (wasLatest) {
+    draftState.currentPick = Math.max(1, removed.pickNumber || draftState.currentPick - 1);
+  }
+  refreshIntegrity();
   saveState();
 
-  broadcast('PICK_UNDONE', lastPick);
-  console.log(`[UNDO] Reverted Pick #${lastPick.pickNumber}: ${lastPick.name}`);
+  broadcast('PICK_UNDONE', removed);
+  console.log(`[UNDO] Reverted Pick #${removed.pickNumber}: ${removed.name}`);
 
-  res.json({ success: true, undone: lastPick, state: draftState });
+  res.json({ success: true, undone: removed, state: draftState });
+});
+
+// Repair a pick that the draft room never reported (e.g. a missed toast): file the
+// player at an exact historical number without moving the live counter. Ownership
+// always comes from the snake schedule, like every other recorded pick.
+app.post('/api/repair-pick', (req, res) => {
+  const { pickNumber, name } = req.body || {};
+  const num = parseInt(pickNumber, 10);
+  if (!Number.isFinite(num) || num < 1) {
+    return res.status(400).json({ error: 'A positive pickNumber is required' });
+  }
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    return res.status(400).json({ error: 'Player name is required' });
+  }
+  if (num >= draftState.currentPick) {
+    return res.status(400).json({ error: `Pick #${num} is not below the current pick (${draftState.currentPick}); live picks go through /api/pick` });
+  }
+  if (draftState.pickHistory.some((e) => e.pickNumber === num)) {
+    return res.status(400).json({ error: `Pick #${num} is already recorded` });
+  }
+
+  // Store the board's own spelling so the repaired player leaves the available list
+  const master = findPlayer(name);
+  const cleanName = master ? master.n : name.trim();
+  if (draftState.drafted[cleanName] || draftState.mine[cleanName]) {
+    return res.status(400).json({ error: `${cleanName} is already recorded in the draft history` });
+  }
+
+  const isMyPick = GameTheory.getPickDetails(num, draftState.teams).ownerSlot === draftState.slot;
+  const entry = {
+    pickNumber: num,
+    name: cleanName,
+    team: (master && master.t) || '',
+    pos: (master && master.p) || [],
+    isMine: isMyPick,
+    repaired: true,
+    timestamp: new Date().toISOString()
+  };
+
+  // Insert in pick-number order so the history reads like the draft board
+  const idx = draftState.pickHistory.findIndex((e) => e.pickNumber > num);
+  if (idx === -1) draftState.pickHistory.push(entry);
+  else draftState.pickHistory.splice(idx, 0, entry);
+
+  if (isMyPick) draftState.mine[cleanName] = true;
+  else draftState.drafted[cleanName] = true;
+
+  // The counter never moves: this pick was on the clock long ago
+  refreshIntegrity();
+  saveState();
+
+  broadcast('PICK_REPAIRED', entry);
+  console.log(`[REPAIR] Pick #${num} filed as ${cleanName} (${isMyPick ? 'MY TEAM' : 'Opponent'}), counter unchanged at ${draftState.currentPick}`);
+
+  res.json({ success: true, pick: entry, state: draftState });
 });
 
 app.post('/api/reset', (req, res) => {
@@ -283,6 +415,7 @@ app.post('/api/reset', (req, res) => {
   draftState.mine = {};
   draftState.pickHistory = [];
   draftState.resetId = Date.now();
+  refreshIntegrity();
   saveState();
 
   broadcast('RESET', { resetId: draftState.resetId });
@@ -324,7 +457,8 @@ app.post('/api/settings', (req, res) => {
   if (stdDev !== undefined) draftState.stdDev = parseFloat(stdDev) || draftState.stdDev;
   if (currentPick !== undefined) draftState.currentPick = parseInt(currentPick, 10) || draftState.currentPick;
   if (rosterLimits !== undefined) draftState.rosterLimits = { ...draftState.rosterLimits, ...rosterLimits };
-
+  // A manual counter jump can open or close gaps below it
+  refreshIntegrity();
   saveState();
   broadcast('SETTINGS_UPDATED', draftState);
   res.json({ success: true, state: draftState });
