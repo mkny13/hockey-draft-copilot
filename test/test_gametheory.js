@@ -434,6 +434,39 @@ assert.strictEqual(afterEnd.onTheClock, false, 'Nobody is on the clock once the 
 assert(afterEnd.liveProtocol.headline.includes('Draft complete'));
 console.log('✓ Draft-complete state passes');
 
+// Roster complete: my 22 picks fill the 22-slot roster even though the room's
+// counter never reached the end (the missing final pick must not matter)
+const fullMine = {};
+for (let i = 1; i <= 22; i++) fullMine['Roster Filler ' + i] = true;
+const rosterDone = GT.evaluateBoard(rawData.players, {
+  currentPick: 170, slot: 5, teams: 8,
+  drafted: {}, mine: fullMine,
+  rosterCounts: { C: 2, F: 6, D: 6, G: 2, total: 22 }, rosterLimits: flexLimits
+});
+assert.strictEqual(rosterDone.rosterComplete, true, '22 of my picks fill the 22-slot roster');
+assert.strictEqual(rosterDone.draftComplete, false, 'Pick 170 is still inside the draft');
+assert.strictEqual(rosterDone.onTheClock, false, 'A full roster is never on the clock');
+assert.deepStrictEqual(rosterDone.shortlist, [], 'No recommendations once my roster is full');
+assert.deepStrictEqual(rosterDone.redAlerts, [], 'No cliff alerts once my roster is full');
+assert.deepStrictEqual(rosterDone.waitSafePlayers, [], 'No sleeper picks once my roster is full');
+assert.strictEqual(rosterDone.picksUntilTurn, 0, 'No next turn to wait for');
+assert.strictEqual(rosterDone.targetTurn, null, 'No next turn once my roster is full');
+assert.strictEqual(rosterDone.liveProtocol.bestPick, null, 'No best pick once my roster is full');
+assert(rosterDone.liveProtocol.headline.includes('roster is complete'));
+console.log('✓ Roster-complete state passes');
+
+// One slot short: recommendations continue exactly as before
+const almostMine = {};
+for (let i = 1; i <= 21; i++) almostMine['Roster Filler ' + i] = true;
+const almostDone = GT.evaluateBoard(rawData.players, {
+  currentPick: 170, slot: 5, teams: 8,
+  drafted: {}, mine: almostMine,
+  rosterCounts: { C: 2, F: 6, D: 6, G: 1, total: 21 }, rosterLimits: flexLimits
+});
+assert.strictEqual(almostDone.rosterComplete, false, '21 of 22 slots still leaves work to do');
+assert(almostDone.shortlist.length > 0, 'Still recommending with a roster spot open');
+console.log('✓ Near-complete roster keeps recommending');
+
 
 // Roster counts: only my picks count; C spills to F once C slots are full
 const rcLimits = { C: 1, F: 5, D: 4, G: 2 };

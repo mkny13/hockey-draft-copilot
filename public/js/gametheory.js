@@ -262,12 +262,20 @@
     var totalPicks = rosterSize * teams;
     var draftComplete = totalPicks > 0 && currentPick > totalPicks;
 
-    var onTheClock = !draftComplete && isMyTurn(currentPick, slot, teams);
+    // My roster being full ends my involvement even while the room keeps picking
+    // (e.g. the final pick never reached the server). Count my recorded picks.
+    var myPickCount = 0;
+    for (var mineKey in mineSet) {
+      if (Object.prototype.hasOwnProperty.call(mineSet, mineKey) && mineSet[mineKey]) myPickCount++;
+    }
+    var rosterComplete = rosterSize > 0 && myPickCount >= rosterSize;
+
+    var onTheClock = !draftComplete && !rosterComplete && isMyTurn(currentPick, slot, teams);
     var targetTurn = onTheClock
       ? getNextSnakePick(currentPick + 1, slot, teams)
       : getNextSnakePick(currentPick, slot, teams);
 
-    var picksUntilTurn = onTheClock ? 0 : Math.max(0, targetTurn - currentPick);
+    var picksUntilTurn = (onTheClock || rosterComplete) ? 0 : Math.max(0, targetTurn - currentPick);
 
     // Initial pass: identify available players for dynamic cliff calculation
     var rawAvailable = [];
@@ -412,6 +420,14 @@
 
     var shortlist = shortlistCandidates.slice(0, 8);
 
+    // A full roster ends my decision-making: nothing I draft can change my team,
+    // so no targets, alerts or sleepers — the board itself stays browsable.
+    if (rosterComplete) {
+      shortlist = [];
+      redAlerts = [];
+      waitSafePlayers = [];
+    }
+
     // Live directions
     var liveProtocol = {
       step: 1,
@@ -467,6 +483,15 @@
       }
     }
 
+    if (rosterComplete && !draftComplete) {
+      liveProtocol.alertType = "info";
+      liveProtocol.step = 4;
+      liveProtocol.headline = "✅ Your roster is complete";
+      liveProtocol.subtext = "All " + myPickCount + " of your roster slots are filled. The remaining picks belong to your opponents — no action needed.";
+      liveProtocol.bestPick = null;
+      liveProtocol.picksUntilTurn = 0;
+    }
+
     if (draftComplete) {
       liveProtocol.alertType = "info";
       liveProtocol.headline = "✅ Draft complete";
@@ -478,6 +503,7 @@
 
     return {
       draftComplete: draftComplete,
+      rosterComplete: rosterComplete,
       allRows: evaluatedRows,
       availableRows: availableRows,
       shortlist: shortlist,
@@ -486,7 +512,7 @@
       liveProtocol: liveProtocol,
       topMatchup: topMatchup,
       onTheClock: onTheClock,
-      targetTurn: targetTurn,
+      targetTurn: rosterComplete ? null : targetTurn,
       currentPick: currentPick,
       picksUntilTurn: picksUntilTurn
     };

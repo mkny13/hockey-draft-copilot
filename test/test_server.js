@@ -139,6 +139,21 @@ const json = async (p) => (await p).json();
     assert.strictEqual(rep.success, true);
     console.log('✓ Report endpoint');
 
+    // Roster complete: a full "My Team" stops recommendations before the draft ends
+    // (the missing final pick must not keep the app advising)
+    await post(base, '/api/reset');
+    for (let i = 1; i <= 22; i++) {
+      await post(base, '/api/pick', { name: `Roster Filler ${i}`, manual: true, isMine: true });
+    }
+    ev = await json(fetch(`${base}/api/evaluation`));
+    assert.strictEqual(ev.draftComplete, false, 'Only 22 picks are in: the draft is not over');
+    assert.strictEqual(ev.rosterComplete, true, '22 of my picks fill the 22-slot roster');
+    assert.strictEqual(ev.onTheClock, false);
+    assert.deepStrictEqual(ev.shortlist, [], 'No short list once my roster is full');
+    assert.strictEqual(ev.tradeoff, '');
+    assert(ev.headline.includes('roster is complete'));
+    console.log('✓ Roster-complete flag and empty shortlist in the evaluation snapshot');
+
     // WebSocket: INIT_STATE and broadcasts carry an evaluation
     await post(base, '/api/reset');
     const msgs = [];

@@ -283,6 +283,13 @@
     var res = state.evalResult;
     if (!res) return;
 
+    // A full roster means no more decisions: never chime or notify again
+    if (res.rosterComplete) {
+      alertState.lastOnClock = false;
+      alertState.lastCriticalKey = null;
+      return;
+    }
+
     // --- On the clock: fire on first observation and on each waiting -> on-clock transition
     var wasOnClock = alertState.lastOnClock;
     if (res.onTheClock) {
@@ -384,6 +391,10 @@
       statusBadge.textContent = "✅ DRAFT COMPLETE";
       statusBadge.className = "status-badge waiting";
       dispNextTurn.textContent = "All picks are in";
+    } else if (res.rosterComplete) {
+      statusBadge.textContent = "✅ ROSTER COMPLETE";
+      statusBadge.className = "status-badge waiting";
+      dispNextTurn.textContent = "No more picks needed";
     } else if (onTheClock) {
       statusBadge.textContent = "🚨 ON THE CLOCK";
       statusBadge.className = "status-badge on-clock";
@@ -427,7 +438,10 @@
     document.getElementById("shortlist-count").textContent = list.length + " prioritized targets";
 
     if (!list.length) {
-      shortlistContainer.innerHTML = "<div style='color:var(--text-muted); font-size:12px; padding:8px;'>All top targets drafted.</div>";
+      var emptyMsg = state.evalResult.rosterComplete
+        ? "Your roster is complete — no more picks needed."
+        : "All top targets drafted.";
+      shortlistContainer.innerHTML = "<div style='color:var(--text-muted); font-size:12px; padding:8px;'>" + emptyMsg + "</div>";
       return;
     }
 
