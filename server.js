@@ -196,14 +196,15 @@ function buildEvaluation() {
   return {
     onTheClock: res.onTheClock,
     draftComplete: res.draftComplete,
+    rosterComplete: res.rosterComplete,
     currentPick: res.currentPick,
     targetTurn: res.targetTurn,
     picksUntilTurn: res.picksUntilTurn,
     headline: live.headline || '',
     subtext: live.subtext || '',
     alertType: live.alertType || 'info',
-    // Nothing left to recommend once the last pick is in
-    shortlist: res.draftComplete ? [] : (res.shortlist || []).slice(0, 5).map((p) => ({
+    // Nothing left to recommend once the last pick is in, or once my roster is full
+    shortlist: (res.draftComplete || res.rosterComplete) ? [] : (res.shortlist || []).slice(0, 5).map((p) => ({
       name: p.name,
       pos: p.posLabel,
       team: p.team || '',
@@ -211,7 +212,7 @@ function buildEvaluation() {
       survivalProb: p.survivalProb,
       adjVorp: p.adjVorp
     })),
-    tradeoff: !res.draftComplete && res.topMatchup && res.topMatchup.cmp ? res.topMatchup.cmp.verdict : '',
+    tradeoff: !res.draftComplete && !res.rosterComplete && res.topMatchup && res.topMatchup.cmp ? res.topMatchup.cmp.verdict : '',
     // Always fresh so the HUD banner can warn the moment a pick number goes dark
     pickHistoryIntegrity: getPickHistoryIntegrity(draftState)
   };
