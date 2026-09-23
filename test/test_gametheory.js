@@ -480,4 +480,96 @@ assert.deepStrictEqual(rc, { C: 1, F: 1, D: 1, G: 0, total: 3 }, 'Roster counts 
 assert.deepStrictEqual(GT.getRosterCounts([], rcLimits), { C: 0, F: 0, D: 0, G: 0, total: 0 });
 console.log('✓ getRosterCounts passes');
 
+// 15. Golden-snapshot tests: liveProtocol and shortlist order
+const goldenLimits = { C: 2, F: 6, D: 6, G: 2, UTIL: 1, FLEX: 6 };
+const goldenBoard = rawData.players.slice(0, 25);
+
+// Branch 1: On the clock
+const goldenClock = GT.evaluateBoard(goldenBoard, {
+  currentPick: 5,
+  slot: 5,
+  teams: 8,
+  drafted: {
+    'Connor McDavid': true,
+    'Nathan MacKinnon': true,
+    'Nikita Kucherov': true,
+    'Auston Matthews': true
+  },
+  mine: {},
+  rosterCounts: { C: 0, F: 0, D: 0, G: 0 },
+  rosterLimits: goldenLimits
+});
+
+assert.strictEqual(goldenClock.liveProtocol.headline, '🎯 GAME THEORY PICK: Draft Macklin Celebrini (C)');
+assert.strictEqual(
+  goldenClock.liveProtocol.subtext,
+  'Macklin Celebrini (C): Locks in dominant overall board value (265.1 VORP). Miss him now and he will not survive to Turn #12.'
+);
+assert.strictEqual(goldenClock.liveProtocol.alertType, 'turn');
+assert.strictEqual(goldenClock.liveProtocol.step, 3);
+assert.deepStrictEqual(
+  goldenClock.shortlist.slice(0, 5).map((p) => p.name),
+  ['Macklin Celebrini', 'Leon Draisaitl', 'David Pastrnak', 'Jason Robertson', 'Matt Boldy']
+);
+assert.strictEqual(goldenClock.targetTurn, 12);
+assert.strictEqual(goldenClock.picksUntilTurn, 0);
+assert.strictEqual(goldenClock.draftComplete, false);
+assert.strictEqual(goldenClock.rosterComplete, false);
+assert.strictEqual('_decisive' in goldenClock.shortlist[0], false, 'Row must not have _decisive');
+assert.strictEqual('_score' in goldenClock.shortlist[0], false, 'Row must not have _score');
+
+// Branch 2: Waiting
+const goldenWait = GT.evaluateBoard(goldenBoard, {
+  currentPick: 1,
+  slot: 5,
+  teams: 8,
+  drafted: {},
+  mine: {},
+  rosterCounts: { C: 0, F: 0, D: 0, G: 0 },
+  rosterLimits: goldenLimits
+});
+
+assert.strictEqual(goldenWait.liveProtocol.headline, '⏱️ Drafting in 4 picks (Turn #5)');
+assert.strictEqual(
+  goldenWait.liveProtocol.subtext,
+  'Game Theory Target: Connor McDavid (C) holds +14.3 EV advantage over field.'
+);
+assert.strictEqual(goldenWait.liveProtocol.alertType, 'waiting');
+assert.strictEqual(goldenWait.liveProtocol.step, 1);
+assert.deepStrictEqual(
+  goldenWait.shortlist.slice(0, 5).map((p) => p.name),
+  ['Connor McDavid', 'Nathan MacKinnon', 'Macklin Celebrini', 'Nikita Kucherov', 'David Pastrnak']
+);
+assert.strictEqual(goldenWait.targetTurn, 5);
+assert.strictEqual(goldenWait.picksUntilTurn, 4);
+assert.strictEqual(goldenWait.draftComplete, false);
+assert.strictEqual(goldenWait.rosterComplete, false);
+
+// Branch 3: Roster complete
+const goldenFullMine = {};
+for (let i = 1; i <= 22; i++) goldenFullMine['Filler Player ' + i] = true;
+const goldenDone = GT.evaluateBoard(goldenBoard, {
+  currentPick: 170,
+  slot: 5,
+  teams: 8,
+  drafted: {},
+  mine: goldenFullMine,
+  rosterCounts: { C: 2, F: 6, D: 6, G: 2, total: 22 },
+  rosterLimits: goldenLimits
+});
+
+assert.strictEqual(goldenDone.liveProtocol.headline, '✅ Your roster is complete');
+assert.strictEqual(
+  goldenDone.liveProtocol.subtext,
+  'All 22 of your roster slots are filled. The remaining picks belong to your opponents — no action needed.'
+);
+assert.strictEqual(goldenDone.liveProtocol.alertType, 'info');
+assert.strictEqual(goldenDone.liveProtocol.step, 4);
+assert.deepStrictEqual(goldenDone.shortlist.slice(0, 5).map((p) => p.name), []);
+assert.strictEqual(goldenDone.targetTurn, null);
+assert.strictEqual(goldenDone.picksUntilTurn, 0);
+assert.strictEqual(goldenDone.draftComplete, false);
+assert.strictEqual(goldenDone.rosterComplete, true);
+console.log('✓ Golden-snapshot evaluation assertions pass (on-the-clock, waiting, roster-complete)');
+
 console.log('ALL GAMETHEORY TESTS PASSED!');

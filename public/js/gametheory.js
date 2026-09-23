@@ -243,16 +243,14 @@
   }
 
   /**
-   * Step-by-Step Decision Protocol on the Clock
+   * Computes draft schedule and roster progress metrics.
    */
-  function evaluateBoard(rows, options) {
+  function computeDraftPhase(options) {
+    options = options || {};
     var currentPick = options.currentPick || 1;
     var slot = options.slot || 5;
     var teams = options.teams || 8;
-    var stdDev = options.stdDev || 7.0;
-    var draftedSet = options.drafted || {};
     var mineSet = options.mine || {};
-    var rosterCounts = options.rosterCounts || { C: 0, LW: 0, RW: 0, D: 0, G: 0 };
     var rosterLimits = options.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
 
     // Total picks are known when the roster size is (starters + flex pool)
@@ -277,168 +275,144 @@
 
     var picksUntilTurn = (onTheClock || rosterComplete) ? 0 : Math.max(0, targetTurn - currentPick);
 
-    // Initial pass: identify available players for dynamic cliff calculation
-    var rawAvailable = [];
-    for (var rIdx = 0; rIdx < rows.length; rIdx++) {
-      var rowItem = rows[rIdx];
-      var pName = rowItem.name || rowItem.n;
-      if (!mineSet[pName] && !draftedSet[pName]) {
-        rawAvailable.push({
-          id: rowItem.id !== undefined ? rowItem.id : rIdx,
-          name: pName,
-          pos: rowItem.pos || rowItem.p || [],
-          rawVorp: rowItem.vorp !== undefined ? rowItem.vorp : (rowItem.rawVorp || 0),
-          dropoff: rowItem.dropoff || 0
-        });
-      }
-    }
-
-    var dynamicCliffs = computeDynamicCliffs(rawAvailable);
-
-    var evaluatedRows = [];
-    var availableRows = [];
-
-    var mustFill = getMustFillGroups(rosterCounts, rosterLimits);
-
-    for (var i = 0; i < rows.length; i++) {
-      var r = rows[i];
-      var name = r.name || r.n;
-      var isMine = !!mineSet[name];
-      var isDrafted = isMine || !!draftedSet[name];
-
-      var adpVal = (r.adp && typeof r.adp === "object")
-        ? (r.adp.espn || r.adp.average || r.adp.yahoo || r.adp.fantrax)
-        : r.adp;
-      var adpNum = parseFloat(adpVal) || 999;
-
-      var surv = isDrafted ? 0 : pSurvive(targetTurn, adpNum, stdDev);
-      var posArray = r.pos || r.p || [];
-      var mult = getDiminishingMultiplier(posArray, rosterCounts, rosterLimits);
-      if (mustFill) {
-        // Only players who fill an open starter slot still matter
-        var fillsOpen = posArray.some(function (g) { return mustFill.indexOf(g) !== -1; }) ||
-          (posArray.indexOf('C') !== -1 && mustFill.indexOf('F') !== -1);
-        if (!fillsOpen) mult = Math.min(mult, 0.05);
-      }
-      var rawVorp = r.vorp !== undefined ? r.vorp : (r.rawVorp || 0);
-      // A discount only ever lowers value: scaling a negative VORP toward zero would reward it
-      var adjVorp = rawVorp >= 0 ? rawVorp * mult : rawVorp;
-
-      // Use dynamic cliff if available, else static dropoff
-      var drop = (!isDrafted && dynamicCliffs[name] !== undefined)
-        ? dynamicCliffs[name]
-        : (r.dropoff !== undefined ? r.dropoff : 0);
-
-      var cliff = getCliffAlert(drop);
-      var action = classifyAction(isDrafted, isMine, surv, drop);
-      var adpDelta = (adpNum < 900 && r.rank) ? (adpNum - r.rank) : 0;
-
-      // Continuous urgency score: Intrinsic Value * (1 + Urgency) + Cliff * Urgency
-      var urgency = 1.0 - surv;
-      var urgencyScore = adjVorp * (1.0 + 0.6 * urgency) + (drop * urgency * 0.4);
-
-      var evalRow = {
-        id: r.id !== undefined ? r.id : i,
-        name: name,
-        team: r.team || r.t || "",
-        pos: posArray,
-        posLabel: r.posLabel || posArray.join("/"),
-        age: r.age,
-        adp: adpNum < 900 ? adpNum : null,
-        adpDelta: adpDelta,
-        rawVorp: rawVorp,
-        adjVorp: adjVorp,
-        dropoff: drop,
-        cliffAlert: cliff,
-        survivalProb: surv,
-        action: action,
-        isDrafted: isDrafted,
-        isMine: isMine,
-        tier: r.tier || 1,
-        rank: r.rank || (i + 1),
-        isDiminished: mult < 1.0,
-        urgencyScore: urgencyScore,
-        fp: r.fp || 0,
-        fpg: r.fpg || 0
-      };
-
-      evaluatedRows.push(evalRow);
-      if (!isDrafted) {
-        availableRows.push(evalRow);
-      }
-    }
-
-    // Step 1: Automated Game Theory Multi-Candidate Trade-Off Analysis
-    var gtData = computeTargetTradeoffs(availableRows, targetTurn, stdDev);
-    for (var g = 0; g < availableRows.length; g++) {
-      var avRow = availableRows[g];
-      avRow.gtTradeoff = (gtData && gtData.tradeoffs) ? gtData.tradeoffs[avRow.name] : null;
-    }
-
-    // Step 2: Red Alerts (MUST REACH Cliff)
-    var redAlerts = availableRows.filter(function (p) {
-      return p.action === "MUST REACH (Cliff)" && !p.isDiminished;
-    });
-
-    // Step 3: Safe Sleepers
-    var waitSafePlayers = availableRows.filter(function (p) {
-      return p.action === "WAIT (ADP Safe)" && p.adjVorp >= 15;
-    }).sort(function (a, b) {
-      return b.adjVorp - a.adjVorp;
-    });
-
-    // Step 4: Rank Shortlist according to 2-Round EV & Decision Protocol
-    // Safe players are normally left for later, but not when one is worth more
-    // than everything urgent: deferring him forever is how a team ends the
-    // draft without a goalie while burning picks on replacement-level players.
-    var bestUrgentVorp = -Infinity;
-    availableRows.forEach(function (p) {
-      if (p.action !== "WAIT (ADP Safe)" && p.adjVorp > bestUrgentVorp) bestUrgentVorp = p.adjVorp;
-    });
-    var shortlistCandidates = availableRows.filter(function (p) {
-      return p.action !== "WAIT (ADP Safe)" || p.adjVorp > bestUrgentVorp;
-    });
-
-    // A strict total order on a precomputed key. (The earlier chain of thresholded
-    // tie-breaks was not transitive, so near-ties could sort differently
-    // depending on input order.) Order: decisive 2-round EV edge (>= 2.0 pts),
-    // then composite score (EV2 + expected cliff loss), then VORP, then name.
-    shortlistCandidates.forEach(function (c) {
-      var gtAdv = (c.gtTradeoff && typeof c.gtTradeoff.netGain === "number") ? c.gtTradeoff.netGain : 0;
-      c._decisive = gtAdv >= 2.0 ? 1 : 0;
-      c._score = (c.gtTradeoff && c.gtTradeoff.ev2 ? c.gtTradeoff.ev2 : c.adjVorp) + (1.0 - c.survivalProb) * c.dropoff;
-    });
-
-    shortlistCandidates.sort(function (a, b) {
-      if (a._decisive !== b._decisive) return b._decisive - a._decisive;
-      if (a._score !== b._score) return b._score - a._score;
-      if (a.adjVorp !== b.adjVorp) return b.adjVorp - a.adjVorp;
-      return a.name < b.name ? -1 : (a.name > b.name ? 1 : 0);
-    });
-
-    shortlistCandidates.forEach(function (c) { delete c._decisive; delete c._score; });
-
-    var shortlist = shortlistCandidates.slice(0, 8);
-
-    // A full roster ends my decision-making: nothing I draft can change my team,
-    // so no targets, alerts or sleepers — the board itself stays browsable.
-    if (rosterComplete) {
-      shortlist = [];
-      redAlerts = [];
-      waitSafePlayers = [];
-    }
-
-    // Live directions
-    var liveProtocol = {
-      step: 1,
-      alertType: "info",
-      headline: "",
-      subtext: "",
-      bestPick: shortlist[0] || null,
+    return {
+      rosterSize: rosterSize,
+      totalPicks: totalPicks,
+      draftComplete: draftComplete,
+      myPickCount: myPickCount,
+      rosterComplete: rosterComplete,
       onTheClock: onTheClock,
-      currentPick: currentPick,
       targetTurn: targetTurn,
       picksUntilTurn: picksUntilTurn
+    };
+  }
+
+  /**
+   * Evaluates a single player row against current draft context.
+   */
+  function evaluatePlayerRow(r, index, ctx) {
+    var mineSet = ctx.mineSet || {}, draftedSet = ctx.draftedSet || {};
+    var rosterCounts = ctx.rosterCounts, rosterLimits = ctx.rosterLimits;
+    var mustFill = ctx.mustFill, dynamicCliffs = ctx.dynamicCliffs || {};
+    var targetTurn = ctx.targetTurn, stdDev = ctx.stdDev;
+
+    var name = r.name || r.n;
+    var isMine = !!mineSet[name];
+    var isDrafted = isMine || !!draftedSet[name];
+
+    var adpVal = (r.adp && typeof r.adp === "object")
+      ? (r.adp.espn || r.adp.average || r.adp.yahoo || r.adp.fantrax)
+      : r.adp;
+    var adpNum = parseFloat(adpVal) || 999;
+
+    var surv = isDrafted ? 0 : pSurvive(targetTurn, adpNum, stdDev);
+    var posArray = r.pos || r.p || [];
+    var mult = getDiminishingMultiplier(posArray, rosterCounts, rosterLimits);
+    if (mustFill) {
+      // Only players who fill an open starter slot still matter
+      var fillsOpen = posArray.some(function (g) { return mustFill.indexOf(g) !== -1; }) ||
+        (posArray.indexOf('C') !== -1 && mustFill.indexOf('F') !== -1);
+      if (!fillsOpen) mult = Math.min(mult, 0.05);
+    }
+    var rawVorp = r.vorp !== undefined ? r.vorp : (r.rawVorp || 0);
+    // A discount only ever lowers value: scaling a negative VORP toward zero would reward it
+    var adjVorp = rawVorp >= 0 ? rawVorp * mult : rawVorp;
+
+    // Use dynamic cliff if available, else static dropoff
+    var drop = (!isDrafted && dynamicCliffs[name] !== undefined)
+      ? dynamicCliffs[name]
+      : (r.dropoff !== undefined ? r.dropoff : 0);
+
+    var cliff = getCliffAlert(drop);
+    var action = classifyAction(isDrafted, isMine, surv, drop);
+    var adpDelta = (adpNum < 900 && r.rank) ? (adpNum - r.rank) : 0;
+
+    // Continuous urgency score: Intrinsic Value * (1 + Urgency) + Cliff * Urgency
+    var urgency = 1.0 - surv;
+    var urgencyScore = adjVorp * (1.0 + 0.6 * urgency) + (drop * urgency * 0.4);
+
+    return {
+      id: r.id !== undefined ? r.id : index,
+      name: name,
+      team: r.team || r.t || "",
+      pos: posArray,
+      posLabel: r.posLabel || posArray.join("/"),
+      age: r.age,
+      adp: adpNum < 900 ? adpNum : null,
+      adpDelta: adpDelta,
+      rawVorp: rawVorp,
+      adjVorp: adjVorp,
+      dropoff: drop,
+      cliffAlert: cliff,
+      survivalProb: surv,
+      action: action,
+      isDrafted: isDrafted,
+      isMine: isMine,
+      tier: r.tier || 1,
+      rank: r.rank || (index + 1),
+      isDiminished: mult < 1.0,
+      urgencyScore: urgencyScore,
+      fp: r.fp || 0,
+      fpg: r.fpg || 0
+    };
+  }
+
+  /**
+   * Ranks shortlist candidates using 2-round EV and strict total order.
+   * Sort keys are computed in wrapper objects to avoid mutating player rows.
+   */
+  function rankShortlist(availableRows) {
+    var bestUrgentVorp = -Infinity;
+    for (var i = 0; i < availableRows.length; i++) {
+      var p = availableRows[i];
+      if (p.action !== "WAIT (ADP Safe)" && p.adjVorp > bestUrgentVorp) {
+        bestUrgentVorp = p.adjVorp;
+      }
+    }
+
+    var wrapped = [];
+    for (var j = 0; j < availableRows.length; j++) {
+      var c = availableRows[j];
+      if (c.action === "WAIT (ADP Safe)" && c.adjVorp <= bestUrgentVorp) {
+        continue;
+      }
+      var gtAdv = (c.gtTradeoff && typeof c.gtTradeoff.netGain === "number") ? c.gtTradeoff.netGain : 0;
+      var decisive = gtAdv >= 2.0 ? 1 : 0;
+      var score = (c.gtTradeoff && c.gtTradeoff.ev2 ? c.gtTradeoff.ev2 : c.adjVorp) + (1.0 - c.survivalProb) * c.dropoff;
+      wrapped.push({
+        candidate: c,
+        decisive: decisive,
+        score: score
+      });
+    }
+
+    wrapped.sort(function (a, b) {
+      if (a.decisive !== b.decisive) return b.decisive - a.decisive;
+      if (a.score !== b.score) return b.score - a.score;
+      if (a.candidate.adjVorp !== b.candidate.adjVorp) return b.candidate.adjVorp - a.candidate.adjVorp;
+      return a.candidate.name < b.candidate.name ? -1 : (a.candidate.name > b.candidate.name ? 1 : 0);
+    });
+
+    var sorted = [];
+    for (var k = 0; k < wrapped.length; k++) {
+      sorted.push(wrapped[k].candidate);
+    }
+    return sorted;
+  }
+
+  /**
+   * Assembles live decision protocol narration.
+   */
+  function buildLiveProtocol(ctx) {
+    var shortlist = ctx.shortlist || [], redAlerts = ctx.redAlerts || [], waitSafePlayers = ctx.waitSafePlayers || [];
+    var onTheClock = ctx.onTheClock, currentPick = ctx.currentPick, targetTurn = ctx.targetTurn;
+    var picksUntilTurn = ctx.picksUntilTurn, rosterComplete = ctx.rosterComplete, draftComplete = ctx.draftComplete;
+    var myPickCount = ctx.myPickCount, totalPicks = ctx.totalPicks;
+
+    var liveProtocol = {
+      step: 1, alertType: "info", headline: "", subtext: "",
+      bestPick: shortlist[0] || null, onTheClock: onTheClock,
+      currentPick: currentPick, targetTurn: targetTurn, picksUntilTurn: picksUntilTurn
     };
 
     if (onTheClock) {
@@ -499,22 +473,92 @@
       liveProtocol.picksUntilTurn = 0;
     }
 
-    var topMatchup = getTopMatchup(availableRows, targetTurn, stdDev);
+    return liveProtocol;
+  }
 
+  /**
+   * Step-by-Step Decision Protocol on the Clock
+   */
+  function evaluateBoard(rows, options) {
+    options = options || {};
+    var currentPick = options.currentPick || 1, stdDev = options.stdDev || 7.0;
+    var draftedSet = options.drafted || {}, mineSet = options.mine || {};
+    var rosterCounts = options.rosterCounts || { C: 0, LW: 0, RW: 0, D: 0, G: 0 };
+    var rosterLimits = options.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
+
+    // Phase
+    var phase = computeDraftPhase(options);
+
+    // Raw available
+    var rawAvailable = [];
+    for (var rIdx = 0; rIdx < rows.length; rIdx++) {
+      var rowItem = rows[rIdx], pName = rowItem.name || rowItem.n;
+      if (!mineSet[pName] && !draftedSet[pName]) {
+        rawAvailable.push({
+          id: rowItem.id !== undefined ? rowItem.id : rIdx,
+          name: pName, pos: rowItem.pos || rowItem.p || [],
+          rawVorp: rowItem.vorp !== undefined ? rowItem.vorp : (rowItem.rawVorp || 0),
+          dropoff: rowItem.dropoff || 0
+        });
+      }
+    }
+
+    // Dynamic cliffs
+    var dynamicCliffs = computeDynamicCliffs(rawAvailable);
+
+    // Evaluate rows
+    var evalCtx = {
+      draftedSet: draftedSet, mineSet: mineSet, rosterCounts: rosterCounts,
+      rosterLimits: rosterLimits, mustFill: getMustFillGroups(rosterCounts, rosterLimits),
+      dynamicCliffs: dynamicCliffs, targetTurn: phase.targetTurn, stdDev: stdDev
+    };
+
+    var evaluatedRows = [], availableRows = [];
+    for (var i = 0; i < rows.length; i++) {
+      var evalRow = evaluatePlayerRow(rows[i], i, evalCtx);
+      evaluatedRows.push(evalRow);
+      if (!evalRow.isDrafted) availableRows.push(evalRow);
+    }
+
+    // Trade-offs
+    var gtData = computeTargetTradeoffs(availableRows, phase.targetTurn, stdDev);
+    for (var g = 0; g < availableRows.length; g++) {
+      var avRow = availableRows[g];
+      avRow.gtTradeoff = (gtData && gtData.tradeoffs) ? gtData.tradeoffs[avRow.name] : null;
+    }
+
+    // Alerts / sleepers
+    var redAlerts = availableRows.filter(function (p) {
+      return p.action === "MUST REACH (Cliff)" && !p.isDiminished;
+    });
+    var waitSafePlayers = availableRows.filter(function (p) {
+      return p.action === "WAIT (ADP Safe)" && p.adjVorp >= 15;
+    }).sort(function (a, b) { return b.adjVorp - a.adjVorp; });
+
+    // Shortlist
+    var shortlist = rankShortlist(availableRows).slice(0, 8);
+    if (phase.rosterComplete) {
+      shortlist = []; redAlerts = []; waitSafePlayers = [];
+    }
+
+    // Protocol
+    var liveProtocol = buildLiveProtocol({
+      shortlist: shortlist, redAlerts: redAlerts, waitSafePlayers: waitSafePlayers,
+      onTheClock: phase.onTheClock, currentPick: currentPick, targetTurn: phase.targetTurn,
+      picksUntilTurn: phase.picksUntilTurn, rosterComplete: phase.rosterComplete,
+      draftComplete: phase.draftComplete, myPickCount: phase.myPickCount, totalPicks: phase.totalPicks
+    });
+
+    // Result
     return {
-      draftComplete: draftComplete,
-      rosterComplete: rosterComplete,
-      allRows: evaluatedRows,
-      availableRows: availableRows,
-      shortlist: shortlist,
-      redAlerts: redAlerts,
-      waitSafePlayers: waitSafePlayers.slice(0, 5),
-      liveProtocol: liveProtocol,
-      topMatchup: topMatchup,
-      onTheClock: onTheClock,
-      targetTurn: rosterComplete ? null : targetTurn,
-      currentPick: currentPick,
-      picksUntilTurn: picksUntilTurn
+      draftComplete: phase.draftComplete, rosterComplete: phase.rosterComplete,
+      allRows: evaluatedRows, availableRows: availableRows,
+      shortlist: shortlist, redAlerts: redAlerts,
+      waitSafePlayers: waitSafePlayers.slice(0, 5), liveProtocol: liveProtocol,
+      topMatchup: getTopMatchup(availableRows, phase.targetTurn, stdDev),
+      onTheClock: phase.onTheClock,
+      targetTurn: phase.rosterComplete ? null : phase.targetTurn,
+      currentPick: currentPick, picksUntilTurn: phase.picksUntilTurn
     };
   }
 
