@@ -83,8 +83,13 @@
 
     if (data.evaluation) renderEvaluation(data.evaluation);
 
+    // Every broadcast (not just INIT_STATE) carries the full current pickHistory;
+    // keep the reconciliation snapshot fresh so Deep Scan compares against live state.
+    if (data.state && Array.isArray(data.state.pickHistory)) {
+      lastInitStatePickHistory = [...data.state.pickHistory];
+    }
+
     if (data.type === "INIT_STATE" && data.state) {
-      lastInitStatePickHistory = Array.isArray(data.state.pickHistory) ? [...data.state.pickHistory] : [];
       dropRecordedFromState(data.state);
       syncFromServerState(data.state);
       flushPendingQueue();
@@ -464,6 +469,14 @@
     scheduleQueueFlush();
   }
 
+  // Removes a specific queued item by reference, not by position: pendingQueue can be
+  // reassigned to a new array (by dropRecordedFromState/dropRecordedFromPending) while
+  // flushPendingQueue is mid-await, so index 0 may no longer be the item just processed.
+  function removeFromPending(item) {
+    const idx = pendingQueue.indexOf(item);
+    if (idx !== -1) pendingQueue.splice(idx, 1);
+  }
+
   function dropRecordedFromPending(name) {
     if (!name) return;
     const lower = name.trim().toLowerCase();
@@ -503,7 +516,7 @@
         const lower = item.name.trim().toLowerCase();
 
         if (syncedNames.has(lower)) {
-          pendingQueue.shift();
+          removeFromPending(item);
           renderCounters();
           continue;
         }
@@ -524,12 +537,12 @@
 
         if (res.ok) {
           console.log(`[Draft Co-Pilot] ✓ Retry successfully synced pick: ${item.name}`);
-          pendingQueue.shift();
+          removeFromPending(item);
           onPickSuccess(item.name);
           retryBackoffMs = 1000;
         } else if (res.status >= 400 && res.status < 500) {
           console.warn(`[Draft Co-Pilot] Retry received 4xx HTTP ${res.status} for pick: ${item.name}; dropping`);
-          pendingQueue.shift();
+          removeFromPending(item);
           renderCounters();
         } else {
           console.warn(`[Draft Co-Pilot] Server returned 5xx HTTP ${res.status} for pick: ${item.name}`);

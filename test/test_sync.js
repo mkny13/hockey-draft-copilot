@@ -28,10 +28,17 @@ function makeWindow(html) {
   w.__posts = [];
   w.__sockets = [];
   w.__fetchMode = 'ok';
+  w.__manualFetches = [];
   w.alert = () => {};
   w.confirm = () => true;
   w.fetch = (u, o) => {
-    if (o && o.body) w.__posts.push(JSON.parse(o.body));
+    const body = o && o.body ? JSON.parse(o.body) : null;
+    if (body) w.__posts.push(body);
+    // 'manual' mode lets a test hold a POST unresolved to simulate a race between an
+    // in-flight retry and a server message that arrives before the retry's fetch settles.
+    if (w.__fetchMode === 'manual') {
+      return new Promise((resolve) => { w.__manualFetches.push({ body, resolve }); });
+    }
     if (typeof w.__fetchMode === 'function' ? w.__fetchMode() === 'fail' : w.__fetchMode === 'fail') return Promise.reject(new Error('offline'));
     return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
   };
@@ -364,6 +371,100 @@ const names = (w) => w.__posts.map((p) => p.name);
     assert(msgEl.textContent.toLowerCase().includes('missing from server history'), 'Reconciliation status line indicates missing from server history');
     w.close();
     console.log('✓ Extension: Deep Scan reports draft-room players that are missing from server history');
+  }
+
+  // 6f. Reconciliation snapshot stays fresh across a live session: a PICK_MADE broadcast (not
+  // just INIT_STATE) must update what Deep Scan compares against, or every pick made after the
+  // first one falsely reports as missing from server history for the rest of the draft.
+  {
+    const html = `
+      <div id="app">
+        <div class="draft-results-table">
+          <table>
+            <tr><td class="name">Connor McDavid</td></tr>
+            <tr><td class="name">Leon Draisaitl</td></tr>
+          </table>
+        </div>
+      </div>
+    `;
+    const w = runExtension(html);
+    await sleep(300);
+    const sock = w.__sockets[0];
+    sock.onopen();
+
+    // Connect-time INIT_STATE only has McDavid
+    sock.onmessage({ data: JSON.stringify({
+      type: 'INIT_STATE',
+      state: { pickHistory: [{ name: 'Connor McDavid' }] }
+    }) });
+
+    // A later PICK_MADE (no new INIT_STATE) records Draisaitl, as happens in any ongoing draft
+    sock.onmessage({ data: JSON.stringify({
+      type: 'PICK_MADE',
+      payload: { name: 'Leon Draisaitl' },
+      state: { pickHistory: [{ name: 'Connor McDavid' }, { name: 'Leon Draisaitl' }] }
+    }) });
+
+    const historyBtn = w.document.getElementById('copilot-btn-history');
+    historyBtn.click();
+    await sleep(300);
+
+    const msgEl = w.document.getElementById('hud-status-msg');
+    assert(!msgEl.textContent.includes('Leon Draisaitl'), 'Draisaitl was recorded via PICK_MADE and must not be reported missing');
+    assert(msgEl.textContent.toLowerCase().includes('all room players match server history'), 'Reconciliation should find no discrepancy');
+    w.close();
+    console.log('✓ Extension: Deep Scan reconciliation snapshot stays current after PICK_MADE broadcasts, not just INIT_STATE');
+  }
+
+  // 5d. A pending pick's own successful retry must not silently discard an unrelated, still-
+  // unsynced pending pick when the pendingQueue array is reassigned mid-await (e.g. the same
+  // pick that's mid-retry gets recorded separately, such as via the app's own "+Mine" button).
+  {
+    const html = `<div id="app"><div class="wrap">
+      <div class="toastA"><div>Connor McDavid / EDM, C</div><div>R1, P1 - Team A</div></div>
+      <div class="toastB"><div>Leon Draisaitl / EDM, F</div><div>R1, P2 - Team B</div></div>
+    </div></div>`;
+    const w = makeWindow(html);
+    w.__fetchMode = 'fail';
+    w.eval(playersData);
+    w.eval(contentJs);
+
+    // Both picks fail their initial POST and land in the pending retry queue
+    await sleep(1400);
+    assert(w.document.getElementById('hud-count').textContent.includes('2 pending'), 'Both picks are pending after initial failures');
+
+    // Switch to manual mode and kick off a flush: the retry for McDavid (queue head) starts
+    // and its fetch is held open, simulating an in-flight request
+    w.__fetchMode = 'manual';
+    const sock = w.__sockets[0];
+    sock.onopen();
+    await sleep(400);
+    assert.strictEqual(w.__manualFetches.length, 1, 'Retry for the first pending pick (McDavid) is in flight');
+    const mcDavidFetch = w.__manualFetches[0];
+    assert.strictEqual(mcDavidFetch.body.name, 'Connor McDavid');
+
+    // While that retry is still in flight, the server reports McDavid recorded through another
+    // path (e.g. the app's own "+Mine" button), which reassigns pendingQueue to drop McDavid
+    sock.onmessage({ data: JSON.stringify({
+      type: 'PICK_MADE',
+      payload: { name: 'Connor McDavid' },
+      state: { pickHistory: [{ name: 'Connor McDavid' }] }
+    }) });
+
+    // Now McDavid's own in-flight retry resolves successfully too (a race, not an error)
+    mcDavidFetch.resolve({ ok: true, json: () => Promise.resolve({}) });
+    await sleep(100);
+
+    // Draisaitl must still be retried, not silently dropped along with McDavid
+    assert.strictEqual(w.__manualFetches.length, 2, 'Draisaitl (unrelated pending pick) is still retried, not discarded');
+    assert.strictEqual(w.__manualFetches[1].body.name, 'Leon Draisaitl');
+
+    w.__manualFetches[1].resolve({ ok: true, json: () => Promise.resolve({}) });
+    await sleep(100);
+
+    assert.strictEqual(w.document.getElementById('hud-count').textContent, '2 synced', 'Both picks end up synced with none silently lost');
+    w.close();
+    console.log('✓ Extension: durable retry queue survives a mid-flight pendingQueue reassignment without dropping an unrelated pick');
   }
 
   // 7. Bookmarklet file and the bookmarklet generated by the app: same wrapper fixture
