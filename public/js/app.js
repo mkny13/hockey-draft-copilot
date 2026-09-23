@@ -1,6 +1,21 @@
 (function () {
   "use strict";
 
+  // HTML Escaper for untrusted text
+  function escapeHtml(s) {
+    if (s === null || s === undefined) return "";
+    return String(s)
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
+  if (typeof window !== "undefined") {
+    window.escapeHtml = escapeHtml;
+  }
+
   // Global State
   var state = {
     draftData: null,
@@ -474,17 +489,17 @@
       var evText = (gt && gt.ev2) ? gt.ev2.toFixed(1) : "-";
       var gtEdgePill = "";
       if (gt && gt.netGain >= 2.0) {
-        gtEdgePill = `<span class="badge badge-gt-winner" title="Game theory 2-round expected value edge over taking ${gt.vsPlayer}">⚡ +${gt.netGain.toFixed(1)} EV</span>`;
+        gtEdgePill = `<span class="badge badge-gt-winner" title="Game theory 2-round expected value edge over taking ${escapeHtml(gt.vsPlayer)}">⚡ +${gt.netGain.toFixed(1)} EV</span>`;
       } else if (gt && gt.netGain <= -10.0 && p.survivalProb > 0.50) {
         gtEdgePill = `<span class="badge badge-wait" title="Can safely fall to Turn #${targetTurn}">🛡️ SAFE TO WAIT</span>`;
       }
 
       var adviceRow = "";
-      if (gt && gt.advice) {
+      if (gt && (gt.advice || gt.reason)) {
         adviceRow = `
           <div class="card-gt-row">
             <span class="gt-icon">💡</span>
-            <span style="flex:1;">${gt.advice}</span>
+            <span style="flex:1;">${escapeHtml(gt.advice || gt.reason)}</span>
           </div>
         `;
       }
@@ -493,16 +508,16 @@
         <div class="card-rank">#${i + 1}</div>
         <div class="card-info" style="flex: 1;">
           <div class="card-name-row" style="flex-wrap: wrap; gap: 6px; align-items:center;">
-            <span class="card-name" style="font-size:14px; font-weight:700;">${p.name}</span>
-            <span class="card-pos">${p.posLabel}</span>
-            <span class="card-team">${p.team}</span>
-            <span class="badge ${badgeClass}">${p.action}</span>
+            <span class="card-name" style="font-size:14px; font-weight:700;">${escapeHtml(p.name)}</span>
+            <span class="card-pos">${escapeHtml(p.posLabel)}</span>
+            <span class="card-team">${escapeHtml(p.team)}</span>
+            <span class="badge ${badgeClass}">${escapeHtml(p.action)}</span>
             ${gtEdgePill}
             ${riskBadge}
           </div>
           <div style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display:flex; gap:12px; align-items:center; flex-wrap:wrap;">
             <span>Tier Cliff: <b style="color:${p.dropoff >= 15 ? 'var(--red)' : 'var(--text-main)'};">${cliffText} pts</b></span>
-            <span>ESPN ADP: <b style="color:var(--text-main);">${p.adp || 'N/A'}</b></span>
+            <span>ESPN ADP: <b style="color:var(--text-main);">${p.adp ? p.adp.toFixed(1) : 'N/A'}</b></span>
             ${p.adpDelta >= 15 ? `<span style="color:var(--green);">Arbitrage: +${p.adpDelta.toFixed(1)}</span>` : ''}
           </div>
           ${adviceRow}
@@ -518,8 +533,8 @@
           </div>
         </div>
         <div class="card-actions">
-          <button class="btn-card-draft" data-id="${p.id}" title="Draft to My Team" style="padding:5px 10px; font-size:12px;">+ Mine</button>
-          <button class="btn-card-taken" data-id="${p.id}" title="Taken by Opponent" style="padding:5px 8px; font-size:12px;">Taken</button>
+          <button class="btn-card-draft" data-id="${escapeHtml(p.id)}" title="Draft to My Team" style="padding:5px 10px; font-size:12px;">+ Mine</button>
+          <button class="btn-card-taken" data-id="${escapeHtml(p.id)}" title="Taken by Opponent" style="padding:5px 8px; font-size:12px;">Taken</button>
         </div>
       `;
 
@@ -611,10 +626,10 @@
 
     var color = cmp.waitOnA ? "var(--green)" : "var(--orange)";
     cmpVerdict.innerHTML = `
-      <div style="font-weight:700; color:${color}; margin-bottom:4px;">${cmp.verdict}</div>
+      <div style="font-weight:700; color:${color}; margin-bottom:4px;">${escapeHtml(cmp.verdict)}</div>
       <div style="color:var(--text-dim); font-size:10px; font-family:var(--font-mono);">
-        Option 1 (Take ${rowB.name}, gamble on ${rowA.name}): EV = ${cmp.evOption1.toFixed(1)}<br>
-        Option 2 (Take ${rowA.name} now, gamble on ${rowB.name}): EV = ${cmp.evOption2.toFixed(1)} (ΔEV: ${cmp.deltaEV > 0 ? '+' : ''}${cmp.deltaEV.toFixed(1)})
+        Option 1 (Take ${escapeHtml(rowB.name)}, gamble on ${escapeHtml(rowA.name)}): EV = ${cmp.evOption1.toFixed(1)}<br>
+        Option 2 (Take ${escapeHtml(rowA.name)} now, gamble on ${escapeHtml(rowB.name)}): EV = ${cmp.evOption2.toFixed(1)} (ΔEV: ${cmp.deltaEV > 0 ? '+' : ''}${cmp.deltaEV.toFixed(1)})
       </div>
     `;
   }
@@ -634,10 +649,10 @@
       pill.className = "sleeper-pill";
       var survPct = (p.survivalProb * 100).toFixed(0) + "%";
       pill.innerHTML = `
-        <span>${p.name} (${p.posLabel})</span>
+        <span>${escapeHtml(p.name)} (${escapeHtml(p.posLabel)})</span>
         <span style="font-family:var(--font-mono); font-weight:bold;">${survPct}</span>
       `;
-      pill.title = "ESPN ADP: " + (p.adp || "N/A") + " | VORP: " + p.adjVorp.toFixed(1) + " | Will safely survive to turn!";
+      pill.title = "ESPN ADP: " + (p.adp ? p.adp.toFixed(1) : "N/A") + " | VORP: " + p.adjVorp.toFixed(1) + " | Will safely survive to turn!";
       safeSleepersContainer.appendChild(pill);
     }
   }
@@ -690,10 +705,10 @@
       tr.innerHTML = `
         <td style="color:var(--text-dim);">${p.rank || (i + 1)}</td>
         <td style="font-weight:600;">
-          ${p.name} <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">${p.team}</span>
+          ${escapeHtml(p.name)} <span style="font-size:11px; color:var(--text-muted); font-weight:normal;">${escapeHtml(p.team)}</span>
         </td>
-        <td><span class="card-pos">${p.posLabel}</span></td>
-        <td><span class="badge ${badgeClass}">${p.action}</span></td>
+        <td><span class="card-pos">${escapeHtml(p.posLabel)}</span></td>
+        <td><span class="badge ${badgeClass}">${escapeHtml(p.action)}</span></td>
         <td class="num" style="color:${p.survivalProb < 0.2 ? 'var(--orange)' : 'var(--green)'};">${survText}</td>
         <td class="num" style="font-weight:700; color:var(--accent);">${p.adjVorp.toFixed(1)}</td>
         <td class="num">${p.rawVorp.toFixed(1)}</td>
@@ -803,7 +818,7 @@
       div.innerHTML = `
         <div>
           <span class="hist-pick">#${item.pickNumber}</span>
-          <span style="font-weight:600;">${item.name}</span>
+          <span style="font-weight:600;">${escapeHtml(item.name)}</span>
           <span style="font-size:10px; color:var(--text-dim); margin-left:4px;">${item.isMine ? '(ME)' : ''}</span>
         </div>
       `;
@@ -884,8 +899,8 @@
 
     // 1. Headline grade + VORP captured vs expected
     var gradeBadge = s.grade
-      ? "<span style='font-size:34px; font-weight:800; color:" + surplusColor(s.totalSurplus) + ";'>" + s.grade + "</span>" +
-        "<div style='font-size:10px; color:var(--text-muted); margin-top:2px;'>" + s.gradeLabel + "</div>"
+      ? "<span style='font-size:34px; font-weight:800; color:" + surplusColor(s.totalSurplus) + ";'>" + escapeHtml(s.grade) + "</span>" +
+        "<div style='font-size:10px; color:var(--text-muted); margin-top:2px;'>" + escapeHtml(s.gradeLabel) + "</div>"
       : "<span style='font-size:20px; color:var(--text-muted);'>—</span>" +
         "<div style='font-size:10px; color:var(--text-muted); margin-top:6px;'>No picks drafted to your team yet</div>";
 
@@ -920,8 +935,8 @@
         var mp = report.myPicks[i];
         html += "<tr style='border-top:1px solid var(--panel-border);'>" +
           "<td style='padding:5px 6px; color:var(--text-dim);'>" + mp.pickNumber + "</td>" +
-          "<td style='padding:5px 6px; font-weight:600;'>" + mp.name + "</td>" +
-          "<td style='padding:5px 6px;'><span class='card-pos'>" + mp.posLabel + "</span></td>" +
+          "<td style='padding:5px 6px; font-weight:600;'>" + escapeHtml(mp.name) + "</td>" +
+          "<td style='padding:5px 6px;'><span class='card-pos'>" + escapeHtml(mp.posLabel) + "</span></td>" +
           "<td style='padding:5px 6px; text-align:right; color:var(--text-muted);'>" + (mp.adp !== null ? mp.adp.toFixed(1) : "-") + "</td>" +
           "<td style='padding:5px 6px; text-align:right;'>" + mp.vorp.toFixed(1) + "</td>" +
           "<td style='padding:5px 6px; text-align:right; color:var(--text-muted);'>" + mp.expectedVorp.toFixed(1) + "</td>" +
@@ -943,8 +958,8 @@
         var st = top[k];
         html += "<div style='display:flex; justify-content:space-between; align-items:center; background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:8px 10px;'>" +
           "<div style='font-size:11px;'>" +
-            "<span style='font-weight:700;'>" + st.name + "</span>" +
-            "<span style='font-size:10px; color:var(--text-dim); margin-left:6px;'>" + st.posLabel + " · Pick #" + st.pickNumber + (st.isMine ? " · <b style='color:var(--green);'>MY TEAM</b>" : "") + "</span>" +
+            "<span style='font-weight:700;'>" + escapeHtml(st.name) + "</span>" +
+            "<span style='font-size:10px; color:var(--text-dim); margin-left:6px;'>" + escapeHtml(st.posLabel) + " · Pick #" + st.pickNumber + (st.isMine ? " · <b style='color:var(--green);'>MY TEAM</b>" : "") + "</span>" +
           "</div>" +
           "<div style='font-size:11px; color:var(--text-muted);'>ADP " + (st.adp !== null ? st.adp.toFixed(1) : "-") + " → <b style='color:var(--green); font-size:13px;'>" + fmtSigned(st.adpDelta) + " delta</b></div>" +
           "</div>";
@@ -960,13 +975,13 @@
     for (var b = 0; b < bal.slots.length; b++) {
       var slot = bal.slots[b];
       html += "<div style='background:var(--bg-dark); border:1px solid var(--panel-border); border-radius:6px; padding:10px; text-align:center;'>" +
-        "<div style='font-weight:700; font-size:13px;'>" + slot.pos + "</div>" +
+        "<div style='font-weight:700; font-size:13px;'>" + escapeHtml(slot.pos) + "</div>" +
         "<div style='font-size:18px; font-weight:700; color:" + statusColor(slot.status) + ";'>" + slot.count + " / " + slot.limit + "</div>" +
-        "<div style='font-size:9px; color:" + statusColor(slot.status) + "; margin-top:2px;'>" + slot.status + "</div>" +
+        "<div style='font-size:9px; color:" + statusColor(slot.status) + "; margin-top:2px;'>" + escapeHtml(slot.status) + "</div>" +
         "</div>";
     }
     html += "</div>";
-    html += "<div style='font-size:11px; color:var(--text-muted); margin-bottom:6px;'>" + bal.verdict + "</div>";
+    html += "<div style='font-size:11px; color:var(--text-muted); margin-bottom:6px;'>" + escapeHtml(bal.verdict) + "</div>";
 
     content.innerHTML = html;
   }
@@ -1058,7 +1073,7 @@
         renderMonteCarloResults(res, simulations);
       } catch (err) {
         console.error("Monte Carlo simulation error:", err);
-        mcResults.innerHTML = "<div style='font-size:12px; color:var(--red); padding:14px; text-align:center;'>Simulation failed: " + err.message + "</div>";
+        mcResults.innerHTML = "<div style='font-size:12px; color:var(--red); padding:14px; text-align:center;'>Simulation failed: " + escapeHtml(err.message) + "</div>";
       } finally {
         if (btnRunMonteCarlo) btnRunMonteCarlo.disabled = false;
       }
@@ -1074,13 +1089,13 @@
 
     if (res.drafted) {
       mcResults.innerHTML = "<div style='font-size:12px; color:var(--red); padding:14px; text-align:center;'>" +
-        res.name + " is already drafted — survival probability is 0% in every round.</div>";
+        escapeHtml(res.name) + " is already drafted — survival probability is 0% in every round.</div>";
       return;
     }
 
     var html = "";
     html += "<div style='display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;'>" +
-      "<div style='font-weight:700; font-size:13px;'>" + res.name +
+      "<div style='font-weight:700; font-size:13px;'>" + escapeHtml(res.name) +
       " <span style='font-size:11px; color:var(--text-muted); font-weight:normal;'>ADP " +
       (res.adp !== null && res.adp !== undefined ? res.adp.toFixed(1) : "N/A") +
       " | σ = " + res.noiseStd.toFixed(1) + "</span></div>" +
@@ -1107,7 +1122,7 @@
       html += "<div style='height:8px; background:rgba(255,255,255,0.06); border-radius:4px; overflow:hidden; margin-bottom:6px;'>";
       html += "<div style='height:100%; width:" + barWidth + "%; background:" + verdict.color + "; border-radius:4px;'></div>";
       html += "</div>";
-      html += "<div style='font-size:11px; color:" + verdict.color + ";'>" + verdict.label + "</div>";
+      html += "<div style='font-size:11px; color:" + verdict.color + ";'>" + escapeHtml(verdict.label) + "</div>";
       html += "</div>";
     }
 
