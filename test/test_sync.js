@@ -219,6 +219,9 @@ const names = (w) => w.__posts.map((p) => p.name);
     assert(!/querySelectorAll\(\s*["']div,\s*li/i.test(appSource), 'app.js must not inline the draft-page scanner');
 
     const bookmarkletJs = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'bookmarklet.js'), 'utf8');
+    const nonUrlLines = bookmarkletJs.split('\n').filter(l => !l.includes('http://') && !l.includes('https://'));
+    assert(!nonUrlLines.some(l => /^\s*\/\//.test(l)), 'bookmarklet.js must not contain single-line // comments');
+
     const w = makeWindow(WRAPPER_WITH_LIST);
     w.eval(bookmarkletJs);
     await sleep(300);

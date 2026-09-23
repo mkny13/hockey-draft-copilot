@@ -8,7 +8,7 @@
   const sentPlayers = new Set();
   let pickCount = 0;
 
-  // In-room mini HUD badge
+  /* In-room mini HUD badge */
   let badge = document.getElementById('copilot-bm-badge');
   if (!badge) {
     badge = document.createElement('div');
@@ -80,9 +80,9 @@
   }
 
   function scanDraftBoard() {
-    // 1. Toast Notification cards in bottom-right corner (ESPN)
-    // Innermost small element holding both "Name / TEAM" and "R#, P#" (a page-wide
-    // wrapper would also contain the Available Players list)
+    /* 1. Toast Notification cards in bottom-right corner (ESPN)
+       Innermost small element holding both "Name / TEAM" and "R#, P#" (a page-wide
+       wrapper would also contain the Available Players list) */
     const toastCandidates = Array.from(document.querySelectorAll("div, li, p, [role='alert'], [role='status']")).filter(el => {
       const t = el.textContent || '';
       return t.length < 300 && /R\d+,\s*P\d+/i.test(t) && /\/\s*[A-Z]{2,3}/.test(t);
@@ -97,7 +97,7 @@
       }
     });
 
-    // 2. Board tiles & cells strictly inside Draft Board
+    /* 2. Board tiles & cells strictly inside Draft Board */
     const cells = document.querySelectorAll([
       '[class*="DraftBoard"] [class*="cell"]', '[class*="draftBoard"] [class*="cell"]',
       '[class*="draft-board"] [class*="cell"]', '[class*="DraftBoard"] [class*="tile"]',
@@ -113,7 +113,7 @@
       notifySync(raw, isMine);
     });
 
-    // 3. Pick history & ticker announcements
+    /* 3. Pick history & ticker announcements */
     const items = document.querySelectorAll([
       '[class*="draftHistory"] tr', '[class*="DraftHistory"] tr', '[class*="DraftHistory"] div[class*="row"]',
       '[class*="pickHistory"] li', '[class*="activity"] li', '.ticker-item', '.draft-activity-item',
@@ -133,7 +133,7 @@
       }
     });
 
-    // 4. Top Banner
+    /* 4. Top Banner */
     const banners = document.querySelectorAll('[class*="lastPick"], [class*="recentPick"], [class*="onTheClock"], [class*="draftBanner"]');
     banners.forEach(b => {
       if (isAvailablePlayer(b)) return;

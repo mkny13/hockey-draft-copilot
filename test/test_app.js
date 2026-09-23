@@ -571,7 +571,8 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     const link = w.document.getElementById('bookmarklet-link');
     assert(link, 'bookmarklet-link element should exist');
     assert(link.href && link.href.startsWith('javascript:'), 'bookmarklet-link href must start with javascript:');
-    assert(link.href.includes('(function(){/*stub*/})();'), 'bookmarklet-link href must contain the fetched source');
+    assert(link.href.includes(encodeURIComponent('(function(){/*stub*/})();')), 'bookmarklet-link href must contain the encoded source');
+    assert(decodeURIComponent(link.href).includes('(function(){/*stub*/})();'), 'bookmarklet-link href must decode to the fetched source');
     w.close();
     console.log('✓ Bookmarklet link is built from /js/bookmarklet.js');
   }

@@ -1436,7 +1436,7 @@
         return res.text();
       })
       .then(function (source) {
-        link.href = "javascript:" + source;
+        link.href = "javascript:" + encodeURIComponent(source);
       })
       .catch(function () {
         link.removeAttribute("href");
