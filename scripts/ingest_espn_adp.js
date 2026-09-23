@@ -2,7 +2,6 @@ const fs = require('fs');
 const path = require('path');
 
 const DRAFT_DATA_PATH = path.join(__dirname, '..', 'draft_data.json');
-const PUBLIC_DRAFT_DATA_PATH = path.join(__dirname, '..', 'public', 'draft_data.json');
 
 // Saved HTML of the Hashtag Hockey ADP page: node scripts/ingest_espn_adp.js <file.html>
 const HASHTAG_PATH = process.argv[2] || process.env.HASHTAG_HTML || '';
@@ -106,11 +105,10 @@ function run() {
 
   console.log(`Matched ${matchedCount} total players. Assigned ESPN ADP to ${espnCount} players.`);
 
-  // Write back to draft_data.json and public/draft_data.json
+  // Write back to draft_data.json
   const updatedJson = JSON.stringify(draftData, null, 2);
   fs.writeFileSync(DRAFT_DATA_PATH, updatedJson, 'utf8');
-  fs.writeFileSync(PUBLIC_DRAFT_DATA_PATH, updatedJson, 'utf8');
-  console.log('✓ Successfully wrote updated draft_data.json and public/draft_data.json');
+  console.log('✓ Successfully wrote updated draft_data.json');
 }
 
 run();
