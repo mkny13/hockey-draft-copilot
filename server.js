@@ -8,6 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3333;
 const HOST = process.env.HOST || '127.0.0.1';
 const STATE_FILE = process.env.DRAFT_STATE_FILE || path.join(__dirname, 'draft_state.json');
+const WS_PING_MS = parseInt(process.env.WS_PING_MS, 10) || 30000;
 // A gitignored draft_data.local.json (your own board) takes precedence over the committed sample board
 const LOCAL_DATA_FILE = path.join(__dirname, 'draft_data.local.json');
 const DATA_FILE = fs.existsSync(LOCAL_DATA_FILE) ? LOCAL_DATA_FILE : path.join(__dirname, 'draft_data.json');
@@ -217,40 +218,53 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
-// Default draft state
-const defaultState = {
-  currentPick: 1,
-  slot: 5,
-  teams: 8,
-  stdDev: 7.0,
-  rosterLimits: leagueRosterLimits(),
-  drafted: {}, // name -> true
-  mine: {},    // name -> true
-  pickHistory: [], // array of { pickNumber, name, team, pos, isMine, timestamp }
-  resetId: Date.now()
-};
+// Default draft state factory: produces fresh sub-objects every time
+function makeDefaultState() {
+  return {
+    currentPick: 1,
+    slot: 5,
+    teams: 8,
+    stdDev: 7.0,
+    rosterLimits: leagueRosterLimits(),
+    drafted: {}, // name -> true
+    mine: {},    // name -> true
+    pickHistory: [], // array of { pickNumber, name, team, pos, isMine, timestamp }
+    resetId: Date.now()
+  };
+}
 
-let draftState = { ...defaultState };
+let draftState = makeDefaultState();
 
 function loadState() {
+  const defaults = makeDefaultState();
   try {
     if (fs.existsSync(STATE_FILE)) {
       const data = fs.readFileSync(STATE_FILE, 'utf8');
       const loaded = JSON.parse(data);
       // League slots always come from the board data, never from a stale saved state
-      draftState = { ...defaultState, ...loaded, rosterLimits: defaultState.rosterLimits };
+      draftState = { ...defaults, ...loaded, rosterLimits: defaults.rosterLimits };
       console.log(`Loaded state: Pick ${draftState.currentPick}, ${draftState.pickHistory.length} picks recorded.`);
+    } else {
+      draftState = defaults;
     }
   } catch (err) {
     console.error('Error loading state from disk, using defaults:', err);
+    draftState = defaults;
   }
 }
 
 function saveState() {
+  const tmpFile = `${STATE_FILE}.tmp`;
   try {
-    fs.writeFileSync(STATE_FILE, JSON.stringify(draftState, null, 2), 'utf8');
+    fs.writeFileSync(tmpFile, JSON.stringify(draftState, null, 2), 'utf8');
+    fs.renameSync(tmpFile, STATE_FILE);
   } catch (err) {
     console.error('Error saving state to disk:', err);
+    try {
+      if (fs.existsSync(tmpFile)) {
+        fs.unlinkSync(tmpFile);
+      }
+    } catch (_) {}
   }
 }
 
@@ -259,6 +273,16 @@ refreshIntegrity();
 
 // Create HTTP and WebSocket servers
 const server = http.createServer(app);
+
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`port ${PORT} is already in use — is another copy of the Co-Pilot running?`);
+  } else {
+    console.error('Server error:', err.message);
+  }
+  process.exit(1);
+});
+
 const wss = new WebSocketServer({
   server,
   verifyClient: (info, callback) => {
@@ -268,6 +292,33 @@ const wss = new WebSocketServer({
     }
     return callback(true);
   }
+});
+
+wss.on('error', (err) => {
+  console.error('WebSocket server error:', err.message);
+});
+
+const pingInterval = setInterval(() => {
+  let reaped = 0;
+  wss.clients.forEach((client) => {
+    if (client.isAlive === false) {
+      reaped++;
+      client.terminate();
+      return;
+    }
+    client.isAlive = false;
+    try {
+      client.ping();
+    } catch (_) {}
+  });
+  if (reaped > 0) {
+    console.log(`[WS] Terminated ${reaped} dead client(s)`);
+  }
+}, WS_PING_MS);
+pingInterval.unref();
+
+wss.on('close', () => {
+  clearInterval(pingInterval);
 });
 
 // Live decision snapshot for the in-room HUD (headline, short list, top trade-off)
@@ -318,12 +369,24 @@ function broadcast(type, payload) {
   const msg = JSON.stringify({ type, payload, state: draftState, evaluation });
   wss.clients.forEach((client) => {
     if (client.readyState === 1) { // OPEN
-      client.send(msg);
+      try {
+        client.send(msg);
+      } catch (err) {
+        console.error('WebSocket send error:', err.message);
+      }
     }
   });
 }
 
 wss.on('connection', (ws, req) => {
+  ws.isAlive = true;
+  ws.on('pong', () => {
+    ws.isAlive = true;
+  });
+  ws.on('error', (err) => {
+    console.error('WebSocket client error:', err.message);
+  });
+
   const origin = req && req.headers && req.headers.origin;
   if (origin && !ALLOWED_ORIGIN.test(origin)) {
     ws.close(1008, 'Origin not allowed');
@@ -335,7 +398,11 @@ wss.on('connection', (ws, req) => {
   } catch (err) {
     console.error('Evaluation failed:', err);
   }
-  ws.send(JSON.stringify({ type: 'INIT_STATE', state: draftState, evaluation }));
+  try {
+    ws.send(JSON.stringify({ type: 'INIT_STATE', state: draftState, evaluation }));
+  } catch (err) {
+    console.error('WebSocket send error:', err.message);
+  }
 });
 
 // API Endpoints
@@ -648,3 +715,51 @@ server.listen(PORT, HOST, () => {
   console.log(`  Live Sync API: http://${HOST}:${PORT}/api/pick  `);
   console.log(`====================================================`);
 });
+
+// Graceful shutdown
+let isShuttingDown = false;
+function shutdown(signal) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.log(`Shutting down (${signal})...`);
+  saveState();
+
+  const fallbackTimer = setTimeout(() => {
+    process.exit(0);
+  }, 2000);
+  fallbackTimer.unref();
+
+  wss.clients.forEach((client) => {
+    try {
+      client.close(1001, 'Server shutting down');
+    } catch (_) {}
+  });
+
+  let wssClosed = false;
+  let serverClosed = false;
+
+  function checkDone() {
+    if (wssClosed && serverClosed) {
+      clearTimeout(fallbackTimer);
+      process.exit(0);
+    }
+  }
+
+  wss.close(() => {
+    wssClosed = true;
+    checkDone();
+  });
+
+  if (typeof server.closeIdleConnections === 'function') {
+    server.closeIdleConnections();
+  }
+
+  server.close(() => {
+    serverClosed = true;
+    checkDone();
+  });
+}
+
+process.on('SIGINT', () => shutdown('SIGINT'));
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+
