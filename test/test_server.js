@@ -503,6 +503,129 @@ const json = async (p) => (await p).json();
     const after = (await json(post(base, '/api/reset'))).state.resetId;
     assert.notStrictEqual(before, after);
     console.log('✓ Reset issues a new reset id');
+
+    // WebSocket client whose TCP socket is destroyed does not crash the server
+    const wsCrashTest = new WebSocket(`ws://localhost:${port}`);
+    await new Promise((resolve) => wsCrashTest.on('open', resolve));
+    wsCrashTest._socket.destroy();
+    await new Promise((r) => setTimeout(r, 100));
+    await post(base, '/api/pick', { name: 'Elias Pettersson', manual: true, isMine: false });
+    const resAfterCrash = await fetch(`${base}/api/state`);
+    assert.strictEqual(resAfterCrash.status, 200, 'Server still answers 200 after client socket destroyed');
+    console.log('✓ WebSocket client socket destruction does not crash server; GET /api/state answers 200');
+
+    // Dead-client reaping: client that stops responding to pings is terminated within two intervals
+    const tmpPing = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-ping-'));
+    const pingState = path.join(tmpPing, 'state.json');
+    const srvPing = await startServer(pingState, { WS_PING_MS: '50' });
+    try {
+      const wsDead = new WebSocket(`ws://localhost:${srvPing.port}`);
+      await new Promise((resolve) => wsDead.on('open', resolve));
+      // Suppress pongs to simulate a client that stops responding to pings
+      wsDead.pong = () => {};
+
+      let reaped = false;
+      for (let i = 0; i < 40; i++) {
+        await new Promise((r) => setTimeout(r, 25));
+        if (srvPing.getStdout().includes('[WS] Terminated 1 dead client(s)')) {
+          reaped = true;
+          break;
+        }
+      }
+      assert(reaped, 'Captured stdout must report the dead client was terminated');
+      wsDead._socket.destroy();
+    } finally {
+      srvPing.child.kill();
+      fs.rmSync(tmpPing, { recursive: true, force: true });
+    }
+    console.log('✓ Dead client reaping terminates unresponsive client within two intervals and logs reap');
+
+    // Atomic saveState: after a burst of picks, draft_state.json parses and no .tmp file survives
+    for (let i = 1; i <= 5; i++) {
+      await post(base, '/api/pick', { name: `Burst Player ${i}`, manual: true, isMine: false });
+    }
+    assert(!fs.existsSync(`${stateFile}.tmp`), 'draft_state.json.tmp must not exist after successful saves');
+    const diskParsed = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    assert(diskParsed.pickHistory.some((p) => p.name === 'Burst Player 5'), 'State file on disk contains latest pick');
+    console.log('✓ draft_state.json is replaced by atomic rename; no .tmp file survives');
+
+    // Graceful shutdown on SIGTERM: saves state, closes both servers, exits 0, no double banner on repeated signals
+    const tmpShut = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-shut-'));
+    const shutState = path.join(tmpShut, 'state.json');
+    const srvShut = await startServer(shutState);
+    try {
+      await post(srvShut.base, '/api/pick', { name: 'Shutdown Star', manual: true, isMine: true });
+      // Send SIGTERM, then immediately SIGINT to test idempotency
+      srvShut.child.kill('SIGTERM');
+      srvShut.child.kill('SIGINT');
+
+      const exitCode = await new Promise((resolve) => {
+        const timeout = setTimeout(() => resolve('TIMEOUT'), 3000);
+        srvShut.child.on('exit', (code) => {
+          clearTimeout(timeout);
+          resolve(code);
+        });
+      });
+      assert.strictEqual(exitCode, 0, 'Server exited 0 on SIGTERM within 2s');
+
+      const diskState = JSON.parse(fs.readFileSync(shutState, 'utf8'));
+      assert(diskState.pickHistory.some((p) => p.name === 'Shutdown Star'), 'State file on disk contains last pick before shutdown');
+
+      const bannerMatches = (srvShut.getStdout().match(/Shutting down/g) || []).length;
+      assert.strictEqual(bannerMatches, 1, 'Shutdown banner printed exactly once despite repeated signals');
+    } finally {
+      try { srvShut.child.kill(); } catch (_) {}
+      fs.rmSync(tmpShut, { recursive: true, force: true });
+    }
+    console.log('✓ SIGINT/SIGTERM saves state, closes servers, exits 0, and avoids double-banner on repeated signals');
+
+    // Starting a second server on a busy port prints readable message and exits non-zero without stack trace
+    const busyChild = spawn(process.execPath, ['server.js'], {
+      cwd: ROOT,
+      env: Object.assign({}, process.env, { PORT: String(port), DRAFT_STATE_FILE: path.join(tmp, 'busy.json') }),
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    let busyOut = '';
+    let busyErr = '';
+    busyChild.stdout.on('data', (d) => { busyOut += d.toString(); });
+    busyChild.stderr.on('data', (d) => { busyErr += d.toString(); });
+    const busyCode = await new Promise((resolve) => busyChild.on('exit', (code) => resolve(code)));
+    assert.notStrictEqual(busyCode, 0, 'Second server must exit with non-zero code');
+    const combinedOutput = busyOut + busyErr;
+    assert(
+      combinedOutput.includes(`port ${port} is already in use — is another copy of the Co-Pilot running?`),
+      `Expected readable EADDRINUSE message, got: ${combinedOutput}`
+    );
+    assert(!combinedOutput.includes('Error: listen EADDRINUSE'), 'Must not dump raw stack trace');
+    console.log('✓ Starting a second server on a busy port prints readable message and exits non-zero');
+
+    // No two draft states share a mutable sub-object: pick, reset, restart on same file
+    const tmpIso = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-iso-'));
+    const isoState = path.join(tmpIso, 'state.json');
+    let srvIso = await startServer(isoState);
+    try {
+      await post(srvIso.base, '/api/pick', { name: 'Sidney Crosby', manual: true, isMine: true });
+      let stBefore = await json(fetch(`${srvIso.base}/api/state`));
+      assert.strictEqual(stBefore.pickHistory.length, 1);
+      assert(stBefore.mine['Sidney Crosby']);
+
+      await post(srvIso.base, '/api/reset');
+      let stAfter = await json(fetch(`${srvIso.base}/api/state`));
+      assert.strictEqual(stAfter.pickHistory.length, 0);
+      assert.deepStrictEqual(stAfter.drafted, {});
+      assert.deepStrictEqual(stAfter.mine, {});
+
+      srvIso.child.kill();
+      srvIso = await startServer(isoState);
+      let stRestart = await json(fetch(`${srvIso.base}/api/state`));
+      assert.strictEqual(stRestart.pickHistory.length, 0, 'pickHistory is empty after restart');
+      assert.deepStrictEqual(stRestart.drafted, {}, 'drafted has no keys after restart');
+      assert.deepStrictEqual(stRestart.mine, {}, 'mine has no keys after restart');
+    } finally {
+      srvIso.child.kill();
+      fs.rmSync(tmpIso, { recursive: true, force: true });
+    }
+    console.log('✓ No two draft states share a mutable sub-object; reset survives server restart');
   } finally {
     child.kill();
     fs.rmSync(tmp, { recursive: true, force: true });
