@@ -45,6 +45,67 @@ function findPlayer(name) {
   return loadPlayers().find((p) => normName(p.n || p.name) === key) || null;
 }
 
+// --- Request Validation Helpers ---
+const ALLOWED_POS = new Set(['C', 'LW', 'RW', 'W', 'F', 'D', 'G']);
+const KNOWN_ROSTER_KEYS = new Set(['C', 'F', 'D', 'G', 'UTIL', 'FLEX']);
+
+function validatePickName(name) {
+  if (typeof name !== 'string') return null;
+  // Reject control characters (0x00-0x1F, 0x7F-0x9F) and newlines
+  if (/[\x00-\x1f\x7f-\x9f]/.test(name)) return null;
+  const trimmed = name.trim();
+  if (trimmed.length < 1 || trimmed.length > 80) return null;
+  return trimmed;
+}
+
+function sanitizeTeam(team, fallback = '') {
+  if (typeof team === 'string') {
+    const trimmed = team.trim();
+    if (trimmed.length >= 1 && trimmed.length <= 8) {
+      return trimmed;
+    }
+  }
+  return fallback || '';
+}
+
+function sanitizePos(pos, fallback = []) {
+  const fb = Array.isArray(fallback) ? fallback : [];
+  if (!Array.isArray(pos)) return fb;
+  const filtered = [];
+  for (const item of pos) {
+    if (typeof item === 'string') {
+      const p = item.trim().toUpperCase();
+      if (ALLOWED_POS.has(p)) {
+        filtered.push(p);
+        if (filtered.length === 4) break;
+      }
+    }
+  }
+  return filtered.length > 0 ? filtered : fb;
+}
+
+function parseBoundedInt(val, min, max) {
+  if (val === undefined || val === null) return null;
+  const num = typeof val === 'number'
+    ? val
+    : (typeof val === 'string' && /^-?\d+$/.test(val.trim()) ? parseInt(val.trim(), 10) : NaN);
+  if (Number.isInteger(num) && num >= min && num <= max) {
+    return num;
+  }
+  return null;
+}
+
+function parseBoundedFloat(val, min, max) {
+  if (val === undefined || val === null) return null;
+  const num = typeof val === 'number'
+    ? val
+    : (typeof val === 'string' && val.trim() !== '' ? parseFloat(val.trim()) : NaN);
+  if (Number.isFinite(num) && num >= min && num <= max) {
+    return num;
+  }
+  return null;
+}
+
 // Pure pick-history integrity report for a draft state: every pick number below
 // currentPick with no recorded entry, pick numbers recorded more than once, and
 // canonical player names appearing in more than one entry. Never mutates state.
@@ -95,9 +156,20 @@ function refreshIntegrity() {
   return draftState.pickHistoryIntegrity;
 }
 
-// Middleware
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Middleware: Cap request bodies to 64kb
+app.use(express.json({ limit: '64kb' }));
+app.use(express.urlencoded({ extended: true, limit: '64kb' }));
+
+// Reject over-limit or malformed bodies
+app.use((err, req, res, next) => {
+  if (err && (err.status === 413 || err.type === 'entity.too.large')) {
+    return res.status(413).json({ error: 'Payload too large (maximum 64kb)' });
+  }
+  if (err && (err.status === 400 || err instanceof SyntaxError)) {
+    return res.status(400).json({ error: 'Invalid request body' });
+  }
+  next(err);
+});
 
 // Origin allowlist: localhost/127.0.0.1 any port, or ESPN/Yahoo draft domains.
 const ALLOWED_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$|^https:\/\/([a-z0-9-]+\.)*(espn|yahoo)\.com$/i;
@@ -281,26 +353,33 @@ app.get('/api/evaluation', (req, res) => {
 });
 
 app.post('/api/pick', (req, res) => {
-  const { name, team, pos, round, pickInRound, isMine, manual } = req.body;
-  if (!name || typeof name !== 'string') {
-    return res.status(400).json({ error: 'Player name is required' });
+  const { name, team, pos, round, pickInRound, isMine, manual } = req.body || {};
+
+  const validName = validatePickName(name);
+  if (!validName) {
+    return res.status(400).json({ error: 'Player name is required (1-80 characters, no control characters)' });
   }
 
   // Store the board's own spelling so the player actually leaves the available list
-  const master = findPlayer(name);
-  const cleanName = master ? master.n : name.trim();
+  const master = findPlayer(validName);
+  const cleanName = master ? master.n : validName;
 
   // If already picked, avoid duplicate
   if (draftState.drafted[cleanName] || draftState.mine[cleanName]) {
     return res.json({ message: 'Player already drafted', state: draftState });
   }
 
+  // Refuse to grow pickHistory past 2000 entries
+  if (draftState.pickHistory.length >= 2000) {
+    return res.status(400).json({ error: 'Pick history limit reached (maximum 2000 picks)' });
+  }
+
   // Overall pick number: exact when the draft room reports round/pick (P is
   // the pick within the round), otherwise the running counter.
   let pickNum = draftState.currentPick;
-  const rnd = parseInt(round, 10);
-  const pir = parseInt(pickInRound, 10);
-  if (rnd >= 1 && pir >= 1) {
+  const rnd = parseBoundedInt(round, 1, 1000);
+  const pir = parseBoundedInt(pickInRound, 1, 1000);
+  if (rnd !== null && pir !== null) {
     pickNum = pir > draftState.teams ? pir : (rnd - 1) * draftState.teams + pir;
   }
 
@@ -317,11 +396,14 @@ app.post('/api/pick', (req, res) => {
     draftState.drafted[cleanName] = true;
   }
 
+  const cleanTeam = sanitizeTeam(team, master && master.t);
+  const cleanPos = sanitizePos(pos, master && master.p);
+
   const entry = {
     pickNumber: pickNum,
     name: cleanName,
-    team: team || (master && master.t) || '',
-    pos: (pos && pos.length) ? pos : ((master && master.p) || []),
+    team: cleanTeam,
+    pos: cleanPos,
     isMine: isMyPick,
     timestamp: new Date().toISOString()
   };
@@ -387,8 +469,12 @@ app.post('/api/repair-pick', (req, res) => {
   if (!Number.isFinite(num) || num < 1) {
     return res.status(400).json({ error: 'A positive pickNumber is required' });
   }
-  if (!name || typeof name !== 'string' || !name.trim()) {
-    return res.status(400).json({ error: 'Player name is required' });
+  const validName = validatePickName(name);
+  if (!validName) {
+    return res.status(400).json({ error: 'Player name is required (1-80 characters, no control characters)' });
+  }
+  if (draftState.pickHistory.length >= 2000) {
+    return res.status(400).json({ error: 'Pick history limit reached (maximum 2000 picks)' });
   }
   if (num >= draftState.currentPick) {
     return res.status(400).json({ error: `Pick #${num} is not below the current pick (${draftState.currentPick}); live picks go through /api/pick` });
@@ -398,8 +484,8 @@ app.post('/api/repair-pick', (req, res) => {
   }
 
   // Store the board's own spelling so the repaired player leaves the available list
-  const master = findPlayer(name);
-  const cleanName = master ? master.n : name.trim();
+  const master = findPlayer(validName);
+  const cleanName = master ? master.n : validName;
   if (draftState.drafted[cleanName] || draftState.mine[cleanName]) {
     return res.status(400).json({ error: `${cleanName} is already recorded in the draft history` });
   }
@@ -474,13 +560,78 @@ app.get('/api/report', (req, res) => {
 });
 
 app.post('/api/settings', (req, res) => {
-  const { slot, teams, stdDev, currentPick, rosterLimits } = req.body;
-  if (teams !== undefined) draftState.teams = Math.max(2, parseInt(teams, 10) || draftState.teams);
-  if (slot !== undefined) draftState.slot = parseInt(slot, 10) || draftState.slot;
-  draftState.slot = Math.min(Math.max(1, draftState.slot), draftState.teams);
-  if (stdDev !== undefined) draftState.stdDev = parseFloat(stdDev) || draftState.stdDev;
-  if (currentPick !== undefined) draftState.currentPick = parseInt(currentPick, 10) || draftState.currentPick;
-  if (rosterLimits !== undefined) draftState.rosterLimits = { ...draftState.rosterLimits, ...rosterLimits };
+  const { slot, teams, stdDev, currentPick, rosterLimits } = req.body || {};
+
+  let newTeams = undefined;
+  if (teams !== undefined) {
+    const t = parseBoundedInt(teams, 2, 32);
+    if (t === null) {
+      return res.status(400).json({ error: 'teams must be an integer between 2 and 32' });
+    }
+    newTeams = t;
+  }
+
+  const effectiveTeams = newTeams !== undefined ? newTeams : draftState.teams;
+
+  let newSlot = undefined;
+  if (slot !== undefined) {
+    const s = parseBoundedInt(slot, 1, effectiveTeams);
+    if (s === null) {
+      return res.status(400).json({ error: `slot must be an integer between 1 and ${effectiveTeams}` });
+    }
+    newSlot = s;
+  }
+
+  let newStdDev = undefined;
+  if (stdDev !== undefined) {
+    const sd = parseBoundedFloat(stdDev, 0.1, 100);
+    if (sd === null) {
+      return res.status(400).json({ error: 'stdDev must be a number between 0.1 and 100' });
+    }
+    newStdDev = sd;
+  }
+
+  let newCurrentPick = undefined;
+  if (currentPick !== undefined) {
+    const cp = parseBoundedInt(currentPick, 1, 2000);
+    if (cp === null) {
+      return res.status(400).json({ error: 'currentPick must be an integer between 1 and 2000' });
+    }
+    newCurrentPick = cp;
+  }
+
+  let filteredRosterLimits = undefined;
+  if (rosterLimits !== undefined) {
+    if (typeof rosterLimits !== 'object' || rosterLimits === null || Array.isArray(rosterLimits)) {
+      return res.status(400).json({ error: 'rosterLimits must be an object' });
+    }
+    filteredRosterLimits = {};
+    for (const [key, rawVal] of Object.entries(rosterLimits)) {
+      if (!KNOWN_ROSTER_KEYS.has(key)) {
+        continue;
+      }
+      const val = typeof rawVal === 'number'
+        ? rawVal
+        : (typeof rawVal === 'string' && /^-?\d+$/.test(rawVal.trim()) ? parseInt(rawVal.trim(), 10) : NaN);
+      if (!Number.isInteger(val)) {
+        continue;
+      }
+      if (val < 0 || val > 50) {
+        return res.status(400).json({ error: `rosterLimits.${key} must be an integer between 0 and 50` });
+      }
+      filteredRosterLimits[key] = val;
+    }
+  }
+
+  if (newTeams !== undefined) draftState.teams = newTeams;
+  if (newSlot !== undefined) draftState.slot = newSlot;
+  else draftState.slot = Math.min(Math.max(1, draftState.slot), draftState.teams);
+  if (newStdDev !== undefined) draftState.stdDev = newStdDev;
+  if (newCurrentPick !== undefined) draftState.currentPick = newCurrentPick;
+  if (filteredRosterLimits !== undefined) {
+    draftState.rosterLimits = { ...draftState.rosterLimits, ...filteredRosterLimits };
+  }
+
   // A manual counter jump can open or close gaps below it
   refreshIntegrity();
   saveState();

@@ -151,14 +151,196 @@ const json = async (p) => (await p).json();
     assert.strictEqual(r.state.drafted['Zach Werenski'], undefined);
     console.log('✓ Undo restores the pick number');
 
-    // Settings clamp and validation
-    r = await json(post(base, '/api/settings', { slot: 99, teams: 6 }));
-    assert.strictEqual(r.state.teams, 6);
-    assert.strictEqual(r.state.slot, 6, 'Slot is clamped into 1..teams');
-    await post(base, '/api/settings', { slot: 5, teams: 8 });
-    const bad = await post(base, '/api/pick', { nope: 1 });
-    assert.strictEqual(bad.status, 400);
-    console.log('✓ Settings clamped; bad body rejected');
+    // Settings validation: out-of-range values return 400 and leave state unchanged
+    const prevSettings = await json(fetch(`${base}/api/state`));
+
+    // teams: 2-32
+    let resBad = await post(base, '/api/settings', { teams: 1 });
+    assert.strictEqual(resBad.status, 400, 'teams < 2 returns 400');
+    resBad = await post(base, '/api/settings', { teams: 33 });
+    assert.strictEqual(resBad.status, 400, 'teams > 32 returns 400');
+
+    // slot: 1-teams (current teams is 8)
+    resBad = await post(base, '/api/settings', { slot: 0 });
+    assert.strictEqual(resBad.status, 400, 'slot < 1 returns 400');
+    resBad = await post(base, '/api/settings', { slot: 9 });
+    assert.strictEqual(resBad.status, 400, 'slot > teams returns 400');
+    resBad = await post(base, '/api/settings', { slot: 99, teams: 6 });
+    assert.strictEqual(resBad.status, 400, 'slot > new teams returns 400');
+
+    // stdDev: 0.1-100
+    resBad = await post(base, '/api/settings', { stdDev: 0.05 });
+    assert.strictEqual(resBad.status, 400, 'stdDev < 0.1 returns 400');
+    resBad = await post(base, '/api/settings', { stdDev: 100.1 });
+    assert.strictEqual(resBad.status, 400, 'stdDev > 100 returns 400');
+
+    // currentPick: 1-2000
+    resBad = await post(base, '/api/settings', { currentPick: 0 });
+    assert.strictEqual(resBad.status, 400, 'currentPick < 1 returns 400');
+    resBad = await post(base, '/api/settings', { currentPick: 2001 });
+    assert.strictEqual(resBad.status, 400, 'currentPick > 2000 returns 400');
+
+    // rosterLimits: out-of-range integer returns 400
+    resBad = await post(base, '/api/settings', { rosterLimits: { C: 51 } });
+    assert.strictEqual(resBad.status, 400, 'rosterLimits > 50 returns 400');
+    resBad = await post(base, '/api/settings', { rosterLimits: { C: -1 } });
+    assert.strictEqual(resBad.status, 400, 'rosterLimits < 0 returns 400');
+
+    // State is completely unchanged after failed settings
+    let afterBad = await json(fetch(`${base}/api/state`));
+    assert.strictEqual(afterBad.teams, prevSettings.teams);
+    assert.strictEqual(afterBad.slot, prevSettings.slot);
+    assert.strictEqual(afterBad.stdDev, prevSettings.stdDev);
+    assert.strictEqual(afterBad.currentPick, prevSettings.currentPick);
+    assert.deepStrictEqual(afterBad.rosterLimits, prevSettings.rosterLimits);
+
+    // Valid settings update state, and unknown rosterLimits keys / non-integer limits are ignored
+    const okSettings = await json(post(base, '/api/settings', {
+      slot: 6,
+      teams: 6,
+      stdDev: 8.5,
+      currentPick: 25,
+      rosterLimits: { C: 4, UNKNOWN_KEY: 99, F: 'non-integer', D: 5 }
+    }));
+    assert.strictEqual(okSettings.state.teams, 6);
+    assert.strictEqual(okSettings.state.slot, 6);
+    assert.strictEqual(okSettings.state.stdDev, 8.5);
+    assert.strictEqual(okSettings.state.currentPick, 25);
+    assert.strictEqual(okSettings.state.rosterLimits.C, 4);
+    assert.strictEqual(okSettings.state.rosterLimits.D, 5);
+    assert.strictEqual(okSettings.state.rosterLimits.UNKNOWN_KEY, undefined, 'unknown rosterLimits key ignored');
+    assert.strictEqual(okSettings.state.rosterLimits.F, prevSettings.rosterLimits.F, 'non-integer roster limit ignored');
+
+    // Restore standard settings for subsequent tests
+    await post(base, '/api/settings', { slot: 5, teams: 8, stdDev: 7.0, currentPick: 20, rosterLimits: prevSettings.rosterLimits });
+    console.log('✓ Settings validation and rosterLimits filtering pass');
+
+    // Pick name validation: >80 chars, empty/whitespace, control chars return 400 and are not recorded
+    const tooLongName = 'A'.repeat(81);
+    let pBad = await post(base, '/api/pick', { name: tooLongName });
+    assert.strictEqual(pBad.status, 400);
+
+    pBad = await post(base, '/api/pick', { name: '' });
+    assert.strictEqual(pBad.status, 400);
+
+    pBad = await post(base, '/api/pick', { name: '   \t  ' });
+    assert.strictEqual(pBad.status, 400);
+
+    pBad = await post(base, '/api/pick', { name: 'Player\nName' });
+    assert.strictEqual(pBad.status, 400);
+
+    pBad = await post(base, '/api/pick', { name: 'Player\r\nName' });
+    assert.strictEqual(pBad.status, 400);
+
+    pBad = await post(base, '/api/pick', { name: 'Player\x00Name' });
+    assert.strictEqual(pBad.status, 400);
+
+    pBad = await post(base, '/api/pick', { nope: 1 });
+    assert.strictEqual(pBad.status, 400);
+
+    // Verify none of these bad names were recorded
+    st = await json(fetch(`${base}/api/state`));
+    assert.strictEqual(st.drafted[tooLongName], undefined);
+    assert.strictEqual(st.drafted['Player\nName'], undefined);
+
+    // Repair pick validation: name > 80 chars, control chars return 400
+    const repBad = await post(base, '/api/repair-pick', { pickNumber: 2, name: 'Bad\nRepair' });
+    assert.strictEqual(repBad.status, 400);
+
+    // Pos and team validation on /api/pick:
+    // 1. Non-array pos falls back to board positions
+    // 2. Team > 8 chars falls back to board team
+    let pFallback = await json(post(base, '/api/pick', {
+      name: 'Auston Matthews',
+      pos: 'not-an-array',
+      team: 'TORONTO_MAPLE_LEAFS'
+    }));
+    assert.strictEqual(pFallback.pick.name, 'Auston Matthews');
+    assert.deepStrictEqual(pFallback.pick.pos, ['C', 'F'], 'Non-array pos falls back to board position');
+    assert.strictEqual(pFallback.pick.team, 'TOR', 'Long team string falls back to board team');
+
+    // 3. Array with unknown entries falls back to board positions
+    pFallback = await json(post(base, '/api/pick', {
+      name: 'Mikko Rantanen',
+      pos: ['GARBAGE_POS', 'JUNK']
+    }));
+    assert.strictEqual(pFallback.pick.name, 'Mikko Rantanen');
+    assert.deepStrictEqual(pFallback.pick.pos, ['F'], 'Array with only unknown entries falls back to board positions');
+
+    // 4. Array with unknown entries drops unknown entries; caps at 4 entries
+    pFallback = await json(post(base, '/api/pick', {
+      name: 'David Pastrnak',
+      pos: ['F', 'INVALID_POS'],
+      team: 'BOS'
+    }));
+    assert.strictEqual(pFallback.pick.name, 'David Pastrnak');
+    assert.deepStrictEqual(pFallback.pick.pos, ['F'], 'Unknown pos entry is dropped');
+    assert.strictEqual(pFallback.pick.team, 'BOS', 'Valid team is preserved');
+
+    // 5. Capping pos at 4 entries
+    pFallback = await json(post(base, '/api/pick', {
+      name: 'Kirill Kaprizov',
+      pos: ['C', 'LW', 'RW', 'W', 'F']
+    }));
+    assert.strictEqual(pFallback.pick.name, 'Kirill Kaprizov');
+    assert.deepStrictEqual(pFallback.pick.pos, ['C', 'LW', 'RW', 'W'], 'Pos is capped at 4 entries');
+
+    // 6. round / pickInRound: integers outside 1..1000 or non-integers are treated as absent
+    const curBefore = (await json(fetch(`${base}/api/state`))).currentPick;
+    pFallback = await json(post(base, '/api/pick', {
+      name: 'Artemi Panarin',
+      round: 1001,
+      pickInRound: 1
+    }));
+    assert.strictEqual(pFallback.pick.pickNumber, curBefore, 'Out-of-range round is treated as absent');
+
+    console.log('✓ Pick field validation (name, team, pos, round/pickInRound) pass');
+
+    // Over-limit request body (>64kb) is rejected with 413 rather than parsed
+    const hugeBody = JSON.stringify({ name: 'Huge Player', junk: 'X'.repeat(70 * 1024) });
+    const hugeRes = await fetch(`${base}/api/pick`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: hugeBody
+    });
+    assert.strictEqual(hugeRes.status, 413, 'Payload > 64kb returns 413 Payload Too Large');
+    console.log('✓ Over-limit request body rejected with 413');
+
+    // Refuse to grow pickHistory past 2000 entries
+    const tmp2000 = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-2000-'));
+    const state2000File = path.join(tmp2000, 'state.json');
+    const dummyHistory = Array.from({ length: 2000 }, (_, i) => ({
+      pickNumber: i + 1,
+      name: `Dummy Player ${i + 1}`,
+      team: 'EDM',
+      pos: ['C'],
+      isMine: false,
+      timestamp: new Date().toISOString()
+    }));
+    fs.writeFileSync(state2000File, JSON.stringify({
+      slot: 5,
+      teams: 8,
+      currentPick: 2001,
+      pickHistory: dummyHistory,
+      drafted: {},
+      mine: {}
+    }));
+    const srv2000 = await startServer(state2000File);
+    try {
+      const resOver = await post(srv2000.base, '/api/pick', { name: 'Player 2001' });
+      assert.strictEqual(resOver.status, 400, '2001st pick returns 400');
+      const bodyOver = await resOver.json();
+      assert(bodyOver.error && bodyOver.error.includes('2000'), 'Error message mentions 2000 limit');
+
+      const repOver = await post(srv2000.base, '/api/repair-pick', { pickNumber: 50, name: 'Repair Player' });
+      assert.strictEqual(repOver.status, 400, 'Repair at 2000 limit returns 400');
+      const repBody = await repOver.json();
+      assert(repBody.error && repBody.error.includes('2000'), 'Repair error mentions 2000 limit');
+    } finally {
+      srv2000.child.kill();
+      fs.rmSync(tmp2000, { recursive: true, force: true });
+    }
+    console.log('✓ Refuses to grow pickHistory past 2000 entries');
 
     // Cross-origin protection
     const evil = await post(base, '/api/reset', undefined, { Origin: 'https://evil.example' });
