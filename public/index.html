@@ -236,6 +236,20 @@
         </div>
       </div>
 
+      <div class="sidebar-section" id="integrity-banner" style="display:none; padding-bottom: 10px;">
+        <div class="integrity-warning">
+          <div class="integrity-warning-header">⚠️ Pick History Issue</div>
+          <div class="integrity-warning-body" id="integrity-warning-text"></div>
+          <form id="repair-pick-form" class="repair-pick-form">
+            <input type="number" id="repair-pick-number" class="repair-input" placeholder="Pick #" min="1" required>
+            <input type="text" id="repair-pick-name" class="repair-input" placeholder="Player name" list="repair-player-list" required>
+            <datalist id="repair-player-list"></datalist>
+            <button type="submit" class="btn-header" style="display:inline-flex;">Repair</button>
+          </form>
+          <div id="repair-pick-error" class="repair-pick-error" style="display:none;"></div>
+        </div>
+      </div>
+
       <div class="sidebar-section" style="padding-bottom: 4px;">
         <h3>
           <span>Draft History</span>
