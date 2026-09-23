@@ -1,8 +1,20 @@
 (function() {
   "use strict";
 
-  let syncBaseUrl = "http://localhost:3333";
+  const DEFAULT_SYNC_URL = "http://localhost:3333";
+  let syncBaseUrl = DEFAULT_SYNC_URL;
   let syncWsUrl = "ws://localhost:3333";
+
+  function validateSyncUrl(url) {
+    if (typeof url !== "string") return DEFAULT_SYNC_URL;
+    try {
+      const parsed = new URL(url.trim());
+      if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+        return url.trim().replace(/\/$/, "");
+      }
+    } catch (e) {}
+    return DEFAULT_SYNC_URL;
+  }
   const sent = new Set();
   let pickCount = 0;
   let lastSyncedPick = "None";
@@ -186,7 +198,7 @@
         </div>
         <div class="hud-row">
           <span class="hud-label">Server:</span>
-          <span class="hud-val" id="hud-server">${syncBaseUrl}</span>
+          <span class="hud-val" id="hud-server"></span>
         </div>
         <div class="hud-row">
           <span class="hud-label">Picks Synced:</span>
@@ -226,6 +238,9 @@
 
     container.appendChild(badge);
     container.appendChild(hud);
+
+    const srv = hud.querySelector("#hud-server");
+    if (srv) srv.textContent = syncBaseUrl;
 
     badge.addEventListener("click", () => {
       hud.style.display = hud.style.display === "none" ? "block" : "none";
@@ -314,8 +329,8 @@
   // 3. Storage & Background Connection Handlers
   if (chrome && chrome.storage && chrome.storage.local) {
     chrome.storage.local.get(["syncUrl", "status"], (data) => {
-      if (data && data.syncUrl) {
-        syncBaseUrl = data.syncUrl.replace(/\/$/, "");
+      if (data && data.syncUrl !== undefined) {
+        syncBaseUrl = validateSyncUrl(data.syncUrl);
         syncWsUrl = syncBaseUrl.replace(/^http/, "ws");
         const srv = document.getElementById("hud-server");
         if (srv) srv.textContent = syncBaseUrl;
@@ -326,7 +341,7 @@
 
     chrome.storage.onChanged.addListener((changes, area) => {
       if (area === "local" && changes.syncUrl) {
-        syncBaseUrl = changes.syncUrl.newValue.replace(/\/$/, "");
+        syncBaseUrl = validateSyncUrl(changes.syncUrl.newValue);
         syncWsUrl = syncBaseUrl.replace(/^http/, "ws");
         const srv = document.getElementById("hud-server");
         if (srv) srv.textContent = syncBaseUrl;
