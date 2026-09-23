@@ -1,12 +1,4 @@
-/**
- * ESPN & Yahoo Draft Live Sync Bookmarklet
- * 
- * Instructions:
- * 1. Create a new bookmark in Chrome/Safari/Brave with name "Sync ESPN Draft"
- * 2. Paste this entire javascript: code as the URL.
- * 3. When inside your live ESPN Draft room (or Yahoo Draft room), click the bookmarklet!
- */
-javascript:(function(){
+(function(){
   const SYNC_URL = 'http://localhost:3333/api/pick';
   const RESET_URL = 'http://localhost:3333/api/reset';
   const isEspn = window.location.hostname.includes('espn.com');
