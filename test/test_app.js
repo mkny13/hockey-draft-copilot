@@ -1,7 +1,7 @@
-// App UI untrusted text escaping & XSS tests: runs the app in jsdom
-// with stubbed fetch, WebSocket, and GameTheory, verifying that player names,
-// teams, positions, actions, game theory advice, comparator verdicts, reports,
-// Monte Carlo results, and error messages are rendered safely as text without DOM injection.
+// App UI tests: runs the app in jsdom with stubbed fetch, WebSocket, and GameTheory.
+// Covers (a) untrusted text escaping/XSS across player names, teams, positions, actions,
+// game theory advice, comparator verdicts, reports, and Monte Carlo results, and (b) the
+// pick-history integrity banner, repair-pick control, and per-entry targeted undo.
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -19,7 +19,7 @@ const HOSTILE_TEAM = '<b onmouseover=1>TEAM</b>';
 const HOSTILE_POS = '<i onclick=1>C</i>';
 const HOSTILE_ERR = '<img src=err onerror=2>';
 
-function makeAppWindow(customPlayers, customState, customReport) {
+function makeAppWindow(customPlayers, customState, customReport, customFetchResponses) {
   const virtualConsole = new VirtualConsole();
   virtualConsole.on('jsdomError', (e) => console.error(e));
 
@@ -174,7 +174,14 @@ function makeAppWindow(customPlayers, customState, customReport) {
     }
   };
 
+  w.__posts = [];
   w.fetch = (url, opts) => {
+    if (opts && opts.body) {
+      try { w.__posts.push({ url: url, body: JSON.parse(opts.body) }); } catch (e) { /* not JSON */ }
+    }
+    if (customFetchResponses && customFetchResponses[url]) {
+      return Promise.resolve(customFetchResponses[url]());
+    }
     if (url === '/draft_data.json') {
       return Promise.resolve({ ok: true, json: () => Promise.resolve(boardData) });
     }
@@ -184,7 +191,7 @@ function makeAppWindow(customPlayers, customState, customReport) {
     if (url === '/api/report') {
       return Promise.resolve({ ok: true, json: () => Promise.resolve(reportData) });
     }
-    return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true }) });
+    return Promise.resolve({ ok: true, json: () => Promise.resolve({ success: true, state: serverState }) });
   };
 
   w.WebSocket = class {
@@ -396,6 +403,159 @@ function makeAppWindow(customPlayers, customState, customReport) {
 
     w.close();
     console.log('✓ Monte Carlo panel and error banners escape player names and err.message');
+  }
+
+  // 7. Integrity banner: hidden when ok, visible and names each affected pick number otherwise
+  {
+    const okState = {
+      currentPick: 2, slot: 5, teams: 8, stdDev: 7.0,
+      rosterLimits: { C: 4, F: 8, D: 6, G: 2 },
+      drafted: {}, mine: {},
+      pickHistory: [{ pickNumber: 1, name: 'Connor McDavid', isMine: false }],
+      pickHistoryIntegrity: { checkedUpTo: 2, missing: [], repeated: [], duplicateNames: [], ok: true }
+    };
+    const w = makeAppWindow(null, okState);
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+    await sleep(200);
+
+    const banner = w.document.getElementById('integrity-banner');
+    assert.strictEqual(banner.style.display, 'none', 'Integrity banner is hidden when pickHistoryIntegrity.ok is true');
+    w.close();
+    console.log('✓ Integrity banner hidden when pickHistoryIntegrity.ok is true');
+  }
+
+  {
+    const badState = {
+      currentPick: 5, slot: 5, teams: 8, stdDev: 7.0,
+      rosterLimits: { C: 4, F: 8, D: 6, G: 2 },
+      drafted: {}, mine: {},
+      pickHistory: [
+        { pickNumber: 1, name: 'Connor McDavid', isMine: false },
+        { pickNumber: 3, name: HOSTILE_NAME_1, isMine: false },
+        { pickNumber: 3, name: HOSTILE_NAME_2, isMine: true }
+      ],
+      pickHistoryIntegrity: {
+        checkedUpTo: 5,
+        missing: [2, 4],
+        repeated: [{ pickNumber: 3, count: 2, names: [HOSTILE_NAME_1, HOSTILE_NAME_2] }],
+        duplicateNames: [{ name: HOSTILE_NAME_1, pickNumbers: [3, 4] }],
+        ok: false
+      }
+    };
+    const w = makeAppWindow(null, badState);
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+    await sleep(200);
+
+    const banner = w.document.getElementById('integrity-banner');
+    assert.strictEqual(banner.style.display, 'block', 'Integrity banner is visible when pickHistoryIntegrity.ok is false');
+    const text = w.document.getElementById('integrity-warning-text');
+    assert(text.textContent.includes('#2'), 'Names missing pick #2');
+    assert(text.textContent.includes('#4'), 'Names missing pick #4');
+    assert(text.textContent.includes('#3'), 'Names the repeated pick number #3');
+    assert(text.textContent.includes(HOSTILE_NAME_1), 'Names the duplicated player literally (textContent, never innerHTML)');
+    assert.strictEqual(text.querySelectorAll('img,script').length, 0, 'No DOM injection from untrusted names in the banner');
+    w.close();
+    console.log('✓ Integrity banner visible and names every missing/repeated/duplicate pick');
+  }
+
+  // 8. Repair control POSTs { pickNumber, name } to /api/repair-pick and clears the form on success
+  {
+    const badState = {
+      currentPick: 3, slot: 5, teams: 8, stdDev: 7.0,
+      rosterLimits: { C: 4, F: 8, D: 6, G: 2 },
+      drafted: {}, mine: {},
+      pickHistory: [],
+      pickHistoryIntegrity: { checkedUpTo: 3, missing: [1, 2], repeated: [], duplicateNames: [], ok: false }
+    };
+    const w = makeAppWindow(null, badState);
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+    await sleep(200);
+
+    const doc = w.document;
+    doc.getElementById('repair-pick-number').value = '1';
+    doc.getElementById('repair-pick-name').value = 'Connor McDavid';
+    doc.getElementById('repair-pick-form').dispatchEvent(new w.Event('submit', { cancelable: true }));
+    await sleep(100);
+
+    const post = w.__posts.find((p) => p.url === '/api/repair-pick');
+    assert(post, '/api/repair-pick was called');
+    assert.deepStrictEqual(post.body, { pickNumber: 1, name: 'Connor McDavid' }, 'Repair POSTs { pickNumber, name }');
+    assert.strictEqual(doc.getElementById('repair-pick-number').value, '', 'Pick number field clears on success');
+    assert.strictEqual(doc.getElementById('repair-pick-name').value, '', 'Name field clears on success');
+    assert.strictEqual(doc.getElementById('repair-pick-error').style.display, 'none', 'No error shown on success');
+    w.close();
+    console.log('✓ Repair control POSTs { pickNumber, name } to /api/repair-pick and clears on success');
+  }
+
+  // 9. A rejected repair shows the server's error text verbatim and leaves the form usable
+  {
+    const badState = {
+      currentPick: 3, slot: 5, teams: 8, stdDev: 7.0,
+      rosterLimits: { C: 4, F: 8, D: 6, G: 2 },
+      drafted: {}, mine: {},
+      pickHistory: [],
+      pickHistoryIntegrity: { checkedUpTo: 3, missing: [1, 2], repeated: [], duplicateNames: [], ok: false }
+    };
+    const errorMessage = 'Pick #1 is already recorded ' + HOSTILE_ERR;
+    const w = makeAppWindow(null, badState, null, {
+      '/api/repair-pick': () => ({ ok: false, status: 400, json: () => Promise.resolve({ error: errorMessage }) })
+    });
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+    await sleep(200);
+
+    const doc = w.document;
+    doc.getElementById('repair-pick-number').value = '1';
+    doc.getElementById('repair-pick-name').value = 'Connor McDavid';
+    doc.getElementById('repair-pick-form').dispatchEvent(new w.Event('submit', { cancelable: true }));
+    await sleep(100);
+
+    const errorDiv = doc.getElementById('repair-pick-error');
+    assert.strictEqual(errorDiv.style.display, 'block', 'Error banner is shown on a rejected repair');
+    assert.strictEqual(errorDiv.textContent, errorMessage, "Server's error text is rendered verbatim");
+    assert.strictEqual(errorDiv.querySelectorAll('img,script').length, 0, 'Hostile error text never parses as HTML');
+    assert.strictEqual(doc.getElementById('repair-pick-number').value, '1', 'Form is left usable (not cleared) after a rejected repair');
+    assert.strictEqual(doc.getElementById('repair-pick-name').value, 'Connor McDavid', 'Form is left usable (not cleared) after a rejected repair');
+    w.close();
+    console.log('✓ Rejected repair shows the server error verbatim and leaves the form usable');
+  }
+
+  // 10. Per-entry remove control POSTs a targeted { pickNumber } to /api/undo; repaired entries are badged
+  {
+    const stateWithHistory = {
+      currentPick: 4, slot: 5, teams: 8, stdDev: 7.0,
+      rosterLimits: { C: 4, F: 8, D: 6, G: 2 },
+      drafted: { [HOSTILE_NAME_1]: true }, mine: {},
+      pickHistory: [
+        { pickNumber: 1, name: 'Connor McDavid', isMine: false },
+        { pickNumber: 2, name: HOSTILE_NAME_1, isMine: false, repaired: true }
+      ],
+      pickHistoryIntegrity: { checkedUpTo: 4, missing: [3], repeated: [], duplicateNames: [], ok: false }
+    };
+    const w = makeAppWindow(null, stateWithHistory);
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+    await sleep(200);
+
+    const doc = w.document;
+    const historyFeed = doc.getElementById('history-feed');
+    assert(historyFeed.textContent.includes('REPAIRED'), 'Repaired entries are shown distinctly in the history feed');
+
+    const removeButtons = historyFeed.querySelectorAll('.hist-remove-btn');
+    assert(removeButtons.length >= 2, 'Every history entry has a remove control');
+
+    // History is rendered newest-first; the last entry (#1) is the second button
+    removeButtons[removeButtons.length - 1].onclick({ stopPropagation() {} });
+    await sleep(100);
+
+    const post = w.__posts.find((p) => p.url === '/api/undo');
+    assert(post, '/api/undo was called for the targeted removal');
+    assert.deepStrictEqual(post.body, { pickNumber: 1 }, 'Targeted undo POSTs { pickNumber } for the specific entry removed, not just the latest');
+    w.close();
+    console.log('✓ Per-entry remove control sends a targeted undo; repaired picks are badged in the history feed');
   }
 
   console.log('ALL APP TESTS PASSED!');

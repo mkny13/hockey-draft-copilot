@@ -30,6 +30,7 @@
     drafted: {},
     mine: {},
     pickHistory: [],
+    pickHistoryIntegrity: { ok: true, checkedUpTo: 1, missing: [], repeated: [], duplicateNames: [] },
     // UI filters:
     posFilter: "ALL",
     searchQuery: "",
@@ -123,8 +124,16 @@
     ws.onmessage = function (event) {
       try {
         var msg = JSON.parse(event.data);
+        // Every broadcast type (PICK_MADE, PICK_UNDONE, PICK_REPAIRED, RESET,
+        // SETTINGS_UPDATED, INIT_STATE) carries the full state; apply it uniformly.
         if (msg.state) {
           applyServerState(msg.state);
+        }
+        // Fall back to the evaluation snapshot's integrity field if state omitted it
+        if ((!msg.state || !msg.state.pickHistoryIntegrity) && msg.evaluation && msg.evaluation.pickHistoryIntegrity) {
+          state.pickHistoryIntegrity = msg.evaluation.pickHistoryIntegrity;
+        }
+        if (msg.state || msg.evaluation) {
           recomputeAndRender();
         }
       } catch (e) {
@@ -358,6 +367,7 @@
     state.mine = s.mine || {};
     state.pickHistory = s.pickHistory || [];
     if (s.rosterLimits) state.rosterLimits = s.rosterLimits;
+    if (s.pickHistoryIntegrity) state.pickHistoryIntegrity = s.pickHistoryIntegrity;
 
     selectSlot.value = state.slot;
     selectTeams.value = state.teams;
@@ -387,6 +397,7 @@
 
     renderHeader();
     renderBanner();
+    renderIntegrityBanner();
     renderShortlist();
     renderComparatorOptions();
     renderSafeSleepers();
@@ -444,6 +455,102 @@
       };
       quickAction.appendChild(btn);
     }
+  }
+
+  function renderIntegrityBanner() {
+    var integrity = state.pickHistoryIntegrity;
+    var banner = document.getElementById("integrity-banner");
+    if (!banner) return;
+
+    if (!integrity || integrity.ok) {
+      banner.style.display = "none";
+      return;
+    }
+
+    banner.style.display = "block";
+    var textEl = document.getElementById("integrity-warning-text");
+    var parts = [];
+
+    if (integrity.missing && integrity.missing.length) {
+      parts.push("Missing pick" + (integrity.missing.length > 1 ? "s" : "") + ": " +
+        integrity.missing.map(function (n) { return "#" + n; }).join(", "));
+    }
+    if (integrity.repeated && integrity.repeated.length) {
+      parts.push("Duplicate pick number" + (integrity.repeated.length > 1 ? "s" : "") + ": " +
+        integrity.repeated.map(function (r) { return "#" + r.pickNumber + " (" + r.count + "x)"; }).join(", "));
+    }
+    if (integrity.duplicateNames && integrity.duplicateNames.length) {
+      parts.push("Duplicate player" + (integrity.duplicateNames.length > 1 ? "s" : "") + ": " +
+        integrity.duplicateNames.map(function (d) {
+          return d.name + " (picks " + d.pickNumbers.map(function (n) { return "#" + n; }).join(", ") + ")";
+        }).join("; "));
+    }
+
+    // textContent, not innerHTML: names in the report are untrusted draft-room text
+    textEl.textContent = parts.join(" — ");
+
+    populateRepairPlayerList();
+  }
+
+  function populateRepairPlayerList() {
+    var datalist = document.getElementById("repair-player-list");
+    if (!datalist) return;
+    var rows = (state.evalResult && state.evalResult.availableRows) || [];
+    datalist.innerHTML = "";
+    for (var i = 0; i < rows.length; i++) {
+      var opt = document.createElement("option");
+      opt.value = rows[i].name;
+      datalist.appendChild(opt);
+    }
+  }
+
+  function submitRepairPick(pickNumber, name) {
+    var errorDiv = document.getElementById("repair-pick-error");
+    errorDiv.style.display = "none";
+    errorDiv.textContent = "";
+
+    return fetch("/api/repair-pick", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pickNumber: pickNumber, name: name })
+    })
+      .then(function (r) {
+        return r.json().then(function (data) { return { ok: r.ok, data: data }; });
+      })
+      .then(function (result) {
+        if (!result.ok) {
+          // Server error text rendered verbatim via textContent (never innerHTML)
+          errorDiv.textContent = (result.data && result.data.error) || "Repair failed.";
+          errorDiv.style.display = "block";
+          return;
+        }
+        document.getElementById("repair-pick-number").value = "";
+        document.getElementById("repair-pick-name").value = "";
+        if (result.data.state) {
+          applyServerState(result.data.state);
+          recomputeAndRender();
+        }
+      })
+      .catch(function (err) {
+        errorDiv.textContent = "Network error: " + err.message;
+        errorDiv.style.display = "block";
+      });
+  }
+
+  function removePick(pickNumber) {
+    fetch("/api/undo", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ pickNumber: pickNumber })
+    })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        if (data.state) {
+          applyServerState(data.state);
+          recomputeAndRender();
+        }
+      })
+      .catch(function (err) { console.error("Error removing pick:", err); });
   }
 
   function renderShortlist() {
@@ -820,8 +927,16 @@
           <span class="hist-pick">#${item.pickNumber}</span>
           <span style="font-weight:600;">${escapeHtml(item.name)}</span>
           <span style="font-size:10px; color:var(--text-dim); margin-left:4px;">${item.isMine ? '(ME)' : ''}</span>
+          ${item.repaired ? '<span class="hist-repaired-badge">REPAIRED</span>' : ''}
         </div>
+        <button class="btn-icon hist-remove-btn" title="Remove Pick #${item.pickNumber} from history">×</button>
       `;
+      (function (pickNumber) {
+        div.querySelector(".hist-remove-btn").onclick = function (e) {
+          e.stopPropagation();
+          removePick(pickNumber);
+        };
+      })(item.pickNumber);
       historyFeed.appendChild(div);
     }
   }
@@ -1182,6 +1297,16 @@
 
     document.getElementById("btn-undo-pick").onclick = undoLastPick;
     document.getElementById("btn-reset-draft").onclick = resetDraft;
+
+    var repairForm = document.getElementById("repair-pick-form");
+    if (repairForm) {
+      repairForm.onsubmit = function (e) {
+        e.preventDefault();
+        var pickNumber = parseInt(document.getElementById("repair-pick-number").value, 10);
+        var name = document.getElementById("repair-pick-name").value.trim();
+        submitRepairPick(pickNumber, name);
+      };
+    }
 
     if (btnEnableAlerts) {
       btnEnableAlerts.onclick = enableAlerts;
