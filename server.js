@@ -6,6 +6,7 @@ const { WebSocketServer } = require('ws');
 
 const app = express();
 const PORT = process.env.PORT || 3333;
+const HOST = process.env.HOST || '127.0.0.1';
 const STATE_FILE = process.env.DRAFT_STATE_FILE || path.join(__dirname, 'draft_state.json');
 // A gitignored draft_data.local.json (your own board) takes precedence over the committed sample board
 const LOCAL_DATA_FILE = path.join(__dirname, 'draft_data.local.json');
@@ -98,25 +99,33 @@ function refreshIntegrity() {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Enable CORS for ESPN & Yahoo Fantasy Draft integration & companion tools
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Origin', '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
-  if (req.method === 'OPTIONS') {
-    return res.sendStatus(200);
-  }
-  next();
-});
-
-// State-changing requests only from the app itself, localhost tools, or the draft rooms.
-// CORS alone does not stop a simple cross-site POST (e.g. /api/reset with no body).
+// Origin allowlist: localhost/127.0.0.1 any port, or ESPN/Yahoo draft domains.
 const ALLOWED_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$|^https:\/\/([a-z0-9-]+\.)*(espn|yahoo)\.com$/i;
+
+// Enable scoped CORS for ESPN & Yahoo Fantasy Draft integration & companion tools
 app.use((req, res, next) => {
+  res.header('Vary', 'Origin');
   const origin = req.headers.origin;
-  if (req.method !== 'GET' && req.method !== 'OPTIONS' && origin && !ALLOWED_ORIGIN.test(origin)) {
+
+  if (origin && ALLOWED_ORIGIN.test(origin)) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
+  }
+
+  if (req.method === 'OPTIONS') {
+    if (origin && ALLOWED_ORIGIN.test(origin)) {
+      return res.sendStatus(200);
+    }
     return res.status(403).json({ error: 'Origin not allowed' });
   }
+
+  // State-changing requests only from the app itself, localhost tools, or the draft rooms.
+  // CORS alone does not stop a simple cross-site POST (e.g. /api/reset with no body).
+  if (req.method !== 'GET' && origin && !ALLOWED_ORIGIN.test(origin)) {
+    return res.status(403).json({ error: 'Origin not allowed' });
+  }
+
   next();
 });
 
@@ -178,7 +187,16 @@ refreshIntegrity();
 
 // Create HTTP and WebSocket servers
 const server = http.createServer(app);
-const wss = new WebSocketServer({ server });
+const wss = new WebSocketServer({
+  server,
+  verifyClient: (info, callback) => {
+    const origin = info.origin || (info.req && info.req.headers && info.req.headers.origin);
+    if (origin && !ALLOWED_ORIGIN.test(origin)) {
+      return callback(false, 403, 'Origin not allowed');
+    }
+    return callback(true);
+  }
+});
 
 // Live decision snapshot for the in-room HUD (headline, short list, top trade-off)
 function buildEvaluation() {
@@ -233,7 +251,12 @@ function broadcast(type, payload) {
   });
 }
 
-wss.on('connection', (ws) => {
+wss.on('connection', (ws, req) => {
+  const origin = req && req.headers && req.headers.origin;
+  if (origin && !ALLOWED_ORIGIN.test(origin)) {
+    ws.close(1008, 'Origin not allowed');
+    return;
+  }
   let evaluation = null;
   try {
     evaluation = buildEvaluation();
@@ -466,10 +489,11 @@ app.post('/api/settings', (req, res) => {
 });
 
 // Start Server
-server.listen(PORT, () => {
+server.listen(PORT, HOST, () => {
   console.log(`====================================================`);
   console.log(`  🏒 FANTASY HOCKEY GAME THEORY CO-PILOT IS LIVE!   `);
-  console.log(`  Web App:       http://localhost:${PORT}           `);
-  console.log(`  Live Sync API: http://localhost:${PORT}/api/pick  `);
+  console.log(`  Host:          ${HOST}`);
+  console.log(`  Web App:       http://${HOST}:${PORT}           `);
+  console.log(`  Live Sync API: http://${HOST}:${PORT}/api/pick  `);
   console.log(`====================================================`);
 });
