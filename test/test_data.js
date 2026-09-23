@@ -1,4 +1,4 @@
-// Board data integrity: guards against corrupt ADP, bad rows, and the two copies drifting apart.
+// Board data integrity: guards against corrupt ADP, bad rows, and ensures the board exists in exactly one place.
 const assert = require('assert');
 const fs = require('fs');
 const path = require('path');
@@ -7,7 +7,7 @@ const read = (rel) => fs.readFileSync(path.join(__dirname, '..', rel), 'utf8');
 const data = JSON.parse(read('draft_data.json'));
 const players = data.players;
 
-assert.strictEqual(read('draft_data.json'), read('public/draft_data.json'), 'draft_data.json and public/draft_data.json must be identical');
+assert(!fs.existsSync(path.join(__dirname, '..', 'public', 'draft_data.json')), 'the board must exist in exactly one place');
 
 // League config drives every roster limit
 const slots = data.config.league.slots;
