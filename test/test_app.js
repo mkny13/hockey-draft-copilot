@@ -185,6 +185,9 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     if (url === '/draft_data.json') {
       return Promise.resolve({ ok: true, json: () => Promise.resolve(boardData) });
     }
+    if (url === '/js/bookmarklet.js') {
+      return Promise.resolve({ ok: true, text: () => Promise.resolve('(function(){/*stub*/})();') });
+    }
     if (url === '/api/state') {
       return Promise.resolve({ ok: true, json: () => Promise.resolve(serverState) });
     }
@@ -556,6 +559,39 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     assert.deepStrictEqual(post.body, { pickNumber: 1 }, 'Targeted undo POSTs { pickNumber } for the specific entry removed, not just the latest');
     w.close();
     console.log('✓ Per-entry remove control sends a targeted undo; repaired picks are badged in the history feed');
+  }
+
+  // 11. Bookmarklet link is populated from /js/bookmarklet.js
+  {
+    const w = makeAppWindow();
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+    await sleep(200);
+
+    const link = w.document.getElementById('bookmarklet-link');
+    assert(link, 'bookmarklet-link element should exist');
+    assert(link.href && link.href.startsWith('javascript:'), 'bookmarklet-link href must start with javascript:');
+    assert(link.href.includes(encodeURIComponent('(function(){/*stub*/})();')), 'bookmarklet-link href must contain the encoded source');
+    assert(decodeURIComponent(link.href).includes('(function(){/*stub*/})();'), 'bookmarklet-link href must decode to the fetched source');
+    w.close();
+    console.log('✓ Bookmarklet link is built from /js/bookmarklet.js');
+  }
+
+  // 12. Failed bookmarklet fetch leaves the link disabled with a message rather than throwing during init()
+  {
+    const w = makeAppWindow(null, null, null, {
+      '/js/bookmarklet.js': () => ({ ok: false, status: 404, text: () => Promise.resolve('') })
+    });
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+    await sleep(200);
+
+    const link = w.document.getElementById('bookmarklet-link');
+    assert(link, 'bookmarklet-link element should exist');
+    assert(!link.getAttribute('href'), 'Failed bookmarklet fetch removes active href');
+    assert(link.textContent.includes('unavailable') || link.textContent.includes('Unavailable'), 'Failed bookmarklet fetch leaves short message');
+    w.close();
+    console.log('✓ Failed bookmarklet fetch leaves link disabled with short message without throwing');
   }
 
   console.log('ALL APP TESTS PASSED!');
