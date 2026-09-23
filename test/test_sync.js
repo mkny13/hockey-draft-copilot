@@ -214,6 +214,158 @@ const names = (w) => w.__posts.map((p) => p.name);
     console.log('✓ Extension: hostile stored sync URL cannot inject an element into the HUD');
   }
 
+  // 5b. A pick posted while __fetchMode is 'fail' is re-sent after the mode flips to 'ok'
+  // even though its toast element has been removed from the DOM
+  {
+    const w = makeWindow('<div class="wrap"><div class="toast"><div>Leon Draisaitl / EDM, F</div><div>R1, P3 - Team C</div></div></div>');
+    w.__fetchMode = 'fail';
+    w.eval(playersData);
+    w.eval(contentJs);
+    await sleep(1400);
+    assert(w.__posts.length >= 1, 'Initial attempt was sent');
+    assert.strictEqual(w.__posts[0].name, 'Leon Draisaitl');
+    const countBefore = w.__posts.length;
+
+    // Remove the toast element from the DOM completely
+    const toast = w.document.querySelector('.toast');
+    toast.remove();
+    assert.strictEqual(w.document.querySelectorAll('.toast').length, 0, 'Toast is gone from DOM');
+
+    // Counters reflect pending
+    const hudCount = w.document.getElementById('hud-count');
+    assert(hudCount.textContent.includes('pending'), 'Pending retry is visible in HUD counter');
+
+    // Server comes back up
+    w.__fetchMode = 'ok';
+
+    // Wait for queue flush retry
+    await sleep(1500);
+    assert(w.__posts.length > countBefore, 'Pick was re-sent after server returned even though toast element was removed');
+    assert.strictEqual(w.__posts[w.__posts.length - 1].name, 'Leon Draisaitl');
+    assert(hudCount.textContent.includes('1 synced'), 'Pick is marked synced after retry');
+    assert(!hudCount.textContent.includes('pending'), 'No pending picks remain');
+    w.close();
+    console.log('✓ Extension: pick whose POST fails is re-sent after server is back, even after toast element is gone');
+  }
+
+  // 5c. Recovery never produces a duplicate POST for a pick the server already recorded
+  {
+    const w = makeWindow('<div class="wrap"><div class="toast"><div>Cale Makar / COL, D</div><div>R1, P4 - Team D</div></div></div>');
+    w.__fetchMode = 'fail';
+    w.eval(playersData);
+    w.eval(contentJs);
+    await sleep(1400);
+    assert(w.__posts.length >= 1, 'Initial attempt was sent');
+    const countBefore = w.__posts.length;
+
+    // Server reports that Cale Makar was already recorded via PICK_MADE
+    const sock = w.__sockets[0];
+    assert(sock, 'WebSocket is present');
+    sock.onopen();
+    sock.onmessage({ data: JSON.stringify({
+      type: 'PICK_MADE',
+      payload: { name: 'Cale Makar' },
+      state: { pickHistory: [{ name: 'Cale Makar' }] }
+    }) });
+
+    // Mode flips to 'ok'
+    w.__fetchMode = 'ok';
+    await sleep(1500);
+
+    // No duplicate POST is sent
+    assert.strictEqual(w.__posts.length, countBefore, 'No second POST made for pick server already recorded');
+    w.close();
+    console.log('✓ Extension: no second POST made for a pick the server subsequently reports via PICK_MADE');
+  }
+
+  // 6d. HUD warning row renders from an INIT_STATE evaluation carrying missing/repeated pick numbers and clears when integrity is ok
+  {
+    const w = runExtension('<div></div>');
+    await sleep(300);
+    const sock = w.__sockets[0];
+    sock.onopen();
+
+    // Server sends evaluation with integrity errors
+    sock.onmessage({ data: JSON.stringify({
+      type: 'INIT_STATE',
+      state: { pickHistory: [{ name: 'Connor McDavid', pickNumber: 1 }] },
+      evaluation: {
+        headline: 'Pick in progress', alertType: 'turn', shortlist: [], tradeoff: '',
+        pickHistoryIntegrity: {
+          checkedUpTo: 5,
+          missing: [2, 3],
+          repeated: [{ pickNumber: 4, count: 2, names: ['Player X', 'Player Y'] }],
+          duplicateNames: [{ name: 'Player X', pickNumbers: [1, 4] }],
+          ok: false
+        }
+      }
+    }) });
+
+    const warnRow = w.document.getElementById('hud-integrity-row');
+    assert(warnRow, 'HUD integrity row exists');
+    assert.strictEqual(warnRow.style.display, 'block', 'Integrity row is displayed when ok is false');
+    assert(warnRow.textContent.includes('Missing pick(s): #2, #3'), 'Missing picks listed');
+    assert(warnRow.textContent.includes('Repeated pick(s): #4'), 'Repeated picks listed');
+    assert(warnRow.textContent.includes('Duplicate player(s): Player X'), 'Duplicate players listed');
+
+    // Clear integrity warning when ok is true
+    sock.onmessage({ data: JSON.stringify({
+      type: 'INIT_STATE',
+      state: { pickHistory: [{ name: 'Connor McDavid', pickNumber: 1 }] },
+      evaluation: {
+        headline: 'Pick in progress', alertType: 'turn', shortlist: [], tradeoff: '',
+        pickHistoryIntegrity: {
+          checkedUpTo: 5,
+          missing: [],
+          repeated: [],
+          duplicateNames: [],
+          ok: true
+        }
+      }
+    }) });
+
+    assert.strictEqual(warnRow.style.display, 'none', 'Integrity row is hidden when ok is true');
+    assert.strictEqual(warnRow.textContent, '', 'Integrity text is cleared when ok is true');
+    w.close();
+    console.log('✓ Extension: HUD integrity warning row renders issues and clears when integrity is ok');
+  }
+
+  // 6e. Deep Scan reconciles: compares room players against last INIT_STATE pickHistory and reports missing players in HUD status line
+  {
+    const html = `
+      <div id="app">
+        <div class="draft-results-table">
+          <table>
+            <tr><td class="name">Connor McDavid</td></tr>
+            <tr><td class="name">Leon Draisaitl</td></tr>
+          </table>
+        </div>
+      </div>
+    `;
+    const w = runExtension(html);
+    await sleep(300);
+    const sock = w.__sockets[0];
+    sock.onopen();
+
+    // Server state only has Connor McDavid; Leon Draisaitl is missing from server history
+    sock.onmessage({ data: JSON.stringify({
+      type: 'INIT_STATE',
+      state: { pickHistory: [{ name: 'Connor McDavid' }] }
+    }) });
+
+    const historyBtn = w.document.getElementById('copilot-btn-history');
+    assert(historyBtn, 'Deep Scan button exists');
+    historyBtn.click();
+    await sleep(300);
+
+    const msgEl = w.document.getElementById('hud-status-msg');
+    assert(msgEl, 'HUD status line element exists');
+    assert(msgEl.textContent.includes('Leon Draisaitl'), 'Missing draft-room player Leon Draisaitl is reported');
+    assert(msgEl.textContent.toLowerCase().includes('missing from server history'), 'Reconciliation status line indicates missing from server history');
+    w.close();
+    console.log('✓ Extension: Deep Scan reports draft-room players that are missing from server history');
+  }
+
   // 7. Bookmarklet file and the bookmarklet generated by the app: same wrapper fixture
   {
     const generated = (() => {
