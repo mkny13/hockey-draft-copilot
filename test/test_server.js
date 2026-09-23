@@ -16,16 +16,22 @@ function freePort() {
   });
 }
 
-async function startServer(stateFile) {
+async function startServer(stateFile, envOverrides = {}) {
   const port = await freePort();
+  const env = Object.assign({}, process.env, { PORT: String(port), DRAFT_STATE_FILE: stateFile }, envOverrides);
+  if (!('HOST' in envOverrides)) {
+    delete env.HOST;
+  }
+  let stdout = '';
   const child = spawn(process.execPath, ['server.js'], {
     cwd: ROOT,
-    env: Object.assign({}, process.env, { PORT: String(port), DRAFT_STATE_FILE: stateFile }),
-    stdio: 'ignore'
+    env,
+    stdio: ['ignore', 'pipe', 'ignore']
   });
+  child.stdout.on('data', (d) => { stdout += d.toString(); });
   const base = `http://localhost:${port}`;
   for (let i = 0; i < 50; i++) {
-    try { await fetch(`${base}/api/state`); return { child, base, port }; } catch (e) { await new Promise((r) => setTimeout(r, 100)); }
+    try { await fetch(`${base}/api/state`); return { child, base, port, getStdout: () => stdout }; } catch (e) { await new Promise((r) => setTimeout(r, 100)); }
   }
   child.kill();
   throw new Error('server did not start');
@@ -44,8 +50,57 @@ const json = async (p) => (await p).json();
   // A stale saved state with the old hardcoded limits must not win over the league config
   fs.writeFileSync(stateFile, JSON.stringify({ slot: 5, teams: 8, rosterLimits: { C: 3, F: 5, D: 4, G: 2 }, pickHistory: [], drafted: {}, mine: {}, currentPick: 1 }));
 
-  const { child, base, port } = await startServer(stateFile);
+  const { child, base, port, getStdout } = await startServer(stateFile);
   try {
+    // Host binding: 127.0.0.1 default, custom HOST opt-in
+    assert(getStdout().includes('Host:          127.0.0.1'), 'Startup banner logs default host 127.0.0.1');
+    const ifaces = os.networkInterfaces();
+    let nonLoopbackIp = null;
+    for (const addrs of Object.values(ifaces)) {
+      for (const addr of addrs) {
+        if (addr.family === 'IPv4' && !addr.internal) {
+          nonLoopbackIp = addr.address;
+          break;
+        }
+      }
+      if (nonLoopbackIp) break;
+    }
+    if (nonLoopbackIp) {
+      await new Promise((resolve) => {
+        const sock = net.connect({ host: nonLoopbackIp, port }, () => {
+          sock.destroy();
+          assert.fail('Default server bound to loopback should not be reachable via non-loopback IP');
+        });
+        sock.on('error', (err) => {
+          assert(err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT');
+          resolve();
+        });
+      });
+    }
+
+    // Verify HOST override (e.g. HOST=0.0.0.0)
+    const tmpHost = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-host-'));
+    const hostStateFile = path.join(tmpHost, 'state.json');
+    const hostSrv = await startServer(hostStateFile, { HOST: '0.0.0.0' });
+    try {
+      assert(hostSrv.getStdout().includes('Host:          0.0.0.0'), 'Startup banner logs HOST=0.0.0.0');
+      const res0 = await fetch(`http://127.0.0.1:${hostSrv.port}/api/state`);
+      assert.strictEqual(res0.status, 200);
+      if (nonLoopbackIp) {
+        await new Promise((resolve, reject) => {
+          const sock = net.connect({ host: nonLoopbackIp, port: hostSrv.port }, () => {
+            sock.destroy();
+            resolve();
+          });
+          sock.on('error', reject);
+        });
+      }
+    } finally {
+      hostSrv.child.kill();
+      fs.rmSync(tmpHost, { recursive: true, force: true });
+    }
+    console.log('✓ Host binding: listens on 127.0.0.1 by default and on HOST when set');
+
     // League limits come from draft_data.json config
     let st = await json(fetch(`${base}/api/state`));
     assert.deepStrictEqual(st.rosterLimits, { C: 2, F: 6, D: 6, G: 2, UTIL: 1, FLEX: 6 }, 'Limits derive from the league config, not the saved state');
@@ -118,6 +173,50 @@ const json = async (p) => (await p).json();
     assert(st.pickHistory.length > 0, 'The rejected reset did not clear the draft');
     console.log('✓ Origin check: foreign origins blocked, ESPN/Yahoo/localhost allowed');
 
+    // Scoped CORS for GET endpoints: /api/state, /api/report, /draft_data.json
+    const getRoutes = ['/api/state', '/api/report', '/draft_data.json'];
+    const allowedOrigins = ['https://fantasy.espn.com', 'https://draft.fantasysports.yahoo.com', `http://localhost:${port}`];
+    for (const route of getRoutes) {
+      // Foreign origin returns no ACAO header, but includes Vary: Origin
+      const evilRes = await fetch(`${base}${route}`, { headers: { Origin: 'https://evil.example' } });
+      assert.strictEqual(evilRes.status, 200, `${route} should return 200 for foreign origin`);
+      assert.strictEqual(evilRes.headers.get('access-control-allow-origin'), null, `${route} must not set ACAO for foreign origin`);
+      assert.strictEqual(evilRes.headers.get('vary'), 'Origin', `${route} must send Vary: Origin`);
+
+      // Allowed origins receive echoed ACAO and Vary: Origin
+      for (const origin of allowedOrigins) {
+        const okRes = await fetch(`${base}${route}`, { headers: { Origin: origin } });
+        assert.strictEqual(okRes.status, 200, `${route} should return 200 for allowed origin ${origin}`);
+        assert.strictEqual(okRes.headers.get('access-control-allow-origin'), origin, `${route} must echo ACAO for ${origin}`);
+        assert.strictEqual(okRes.headers.get('vary'), 'Origin', `${route} must send Vary: Origin`);
+      }
+
+      // No origin header: succeeds, no ACAO, Vary: Origin present
+      const noOriginRes = await fetch(`${base}${route}`);
+      assert.strictEqual(noOriginRes.status, 200, `${route} succeeds without Origin`);
+      assert.strictEqual(noOriginRes.headers.get('access-control-allow-origin'), null, `${route} no ACAO without Origin`);
+      assert.strictEqual(noOriginRes.headers.get('vary'), 'Origin', `${route} must send Vary: Origin`);
+    }
+    console.log('✓ Scoped CORS: GET endpoints echo allowed origins and omit ACAO for foreign origins');
+
+    // Preflight OPTIONS: 200 for allowed origin, 403 for foreign or missing origin
+    for (const route of ['/api/pick', '/api/reset', '/api/state', '/draft_data.json']) {
+      for (const origin of allowedOrigins) {
+        const optOk = await fetch(`${base}${route}`, { method: 'OPTIONS', headers: { Origin: origin } });
+        assert.strictEqual(optOk.status, 200, `OPTIONS ${route} must return 200 for allowed origin`);
+        assert.strictEqual(optOk.headers.get('access-control-allow-origin'), origin);
+        assert.strictEqual(optOk.headers.get('vary'), 'Origin');
+      }
+
+      const optEvil = await fetch(`${base}${route}`, { method: 'OPTIONS', headers: { Origin: 'https://evil.example' } });
+      assert.strictEqual(optEvil.status, 403, `OPTIONS ${route} must return 403 for foreign origin`);
+      assert.strictEqual(optEvil.headers.get('access-control-allow-origin'), null);
+
+      const optNone = await fetch(`${base}${route}`, { method: 'OPTIONS' });
+      assert.strictEqual(optNone.status, 403, `OPTIONS ${route} must return 403 with no origin`);
+    }
+    console.log('✓ Preflight OPTIONS returns 200 for allowed origins and 403 for foreign/missing origins');
+
     // Evaluation snapshot for the HUD
     let ev = await json(fetch(`${base}/api/evaluation`));
     assert.strictEqual(typeof ev.headline, 'string');
@@ -170,6 +269,51 @@ const json = async (p) => (await p).json();
     assert(!made.evaluation.shortlist.some((p) => p.name === 'Connor McDavid'), 'The drafted player left the short list');
     ws.close();
     console.log('✓ WebSocket INIT_STATE and PICK_MADE carry the evaluation');
+
+    // WebSocket origin verification: foreign origin rejected; allowed origin and no-origin receive INIT_STATE
+    // 1. Foreign origin is rejected
+    await new Promise((resolve, reject) => {
+      const wsEvil = new WebSocket(`ws://localhost:${port}`, { headers: { Origin: 'https://evil.example' } });
+      let rejected = false;
+      wsEvil.on('error', (err) => {
+        rejected = true;
+      });
+      wsEvil.on('open', () => {
+        wsEvil.close();
+        reject(new Error('WebSocket with foreign origin should not open'));
+      });
+      wsEvil.on('close', (code) => {
+        assert(rejected || code === 1008, 'WebSocket connection with foreign origin must be rejected');
+        resolve();
+      });
+    });
+
+    // 2. Allowed origin receives INIT_STATE
+    await new Promise((resolve, reject) => {
+      const wsAllowed = new WebSocket(`ws://localhost:${port}`, { headers: { Origin: 'https://fantasy.espn.com' } });
+      wsAllowed.on('error', reject);
+      wsAllowed.on('message', (raw) => {
+        const msg = JSON.parse(raw);
+        assert.strictEqual(msg.type, 'INIT_STATE');
+        assert(msg.state && msg.evaluation);
+        wsAllowed.close();
+        resolve();
+      });
+    });
+
+    // 3. Client with no origin receives INIT_STATE
+    await new Promise((resolve, reject) => {
+      const wsNoOrigin = new WebSocket(`ws://localhost:${port}`);
+      wsNoOrigin.on('error', reject);
+      wsNoOrigin.on('message', (raw) => {
+        const msg = JSON.parse(raw);
+        assert.strictEqual(msg.type, 'INIT_STATE');
+        assert(msg.state && msg.evaluation);
+        wsNoOrigin.close();
+        resolve();
+      });
+    });
+    console.log('✓ WebSocket origin check: foreign origin rejected, allowed and no-origin receive INIT_STATE');
 
     // Reset changes the reset id
     const before = (await json(fetch(`${base}/api/state`))).resetId;
