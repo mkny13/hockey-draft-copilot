@@ -70,8 +70,14 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Save updated server URL
   btnSave.addEventListener("click", () => {
     const raw = inputSyncUrl.value.trim().replace(/\/$/, "");
-    if (!raw.startsWith("http://") && !raw.startsWith("https://")) {
-      showFeedback("URL must begin with http:// or https://", false);
+    let parsed;
+    try {
+      parsed = new URL(raw);
+    } catch (err) {
+      parsed = null;
+    }
+    if (!parsed || (parsed.protocol !== "http:" && parsed.protocol !== "https:")) {
+      showFeedback("URL must be a valid http:// or https:// address", false);
       return;
     }
 
@@ -88,7 +94,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       updateUI(status);
-      if (status && status.connected) {
+      const isLoopback = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+      if (!isLoopback) {
+        showFeedback("Saved, but the extension only has permission to reach localhost — this host will not sync.", false);
+      } else if (status && status.connected) {
         showFeedback("Saved! Connected successfully.", true);
       } else {
         showFeedback("Saved, but server unreachable.", false);

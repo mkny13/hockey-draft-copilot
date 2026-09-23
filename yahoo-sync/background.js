@@ -2,6 +2,17 @@
 
 const DEFAULT_SYNC_URL = "http://localhost:3333";
 
+function validateSyncUrl(url) {
+  if (typeof url !== "string") return DEFAULT_SYNC_URL;
+  try {
+    const parsed = new URL(url.trim());
+    if (parsed.protocol === "http:" || parsed.protocol === "https:") {
+      return url.trim().replace(/\/$/, "");
+    }
+  } catch (e) {}
+  return DEFAULT_SYNC_URL;
+}
+
 /**
  * Health check service worker for Yahoo Fantasy Hockey Draft Co-Pilot
  * Periodically pings the local Co-Pilot server, records connection status,
@@ -10,7 +21,7 @@ const DEFAULT_SYNC_URL = "http://localhost:3333";
 async function getSyncUrl() {
   try {
     const data = await chrome.storage.local.get("syncUrl");
-    return (data && data.syncUrl) ? data.syncUrl.replace(/\/$/, "") : DEFAULT_SYNC_URL;
+    return (data && data.syncUrl) ? validateSyncUrl(data.syncUrl) : DEFAULT_SYNC_URL;
   } catch (err) {
     return DEFAULT_SYNC_URL;
   }
@@ -69,8 +80,7 @@ async function checkHealth() {
     if (chrome.tabs && chrome.tabs.query) {
       const tabs = await chrome.tabs.query({
         url: [
-          "https://*.espn.com/*",
-          "https://espn.com/*",
+          "https://fantasy.espn.com/*",
           "https://hockey.fantasysports.yahoo.com/*",
           "https://draft.fantasysports.yahoo.com/*"
         ]
@@ -136,8 +146,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "updateSyncUrl") {
     (async () => {
-      const rawUrl = (message.syncUrl || "").trim().replace(/\/$/, "");
-      const newUrl = rawUrl || DEFAULT_SYNC_URL;
+      const newUrl = validateSyncUrl(message.syncUrl);
       await chrome.storage.local.set({ syncUrl: newUrl });
       const fresh = await checkHealth();
       sendResponse(fresh);

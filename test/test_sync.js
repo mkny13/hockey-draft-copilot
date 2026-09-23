@@ -243,6 +243,24 @@ const names = (w) => w.__posts.map((p) => p.name);
     console.log('✓ Manifest references only files that exist');
   }
 
+  // 9. The manifest's permission surface is narrowed to the fantasy draft hosts: no bare
+  // espn.com wildcard that would run the scraper on ESPN news/video/account pages.
+  {
+    const manifest = JSON.parse(fs.readFileSync(path.join(SYNC, 'manifest.json'), 'utf8'));
+    const isBareEspnWildcard = (p) => p === 'https://*.espn.com/*' || p === 'https://espn.com/*';
+
+    assert(!manifest.host_permissions.some(isBareEspnWildcard), 'host_permissions must not grant a bare *.espn.com/espn.com wildcard');
+    assert(!manifest.content_scripts.some((c) => c.matches.some(isBareEspnWildcard)), 'content_scripts.matches must not grant a bare *.espn.com/espn.com wildcard');
+
+    assert(manifest.host_permissions.includes('https://fantasy.espn.com/*'), 'host_permissions must still cover the ESPN draft host');
+    assert(manifest.host_permissions.includes('https://*.fantasysports.yahoo.com/*'), 'host_permissions must still cover the Yahoo fantasy hosts');
+    assert(manifest.host_permissions.includes('http://localhost:3333/*'), 'host_permissions must still cover the local server health check');
+
+    assert(manifest.content_scripts.some((c) => c.matches.includes('https://fantasy.espn.com/*')), 'content_scripts must still match the ESPN draft host');
+    assert(manifest.content_scripts.some((c) => c.matches.includes('https://*.fantasysports.yahoo.com/*')), 'content_scripts must still match the Yahoo fantasy hosts');
+    console.log('✓ Manifest permission surface is narrowed to the fantasy draft hosts');
+  }
+
   console.log('ALL SYNC TESTS PASSED!');
   process.exit(0);
 })().catch((err) => { console.error(err); process.exit(1); });
