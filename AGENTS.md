@@ -41,3 +41,10 @@ npm run test:quick  # engine + data only
 - Keep core game-theory formulas in `public/js/gametheory.js` isomorphic (usable in both Node.js via `require()` and browser via `window.GameTheory`).
 - League positions use **Center (`C`)** and **Forward (`F`)**—not separate LW/RW. Dual-eligible `C, F` players flex to open starting slots without false diminishing penalties.
 - Any new decision rule, EV calculation, or formula change MUST include unit test coverage in `test/test_gametheory.js`. Server behavior belongs in `test/test_server.js`; draft-page scanning belongs in `test/test_sync.js` (reproduce the DOM layout as a fixture).
+
+## Security boundaries
+
+- The server is loopback-only by default (`http://localhost:3333`); it is not exposed beyond the local machine.
+- The extension's `host_permissions` and content-script `matches` cover only the fantasy draft hosts (`https://fantasy.espn.com/*`, `https://*.fantasysports.yahoo.com/*`) plus `http://localhost:3333/*` for the health check — never bare ESPN/Yahoo domains.
+- No credentials or `.env` files are used anywhere in this project.
+- Untrusted draft-room text (player names, stored sync URLs) is escaped at render time in both the app UI and the in-room HUD.
