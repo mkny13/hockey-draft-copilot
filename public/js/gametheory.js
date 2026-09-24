@@ -484,7 +484,7 @@
     var currentPick = options.currentPick || 1, stdDev = options.stdDev || 7.0;
     var draftedSet = options.drafted || {}, mineSet = options.mine || {};
     var rosterCounts = options.rosterCounts || { C: 0, F: 0, D: 0, G: 0, total: 0 };
-    var rosterLimits = options.rosterLimits || { C: 2, F: 6, D: 6, G: 2, FLEX: 6 };
+    var rosterLimits = options.rosterLimits || { C: 2, F: 6, D: 6, G: 2, UTIL: 1, FLEX: 6 };
 
     // Phase
     var phase = computeDraftPhase(options);

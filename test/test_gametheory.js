@@ -641,4 +641,15 @@ assert.strictEqual(makarLegacyOpts.isDiminished, true, 'The legacy D limit (4) w
 assert.strictEqual(makarNoOpts.adjVorp, makarNoOpts.rawVorp, 'FLEX path leaves an under-limit player at full value');
 console.log('✓ evaluateBoard() with no roster options takes the FLEX multiplier path, not the legacy curve');
 
+// 18. evaluateBoard()'s default rosterLimits must include UTIL, so the first
+// starter-overflow pick prices at full value (the UTIL slot), not BENCH_VALUE.
+const dFullCounts = { C: 2, F: 6, D: 6, G: 2, total: 16 };
+const resOverflowNoOpts = GT.evaluateBoard(rawData.players, {
+  currentPick: 40, slot: 5, teams: 8, drafted: {}, mine: {}, rosterCounts: dFullCounts
+});
+const makarOverflowNoOpts = resOverflowNoOpts.availableRows.find((p) => p.name === 'Cale Makar');
+assert.strictEqual(makarOverflowNoOpts.adjVorp, makarOverflowNoOpts.rawVorp, 'With no roster options, the first D overflow past the starter limit must take the UTIL slot at full value, not the BENCH_VALUE discount');
+assert.strictEqual(makarOverflowNoOpts.isDiminished, false, 'The UTIL-slot overflow pick must not be flagged as diminished');
+console.log('✓ evaluateBoard() default rosterLimits price the first overflow pick at UTIL (full value), not BENCH_VALUE');
+
 console.log('ALL GAMETHEORY TESTS PASSED!');
