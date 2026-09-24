@@ -254,6 +254,12 @@ body {
   color: #c9d1d9;
 }
 
+.banner-info {
+  background: rgba(88, 166, 255, 0.1);
+  border-color: var(--accent-dark);
+  color: #c9d1d9;
+}
+
 .direction-headline {
   font-size: 13px;
   font-weight: 700;
