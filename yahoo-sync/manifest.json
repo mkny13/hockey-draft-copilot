@@ -9,7 +9,6 @@
   "host_permissions": [
     "https://fantasy.espn.com/*",
     "https://*.fantasysports.yahoo.com/*",
-    "https://draft.fantasysports.yahoo.com/*",
     "http://localhost:3333/*"
   ],
   "action": {
@@ -23,8 +22,7 @@
     {
       "matches": [
         "https://fantasy.espn.com/*",
-        "https://*.fantasysports.yahoo.com/*",
-        "https://draft.fantasysports.yahoo.com/*"
+        "https://*.fantasysports.yahoo.com/*"
       ],
       "all_frames": true,
       "js": [
