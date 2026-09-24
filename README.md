@@ -1,6 +1,6 @@
 # Fantasy Hockey Draft Game Theory Co-Pilot
 
-A live drafting co-pilot for fantasy hockey. It pairs aggregate player projections (DtZ, DFO, Apples & Ginos, The Athletic) with real-time game theory: on every pick it tells you who to take, who you can safely let slide, and why.
+A live drafting co-pilot for fantasy hockey. It pairs aggregate player projections (DtZ, DFO, Apples & Ginos) with real-time game theory: on every pick it tells you who to take, who you can safely let slide, and why.
 
 Built and tested for an 8-team ESPN league (**C2 · F6 · D6 · UTIL1 · G2 · BN5**, 22 rounds), but the roster limits are read from `draft_data.json`, so other league shapes are a config change away. A Chrome extension can stream picks from the ESPN or Yahoo draft room so you never type a pick by hand.
 
@@ -24,7 +24,7 @@ cd hockey-draft-copilot
 ./start.sh          # installs deps, runs quick tests, starts the server, opens the browser
 ```
 
-Or manually: `npm install && npm start`, then open <http://localhost:3333>. The server binds to loopback (`127.0.0.1`) by default; set `HOST=0.0.0.0` if you need to access it over your local network.
+Or manually: `npm install && npm start`, then open <http://localhost:3333>. The server binds to loopback (`127.0.0.1`) by default; set `HOST=0.0.0.0` if you need to access it over your local network. Server configuration is controlled by environment variables: `PORT` (default `3333`), `HOST` (default `127.0.0.1`), `DRAFT_STATE_FILE` (draft state file path, default `draft_state.json`), and `WS_PING_MS` (WebSocket keepalive ping interval in milliseconds, default `30000`).
 
 ### Using it in a draft
 
@@ -105,11 +105,10 @@ Located in [`yahoo-sync/`](yahoo-sync/):
 - **Live-verified on ESPN** (practice draft, 8 teams, slot 5): all 176 picks synced contiguously with no duplicates; the 22 picks marked mine sat exactly on the snake numbers; ESPN's own roster matched. ESPN renders each pick as `Name / TEAM POS` + `R#, P# - Team` in the right-hand Picks feed, which is what the scanner reads. ESPN's pick clock is ~30s and auto-enables Autopick when it lapses, so drive your own picks quickly (or queue them).
 - **Live HUD (click the badge)**: connection status, pick counts, scan/reset controls, quick-add, and the decision panel: current headline and subtext, the top-5 short list with survival odds, and the game-theory trade-off verdict. On ESPN it docks over the Picks sidebar (`espn-layout`, right-aligned, 276px wide). The server attaches an `evaluation` snapshot to every WebSocket broadcast.
 - **Server-side pick handling**: names are canonicalised to the board's spelling (accents/case/punctuation), positions and team are filled from the board, duplicates are rejected, and undo restores the undone pick's number.
+- **Pick-history integrity and repairs**: the server continuously maintains a live `pickHistoryIntegrity` snapshot (recording `missing` pick numbers below `currentPick`, `repeated` picks, and `duplicateNames`), exposed on `/api/state` and included in every WebSocket broadcast. When a draft room misses a toast or desyncs, the UI displays an integrity warning banner; drafters can backfill missed picks via `POST /api/repair-pick` (with `pickNumber` and `name`) without advancing `currentPick`, or remove specific historical entries via targeted undo.
 - **Bookmarklet**: alternative to the extension (`public/js/bookmarklet.js`, served to the app's sync modal).
 
 **Security boundaries**: the Co-Pilot server binds to loopback (`127.0.0.1`) by default (`HOST=0.0.0.0` is an opt-in for LAN access); CORS headers and WebSocket connections are scoped to draft origins (`*.espn.com`, `*.yahoo.com`) and localhost/127.0.0.1 (foreign origins cannot read `/api/state`, `/api/report`, or `/draft_data.json`, and preflight/handshakes are rejected); the extension's `host_permissions` reach only the fantasy draft hosts (`fantasy.espn.com`, `*.fantasysports.yahoo.com`) and `localhost:3333`, not ESPN/Yahoo at large. No credentials or `.env` files are used anywhere. Untrusted draft-room text (player names, sync URLs) is escaped at render time before it reaches the DOM.
-
----
 
 ---
 
@@ -125,8 +124,10 @@ Plain Node `assert`, no framework. `jsdom` (dev dependency) simulates the draft-
 |---|---|
 | `test/test_gametheory.js` | Normal CDF and $P_{survive}$, snake scheduling, cliff alerts, C/F rules, EVONA comparator, survival-weighted fallbacks (`findNextAlt`), UTIL / bench / must-fill logic, negative-VORP guard, strict shortlist order (input-order independent), draft-complete state, roster counting, post-draft grader, Monte Carlo |
 | `test/test_data.js` | Board integrity: 820 unique players, league config, clean one-decimal ADP (guards the old corrupt-parse bug), top-200 ADP coverage, single `draft_data.json` board guarded (no `public/` duplicate), extension name lookup matches the board |
-| `test/test_server.js` | Spawns the real server (temp state file): league limits, canonical names, snake-schedule ownership, manual override, pick numbering, undo, settings clamp, origin check, evaluation snapshot, WebSocket broadcasts, reset |
+| `test/test_server.js` | Spawns the real server (temp state file via `DRAFT_STATE_FILE`): league limits, canonical names, snake-schedule ownership, manual override, pick numbering, undo, settings clamp, origin check, evaluation snapshot, WebSocket broadcasts, reset |
 | `test/test_sync.js` | Runs the real extension content script and the bookmarklet in jsdom: wrapper-with-available-list layout (the "top available player recorded as a pick" bug), player-pool guard, marker order, dynamic toasts, retry after network failure, HUD rendering, badge state, manifest sanity |
+| `test/test_app.js` | App UI in jsdom: untrusted text escaping / XSS protection across board, shortlist, comparator, reports, and Monte Carlo; live pick-history integrity banner, repair-pick control, and targeted undo |
+| `test/test_docs.js` | Documentation surface guard: asserts all server routes, test files, and environment variables are documented across README.md, AGENTS.md, and package.json |
 | `test/test_mock_draft.js` | Strategy regression: the engine beats a pure-ADP drafter, fills 2 goalies and a full lineup, and drafts are deterministic |
 
 ---
@@ -143,7 +144,7 @@ The Co-Pilot's recommended pick drives one team; the other seven draft from ESPN
 
 ## Architecture & Code Map
 
-- `server.js`: Node.js Express & WebSocket server (`PORT=3333`, loopback default `HOST=127.0.0.1`, LAN opt-in `HOST=0.0.0.0`). Manages live draft state (`draft_state.json`), CORS-scoped `/api/pick`, `/api/undo`, `/api/reset`, `/api/settings`, `/api/state`, `/api/evaluation`, `/api/report`, and live WS broadcast (with origin verification and an `evaluation` snapshot for the HUD). League roster limits are derived from `draft_data.json` on every load.
+- `server.js`: Node.js Express & WebSocket server (`PORT=3333`, loopback default `HOST=127.0.0.1`, LAN opt-in `HOST=0.0.0.0`, `WS_PING_MS=30000` keepalive). Manages live draft state (`draft_state.json`, overrideable via `DRAFT_STATE_FILE`), live `pickHistoryIntegrity` snapshot, scoped origin allowlist, `/api/pick`, `/api/undo`, `/api/repair-pick`, `/api/reset`, `/api/settings`, `/api/state`, `/api/evaluation`, `/api/report`, `/draft_data.json`, and live WS broadcast (with origin verification and an `evaluation` snapshot for the HUD). League roster limits are derived from `draft_data.json` on every load.
 - `public/js/gametheory.js`: Mathematical game-theory engine (isomorphic): survival odds ($P_{survive}$), snake schedule, roster counting and flex/must-fill logic, diminishing returns, target trade-offs (`computeTargetTradeoffs`), top matchup (`getTopMatchup`), 2-round EVONA comparator (`comparePlayersGameTheory`, `findNextAlt`), post-draft grader, and Monte Carlo.
 - `public/js/app.js`: Client-side UI controller, search, reactive table rendering, shortlisted cards with trade-off callouts, auto-comparator handler, and WebSocket receiver.
 - `public/css/style.css`: High-contrast dark theme optimized for drafting under time pressure.
