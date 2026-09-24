@@ -152,7 +152,7 @@ The Co-Pilot's recommended pick drives one team; the other seven draft from ESPN
 - `scripts/ingest_espn_adp.js`: merges ESPN ADP from Hashtag Hockey only into `draft_data.json`. Values must be plain numbers with at most one decimal; Daily Faceoff's text has columns glued together and produced corrupt values, so it is no longer used.
 - `scripts/mock_draft.js`: seeded mock-draft / Monte Carlo simulator (see above).
 - `docs/screenshots/`: images used by this README.
-- `yahoo-sync/`: Complete Manifest V3 extension for `fantasy.espn.com` and `draft.fantasysports.yahoo.com`.
+- `yahoo-sync/`: Complete Manifest V3 extension for `fantasy.espn.com` and `*.fantasysports.yahoo.com`.
 
 ---
 

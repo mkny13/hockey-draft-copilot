@@ -243,21 +243,37 @@ const names = (w) => w.__posts.map((p) => p.name);
   }
 
   // 9. The manifest's permission surface is narrowed to the fantasy draft hosts: no bare
-  // espn.com wildcard that would run the scraper on ESPN news/video/account pages.
+  // espn.com/yahoo.com wildcard that would run the scraper on ESPN news/video/account pages,
+  // and no redundant entries beyond the exact pinned boundary.
   {
     const manifest = JSON.parse(fs.readFileSync(path.join(SYNC, 'manifest.json'), 'utf8'));
-    const isBareEspnWildcard = (p) => p === 'https://*.espn.com/*' || p === 'https://espn.com/*';
+    const isBareWildcard = (p) =>
+      p === 'https://*.espn.com/*' ||
+      p === 'https://espn.com/*' ||
+      p === 'https://*.yahoo.com/*' ||
+      p === 'https://yahoo.com/*';
 
-    assert(!manifest.host_permissions.some(isBareEspnWildcard), 'host_permissions must not grant a bare *.espn.com/espn.com wildcard');
-    assert(!manifest.content_scripts.some((c) => c.matches.some(isBareEspnWildcard)), 'content_scripts.matches must not grant a bare *.espn.com/espn.com wildcard');
+    assert(!manifest.host_permissions.some(isBareWildcard), 'host_permissions must not grant a bare espn.com/yahoo.com wildcard');
+    assert(!manifest.content_scripts.some((c) => c.matches.some(isBareWildcard)), 'content_scripts.matches must not grant a bare espn.com/yahoo.com wildcard');
 
-    assert(manifest.host_permissions.includes('https://fantasy.espn.com/*'), 'host_permissions must still cover the ESPN draft host');
-    assert(manifest.host_permissions.includes('https://*.fantasysports.yahoo.com/*'), 'host_permissions must still cover the Yahoo fantasy hosts');
-    assert(manifest.host_permissions.includes('http://localhost:3333/*'), 'host_permissions must still cover the local server health check');
-
-    assert(manifest.content_scripts.some((c) => c.matches.includes('https://fantasy.espn.com/*')), 'content_scripts must still match the ESPN draft host');
-    assert(manifest.content_scripts.some((c) => c.matches.includes('https://*.fantasysports.yahoo.com/*')), 'content_scripts must still match the Yahoo fantasy hosts');
-    console.log('✓ Manifest permission surface is narrowed to the fantasy draft hosts');
+    assert.deepStrictEqual(
+      manifest.host_permissions,
+      ['https://fantasy.espn.com/*', 'https://*.fantasysports.yahoo.com/*', 'http://localhost:3333/*'],
+      'host_permissions must be exactly the pinned draft-host + localhost boundary'
+    );
+    assert.deepStrictEqual(
+      manifest.permissions,
+      ['storage'],
+      'permissions must be exactly ["storage"]'
+    );
+    manifest.content_scripts.forEach((c) => {
+      assert.deepStrictEqual(
+        c.matches,
+        ['https://fantasy.espn.com/*', 'https://*.fantasysports.yahoo.com/*'],
+        'content_scripts.matches must be exactly the pinned draft-host boundary'
+      );
+    });
+    console.log('✓ Manifest permission surface is pinned to the exact fantasy draft host boundary');
   }
 
   console.log('ALL SYNC TESTS PASSED!');
