@@ -18,8 +18,20 @@ const GameTheory = require('./public/js/gametheory.js');
 
 // Lazily cached master player board for report grading
 let dataCache = null;
+let playerIndex = null; // normName -> player
 function loadData() {
-  if (!dataCache) dataCache = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+  if (!dataCache) {
+    dataCache = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'));
+    playerIndex = new Map();
+    const players = dataCache.players || [];
+    for (const player of players) {
+      const key = normName(player.n || player.name);
+      // Collision behavior matches .find(): first row wins
+      if (key && !playerIndex.has(key)) {
+        playerIndex.set(key, player);
+      }
+    }
+  }
   return dataCache;
 }
 function loadPlayers() {
@@ -42,8 +54,9 @@ function normName(s) {
 
 // Master board row for a synced pick name (accent/punctuation-insensitive)
 function findPlayer(name) {
+  loadData();
   const key = normName(name);
-  return loadPlayers().find((p) => normName(p.n || p.name) === key) || null;
+  return playerIndex.get(key) || null;
 }
 
 // --- Request Validation Helpers ---
@@ -204,7 +217,7 @@ app.use((req, res, next) => {
 
 // The browser loads the board from here so the local override reaches the UI too
 app.get('/draft_data.json', (req, res) => {
-  res.set('Cache-Control', 'no-store');
+  res.set('Cache-Control', 'no-cache, must-revalidate');
   res.sendFile(DATA_FILE);
 });
 
@@ -218,8 +231,19 @@ app.use(express.static(path.join(__dirname, 'public'), {
   }
 }));
 
+// State revision counter and memoized board evaluation
+let stateRevision = 0;
+let evaluationCache = null;
+let evaluationCallCount = 0;
+
+function bumpState() {
+  stateRevision++;
+  evaluationCache = null;
+}
+
 // Default draft state factory: produces fresh sub-objects every time
 function makeDefaultState() {
+  bumpState();
   return {
     currentPick: 1,
     slot: 5,
@@ -243,6 +267,7 @@ function loadState() {
       const loaded = JSON.parse(data);
       // League slots always come from the board data, never from a stale saved state
       draftState = { ...defaults, ...loaded, rosterLimits: defaults.rosterLimits };
+      bumpState();
       console.log(`Loaded state: Pick ${draftState.currentPick}, ${draftState.pickHistory.length} picks recorded.`);
     } else {
       draftState = defaults;
@@ -250,13 +275,14 @@ function loadState() {
   } catch (err) {
     console.error('Error loading state from disk, using defaults:', err);
     draftState = defaults;
+    bumpState();
   }
 }
 
 function saveState() {
   const tmpFile = `${STATE_FILE}.tmp`;
   try {
-    fs.writeFileSync(tmpFile, JSON.stringify(draftState, null, 2), 'utf8');
+    fs.writeFileSync(tmpFile, JSON.stringify(draftState), 'utf8');
     fs.renameSync(tmpFile, STATE_FILE);
   } catch (err) {
     console.error('Error saving state to disk:', err);
@@ -323,6 +349,10 @@ wss.on('close', () => {
 
 // Live decision snapshot for the in-room HUD (headline, short list, top trade-off)
 function buildEvaluation() {
+  if (evaluationCache && evaluationCache.revision === stateRevision) {
+    return evaluationCache.evaluation;
+  }
+  evaluationCallCount++;
   const res = GameTheory.evaluateBoard(loadPlayers(), {
     currentPick: draftState.currentPick,
     slot: draftState.slot,
@@ -334,7 +364,7 @@ function buildEvaluation() {
     rosterLimits: draftState.rosterLimits
   });
   const live = res.liveProtocol || {};
-  return {
+  const evaluation = {
     onTheClock: res.onTheClock,
     draftComplete: res.draftComplete,
     rosterComplete: res.rosterComplete,
@@ -354,9 +384,11 @@ function buildEvaluation() {
       adjVorp: p.adjVorp
     })),
     tradeoff: !res.draftComplete && !res.rosterComplete && res.topMatchup && res.topMatchup.cmp ? res.topMatchup.cmp.verdict : '',
-    // Always fresh so the HUD banner can warn the moment a pick number goes dark
+    // Derived purely from draftState and safely memoized with the evaluation snapshot
     pickHistoryIntegrity: getPickHistoryIntegrity(draftState)
   };
+  evaluationCache = { revision: stateRevision, evaluation };
+  return evaluation;
 }
 
 function broadcast(type, payload) {
@@ -412,7 +444,9 @@ app.get('/api/state', (req, res) => {
 
 app.get('/api/evaluation', (req, res) => {
   try {
-    res.json(buildEvaluation());
+    const evaluation = buildEvaluation();
+    res.setHeader('x-evaluation-count', String(evaluationCallCount));
+    res.json(evaluation);
   } catch (err) {
     console.error('Evaluation failed:', err);
     res.status(500).json({ error: 'Evaluation failed' });
@@ -477,6 +511,7 @@ app.post('/api/pick', (req, res) => {
 
   draftState.pickHistory.push(entry);
   draftState.currentPick = Math.max(draftState.currentPick, pickNum) + 1;
+  bumpState();
   refreshIntegrity();
   saveState();
 
@@ -518,6 +553,7 @@ app.post('/api/undo', (req, res) => {
   if (wasLatest) {
     draftState.currentPick = Math.max(1, removed.pickNumber || draftState.currentPick - 1);
   }
+  bumpState();
   refreshIntegrity();
   saveState();
 
@@ -577,6 +613,7 @@ app.post('/api/repair-pick', (req, res) => {
   else draftState.drafted[cleanName] = true;
 
   // The counter never moves: this pick was on the clock long ago
+  bumpState();
   refreshIntegrity();
   saveState();
 
@@ -592,6 +629,7 @@ app.post('/api/reset', (req, res) => {
   draftState.mine = {};
   draftState.pickHistory = [];
   draftState.resetId = Date.now();
+  bumpState();
   refreshIntegrity();
   saveState();
 
@@ -700,21 +738,27 @@ app.post('/api/settings', (req, res) => {
   }
 
   // A manual counter jump can open or close gaps below it
+  bumpState();
   refreshIntegrity();
   saveState();
   broadcast('SETTINGS_UPDATED', draftState);
   res.json({ success: true, state: draftState });
 });
 
-// Start Server
-server.listen(PORT, HOST, () => {
-  console.log(`====================================================`);
-  console.log(`  🏒 FANTASY HOCKEY GAME THEORY CO-PILOT IS LIVE!   `);
-  console.log(`  Host:          ${HOST}`);
-  console.log(`  Web App:       http://${HOST}:${PORT}           `);
-  console.log(`  Live Sync API: http://${HOST}:${PORT}/api/pick  `);
-  console.log(`====================================================`);
-});
+// Start Server when run directly
+if (require.main === module) {
+  server.listen(PORT, HOST, () => {
+    console.log(`====================================================`);
+    console.log(`  🏒 FANTASY HOCKEY GAME THEORY CO-PILOT IS LIVE!   `);
+    console.log(`  Host:          ${HOST}`);
+    console.log(`  Web App:       http://${HOST}:${PORT}           `);
+    console.log(`  Live Sync API: http://${HOST}:${PORT}/api/pick  `);
+    console.log(`====================================================`);
+  });
+
+  process.on('SIGINT', () => shutdown('SIGINT'));
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+}
 
 // Graceful shutdown
 let isShuttingDown = false;
@@ -760,6 +804,22 @@ function shutdown(signal) {
   });
 }
 
-process.on('SIGINT', () => shutdown('SIGINT'));
-process.on('SIGTERM', () => shutdown('SIGTERM'));
+module.exports = {
+  app,
+  server,
+  wss,
+  buildEvaluation,
+  findPlayer,
+  bumpState,
+  loadData,
+  loadPlayers,
+  loadState,
+  saveState,
+  makeDefaultState,
+  getEvaluationCount: () => evaluationCallCount,
+  getStateRevision: () => stateRevision,
+  getDraftState: () => draftState,
+  setDraftState: (s) => { draftState = s; bumpState(); },
+  shutdown
+};
 

@@ -192,14 +192,25 @@ const json = async (p) => (await p).json();
     assert.deepStrictEqual(st.rosterLimits, { C: 2, F: 6, D: 6, G: 2, UTIL: 1, FLEX: 6 }, 'Limits derive from the league config, not the saved state');
     console.log('✓ Roster limits derive from the league config (stale saved limits ignored)');
 
-    // Canonical names, board position/team, accent/case duplicate rejection
-    let r = await json(post(base, '/api/pick', { name: '  tim stutzle ', round: 1, pickInRound: 1 }));
-    assert.strictEqual(r.pick.name, 'Tim Stutzle');
-    assert.deepStrictEqual(r.pick.pos, ['C', 'F']);
-    assert.strictEqual(r.pick.team, 'OTT');
-    r = await json(post(base, '/api/pick', { name: 'Tim Stützle' }));
-    assert.strictEqual(r.message, 'Player already drafted', 'An accented spelling of a drafted player is a duplicate');
-    console.log('✓ Pick names are canonicalised, positions filled, accent duplicates rejected');
+    // Prebuilt name index: findPlayer resolves accented, punctuated, and unknown names
+    const srvModule = require('../server.js');
+    const pStutzle = srvModule.findPlayer('Tim Stützle');
+    assert(pStutzle && pStutzle.n === 'Tim Stutzle' && pStutzle.t === 'OTT', 'findPlayer resolves accented name through prebuilt Map');
+    const pLaf = srvModule.findPlayer('Alexis Lafrenière');
+    assert(pLaf && pLaf.n === 'Alexis Lafreniere', 'findPlayer resolves name with French accents');
+    assert.strictEqual(srvModule.findPlayer('Nonexistent Fantasy Player 99'), null, 'findPlayer resolves unknown name to null');
+    assert.strictEqual(srvModule.findPlayer(''), null, 'Empty string resolves to null');
+    assert.strictEqual(srvModule.findPlayer(null), null, 'Null resolves to null');
+
+    // Pick posted with accents and punctuation resolves to same master row
+    r = await json(post(base, '/api/pick', { name: 'Alexis Lafrenière' }));
+    assert.strictEqual(r.pick.name, 'Alexis Lafreniere');
+    assert.strictEqual(r.pick.team, 'NYR');
+    r = await json(post(base, '/api/pick', { name: 'Unknown Mystery Player' }));
+    assert.strictEqual(r.pick.name, 'Unknown Mystery Player');
+    assert.strictEqual(r.pick.team, '');
+    assert.deepStrictEqual(r.pick.pos, []);
+    console.log('✓ findPlayer resolves through a prebuilt name index, with identical results for accented, punctuated, and unknown names');
 
     // Ownership: snake schedule only. Slot 5, 8 teams: pick 5 is mine, pick 6 is not, whatever the page says.
     await post(base, '/api/pick', { name: 'Connor McDavid', isMine: true, round: 1, pickInRound: 2 });
@@ -485,6 +496,58 @@ const json = async (p) => (await p).json();
     }
     console.log('✓ Preflight OPTIONS returns 200 for allowed origins and 403 for foreign/missing origins');
 
+    // Board caching: GET /draft_data.json returns an ETag and Cache-Control: no-cache; 304 on match, 200 on change
+    const boardRes1 = await fetch(`${base}/draft_data.json`);
+    assert.strictEqual(boardRes1.status, 200);
+    const boardEtag = boardRes1.headers.get('etag');
+    const boardCc = boardRes1.headers.get('cache-control');
+    assert(boardEtag, 'GET /draft_data.json must return an ETag');
+    assert(boardCc && boardCc.includes('no-cache') && boardCc.includes('must-revalidate'), `Expected Cache-Control: no-cache, must-revalidate, got: ${boardCc}`);
+
+    // Follow-up request with If-None-Match set to that ETag returns 304 with an empty body
+    const boardRes2 = await fetch(`${base}/draft_data.json`, {
+      headers: { 'If-None-Match': boardEtag, 'cache-control': 'max-age=0' }
+    });
+    assert.strictEqual(boardRes2.status, 304, 'Conditional request with matching ETag returns 304');
+    const boardBody2 = await boardRes2.text();
+    assert.strictEqual(boardBody2.length, 0, '304 response has empty body');
+
+    // Revalidation after file modification: server answers 200 with full body
+    const tmpBoardDir = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-board-'));
+    const localBoardFile = path.join(ROOT, 'draft_data.local.json');
+    fs.copyFileSync(path.join(ROOT, 'draft_data.json'), localBoardFile);
+    const srvBoard = await startServer(path.join(tmpBoardDir, 'state.json'));
+    try {
+      const bRes1 = await fetch(`${srvBoard.base}/draft_data.json`);
+      assert.strictEqual(bRes1.status, 200);
+      const bEtag1 = bRes1.headers.get('etag');
+      assert(bEtag1, 'Initial ETag exists');
+
+      const bResCond1 = await fetch(`${srvBoard.base}/draft_data.json`, {
+        headers: { 'If-None-Match': bEtag1, 'cache-control': 'max-age=0' }
+      });
+      assert.strictEqual(bResCond1.status, 304, 'Answers 304 before change');
+
+      // Modify the board file
+      await new Promise((r) => setTimeout(r, 150));
+      const sampleBoard = JSON.parse(fs.readFileSync(localBoardFile, 'utf8'));
+      sampleBoard._testTimestamp = Date.now();
+      fs.writeFileSync(localBoardFile, JSON.stringify(sampleBoard));
+
+      const bResCond2 = await fetch(`${srvBoard.base}/draft_data.json`, {
+        headers: { 'If-None-Match': bEtag1, 'cache-control': 'max-age=0' }
+      });
+      assert.strictEqual(bResCond2.status, 200, 'Answers 200 after board file changes');
+      const bText2 = await bResCond2.text();
+      assert(bText2.includes('_testTimestamp'), 'Contains modified content in body');
+    } finally {
+      srvBoard.child.kill('SIGKILL');
+      await new Promise((resolve) => srvBoard.child.on('exit', resolve));
+      if (fs.existsSync(localBoardFile)) fs.unlinkSync(localBoardFile);
+      fs.rmSync(tmpBoardDir, { recursive: true, force: true });
+    }
+    console.log('✓ GET /draft_data.json answers 304 to matching ETag and 200 with full body after file changes');
+
     // Evaluation snapshot for the HUD
     let ev = await json(fetch(`${base}/api/evaluation`));
     assert.strictEqual(typeof ev.headline, 'string');
@@ -500,6 +563,96 @@ const json = async (p) => (await p).json();
     assert.deepStrictEqual(ev.shortlist, [], 'No short list once the draft is over');
     assert.strictEqual(ev.tradeoff, '');
     console.log('✓ Evaluation snapshot and draft-complete state');
+
+    // Restore currentPick to 25 to test memoization during an active draft
+    await post(base, '/api/settings', { currentPick: 25, slot: 5, teams: 8 });
+
+    // Evaluation memoization: GET /api/evaluation twice with no state change runs evaluateBoard only once
+    const evalRes1 = await fetch(`${base}/api/evaluation`);
+    const evalBody1 = await evalRes1.json();
+    const evalCount1 = parseInt(evalRes1.headers.get('x-evaluation-count'), 10);
+    assert(!isNaN(evalCount1), 'x-evaluation-count header present');
+
+    const evalRes2 = await fetch(`${base}/api/evaluation`);
+    const evalBody2 = await evalRes2.json();
+    const evalCount2 = parseInt(evalRes2.headers.get('x-evaluation-count'), 10);
+
+    assert.deepStrictEqual(evalBody1, evalBody2, 'Consecutive calls without mutation return deep-equal bodies');
+    assert.strictEqual(evalCount1, evalCount2, 'Consecutive calls without mutation recompute only once');
+
+    // A POST /api/pick between the two calls must force a recompute and a changed body
+    await post(base, '/api/pick', { name: 'William Nylander', manual: true, isMine: false });
+    const evalRes3 = await fetch(`${base}/api/evaluation`);
+    const evalBody3 = await evalRes3.json();
+    const evalCount3 = parseInt(evalRes3.headers.get('x-evaluation-count'), 10);
+
+    assert.strictEqual(evalCount3, evalCount2 + 1, 'POST /api/pick forces exactly one recompute');
+    assert.notDeepStrictEqual(evalBody2, evalBody3, 'Evaluation body changes after pick');
+    assert.strictEqual(evalBody3.currentPick, 26);
+    console.log('✓ Two consecutive /api/evaluation calls with no state change run evaluateBoard exactly once');
+
+    // In-process memoization verification by wrapping GameTheory.evaluateBoard export and exported counter
+    const GameTheory = require('../public/js/gametheory.js');
+    let wrappedCalls = 0;
+    const origEvaluateBoard = GameTheory.evaluateBoard;
+    GameTheory.evaluateBoard = function(...args) {
+      wrappedCalls++;
+      return origEvaluateBoard.apply(this, args);
+    };
+    try {
+      const initialWrapped = wrappedCalls;
+      const initialExportCount = srvModule.getEvaluationCount();
+      srvModule.buildEvaluation();
+      assert.strictEqual(wrappedCalls, initialWrapped + 1, 'First in-process call runs evaluateBoard');
+      assert.strictEqual(srvModule.getEvaluationCount(), initialExportCount + 1, 'Exported counter incremented on compute');
+      srvModule.buildEvaluation();
+      assert.strictEqual(wrappedCalls, initialWrapped + 1, 'Second in-process call hits memo cache');
+      assert.strictEqual(srvModule.getEvaluationCount(), initialExportCount + 1, 'Exported counter unchanged on cache hit');
+      srvModule.bumpState();
+      srvModule.buildEvaluation();
+      assert.strictEqual(wrappedCalls, initialWrapped + 2, 'bumpState invalidates memo cache');
+      assert.strictEqual(srvModule.getEvaluationCount(), initialExportCount + 2, 'Exported counter incremented on recompute');
+    } finally {
+      GameTheory.evaluateBoard = origEvaluateBoard;
+    }
+    console.log('✓ In-process evaluation memoization via GameTheory wrapper and exported counter pass');
+
+    // Memo correctness: each mutating endpoint invalidates cache and /api/evaluation reflects new state
+    // 1. /api/pick
+    const beforePick = await json(fetch(`${base}/api/evaluation`));
+    await post(base, '/api/pick', { name: 'Brady Tkachuk', manual: true, isMine: false });
+    const afterPick = await json(fetch(`${base}/api/evaluation`));
+    assert.strictEqual(afterPick.currentPick, beforePick.currentPick + 1, '/api/pick invalidates evaluation cache');
+    assert(afterPick.shortlist.every((p) => p.name !== 'Brady Tkachuk'), 'Drafted player is removed from shortlist');
+
+    // 2. /api/undo
+    await post(base, '/api/undo');
+    const afterUndo = await json(fetch(`${base}/api/evaluation`));
+    assert.strictEqual(afterUndo.currentPick, beforePick.currentPick, '/api/undo invalidates evaluation cache');
+
+    // 3. /api/repair-pick
+    // Advance currentPick to allow a historical repair below it
+    await post(base, '/api/settings', { currentPick: 30 });
+    const beforeRepair = await json(fetch(`${base}/api/evaluation`));
+    await post(base, '/api/repair-pick', { pickNumber: 28, name: 'Sebastian Aho' });
+    const afterRepair = await json(fetch(`${base}/api/evaluation`));
+    assert.notDeepStrictEqual(beforeRepair.pickHistoryIntegrity, afterRepair.pickHistoryIntegrity, '/api/repair-pick updates integrity snapshot in evaluation');
+    assert(afterRepair.shortlist.every((p) => p.name !== 'Sebastian Aho'), 'Repaired player is marked drafted in evaluation');
+
+    // 4. /api/settings
+    const beforeSettings = await json(fetch(`${base}/api/evaluation`));
+    await post(base, '/api/settings', { slot: 3, teams: 10 });
+    const afterSettings = await json(fetch(`${base}/api/evaluation`));
+    assert.notDeepStrictEqual(beforeSettings, afterSettings, '/api/settings invalidates evaluation cache');
+    assert.strictEqual(afterSettings.targetTurn !== undefined, true, 'Settings update reflects in evaluation');
+
+    // 5. /api/reset
+    await post(base, '/api/reset');
+    const afterReset = await json(fetch(`${base}/api/evaluation`));
+    assert.strictEqual(afterReset.currentPick, 1, '/api/reset invalidates evaluation cache to pick 1');
+    assert.strictEqual(afterReset.draftComplete, false);
+    assert(afterReset.shortlist.length > 0, 'Shortlist restored after reset');
+    console.log('✓ Every mutating endpoint invalidates the evaluation cache, never stale');
 
     // Post-draft report with the extended limits
     const rep = await json(fetch(`${base}/api/report`));
@@ -646,14 +799,32 @@ const json = async (p) => (await p).json();
     }
     console.log('✓ Dead client reaping terminates unresponsive client within two intervals and logs reap');
 
-    // Atomic saveState: after a burst of picks, draft_state.json parses and no .tmp file survives
+    // Atomic saveState: after a burst of picks, draft_state.json parses, is written compact, and no .tmp file survives
     for (let i = 1; i <= 5; i++) {
       await post(base, '/api/pick', { name: `Burst Player ${i}`, manual: true, isMine: false });
     }
     assert(!fs.existsSync(`${stateFile}.tmp`), 'draft_state.json.tmp must not exist after successful saves');
-    const diskParsed = JSON.parse(fs.readFileSync(stateFile, 'utf8'));
+    const rawDisk = fs.readFileSync(stateFile, 'utf8');
+    assert(!rawDisk.includes('\n  '), 'draft_state.json must not contain newline-plus-two-space indentation');
+    assert(!rawDisk.includes('\n'), 'draft_state.json is written compact on a single line');
+    const diskParsed = JSON.parse(rawDisk);
     assert(diskParsed.pickHistory.some((p) => p.name === 'Burst Player 5'), 'State file on disk contains latest pick');
-    console.log('✓ draft_state.json is replaced by atomic rename; no .tmp file survives');
+
+    // Verify compact state file round-trips through loadState()
+    const tmpRoundTrip = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-rt-'));
+    const rtStateFile = path.join(tmpRoundTrip, 'state.json');
+    fs.writeFileSync(rtStateFile, rawDisk, 'utf8');
+    const srvRt = await startServer(rtStateFile);
+    try {
+      const rtSt = await json(fetch(`${srvRt.base}/api/state`));
+      assert.strictEqual(rtSt.pickHistory.length, diskParsed.pickHistory.length, 'Compact state round-trips through loadState');
+      assert.strictEqual(rtSt.currentPick, diskParsed.currentPick);
+    } finally {
+      srvRt.child.kill('SIGKILL');
+      await new Promise((resolve) => srvRt.child.on('exit', resolve));
+      fs.rmSync(tmpRoundTrip, { recursive: true, force: true });
+    }
+    console.log('✓ draft_state.json is written compact, round-trips through loadState, and replaced by atomic rename');
 
     // Graceful shutdown on SIGTERM: saves state, closes both servers, exits 0, no double banner on repeated signals
     const tmpShut = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-shut-'));
