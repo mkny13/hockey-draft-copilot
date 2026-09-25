@@ -764,8 +764,21 @@
     }
   }
 
+  var ACTION_BUTTONS_HTML = `
+            <button class="btn-icon btn-tbl-mine" title="Draft to My Team" style="display:inline-flex; width:26px; color:#7ee787;">+</button>
+            <button class="btn-icon btn-tbl-draft" title="Drafted by Opponent" style="display:inline-flex; width:26px; color:var(--text-muted);">✓</button>
+          `;
+  var ACTION_MYTEAM_HTML = `<span style="font-size:10px; color:var(--text-dim);">MY TEAM</span>`;
+  var ACTION_TAKEN_HTML = `<span style="font-size:10px; color:var(--text-dim);">TAKEN</span>`;
+
+  var ACTION_BADGE_CLASSES = {
+    "MUST REACH (Cliff)": "badge-must-reach",
+    "NOW OR NEVER": "badge-now-or-never",
+    "WAIT (ADP Safe)": "badge-wait"
+  };
+
   function renderBoardTable() {
-    var rows = state.evalResult.allRows;
+    var rows = (state.evalResult && state.evalResult.allRows) || [];
     tableTbody.innerHTML = "";
 
     var filter = state.posFilter;
@@ -773,6 +786,7 @@
     var hideDrafted = state.hideDrafted;
 
     var displayedCount = 0;
+    var fragment = document.createDocumentFragment();
 
     for (var i = 0; i < rows.length; i++) {
       var p = rows[i];
@@ -796,12 +810,11 @@
       if (p.isMine) tr.className = "is-myteam";
       else if (p.isDrafted) tr.className = "is-drafted";
 
-      var badgeClass = "badge-target";
-      if (p.isMine) badgeClass = "badge-myteam";
-      else if (p.isDrafted) badgeClass = "badge-drafted";
-      else if (p.action === "MUST REACH (Cliff)") badgeClass = "badge-must-reach";
-      else if (p.action === "NOW OR NEVER") badgeClass = "badge-now-or-never";
-      else if (p.action === "WAIT (ADP Safe)") badgeClass = "badge-wait";
+      var badgeClass = p.isMine
+        ? "badge-myteam"
+        : (p.isDrafted
+          ? "badge-drafted"
+          : (ACTION_BADGE_CLASSES[p.action] || "badge-target"));
 
       var survText = p.isDrafted ? "-" : (p.survivalProb * 100).toFixed(0) + "%";
       var cliffText = p.dropoff > 0 ? "+" + p.dropoff.toFixed(1) : "-";
@@ -824,10 +837,7 @@
         <td class="num" style="color:${p.adpDelta >= 20 ? 'var(--green)' : 'var(--text-muted)'};">${deltaText}</td>
         <td class="num" style="color:var(--text-dim);">${fpVal}</td>
         <td style="text-align:center;">
-          ${!p.isDrafted ? `
-            <button class="btn-icon btn-tbl-mine" title="Draft to My Team" style="display:inline-flex; width:26px; color:#7ee787;">+</button>
-            <button class="btn-icon btn-tbl-draft" title="Drafted by Opponent" style="display:inline-flex; width:26px; color:var(--text-muted);">✓</button>
-          ` : `<span style="font-size:10px; color:var(--text-dim);">${p.isMine ? 'MY TEAM' : 'TAKEN'}</span>`}
+          ${!p.isDrafted ? ACTION_BUTTONS_HTML : (p.isMine ? ACTION_MYTEAM_HTML : ACTION_TAKEN_HTML)}
         </td>
       `;
 
@@ -858,10 +868,15 @@
         };
       })(p);
 
-      tableTbody.appendChild(tr);
+      fragment.appendChild(tr);
     }
 
+    tableTbody.appendChild(fragment);
     playerCountDisplay.textContent = displayedCount + " shown (" + rows.length + " total)";
+  }
+
+  if (typeof window !== "undefined") {
+    window.renderBoardTable = renderBoardTable;
   }
 
   function renderSidebar(rosterCounts) {
@@ -897,11 +912,23 @@
     }
 
     // Total VORP captured by my team
+    var rowMap = state.evalResult && state.evalResult._rowMap;
+    if (!rowMap && state.evalResult && state.evalResult.allRows) {
+      rowMap = new Map();
+      var allRows = state.evalResult.allRows;
+      for (var r = 0; r < allRows.length; r++) {
+        if (!rowMap.has(allRows[r].name)) {
+          rowMap.set(allRows[r].name, allRows[r]);
+        }
+      }
+      state.evalResult._rowMap = rowMap;
+    }
+
     for (var j = 0; j < state.pickHistory.length; j++) {
       var pick = state.pickHistory[j];
       if (pick.isMine) {
         totalDrafted++;
-        var match = state.evalResult.allRows.find(x => x.name === pick.name);
+        var match = rowMap ? rowMap.get(pick.name) : null;
         if (match) {
           totalVorp += match.rawVorp;
         }
@@ -1312,9 +1339,29 @@
       btnEnableAlerts.onclick = enableAlerts;
     }
 
+    var searchDebounceTimer = null;
     filterSearch.oninput = function () {
       state.searchQuery = filterSearch.value;
-      renderBoardTable();
+      if (searchDebounceTimer) {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = null;
+        if (typeof window !== "undefined") {
+          window.__copilotSearchDebounceTimer = null;
+          window.__copilotSearchTimer = null;
+        }
+      }
+      searchDebounceTimer = setTimeout(function () {
+        searchDebounceTimer = null;
+        if (typeof window !== "undefined") {
+          window.__copilotSearchDebounceTimer = null;
+          window.__copilotSearchTimer = null;
+        }
+        (typeof window !== "undefined" && window.renderBoardTable ? window.renderBoardTable : renderBoardTable)();
+      }, 120);
+      if (typeof window !== "undefined") {
+        window.__copilotSearchDebounceTimer = searchDebounceTimer;
+        window.__copilotSearchTimer = searchDebounceTimer;
+      }
     };
 
     toggleHideDrafted.onchange = function () {
