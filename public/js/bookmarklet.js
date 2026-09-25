@@ -80,6 +80,7 @@
   }
 
   function scanDraftBoard() {
+    if (typeof document === 'undefined' || !document.body) return;
     /* 1. Toast Notification cards in bottom-right corner (ESPN)
        Innermost small element holding both "Name / TEAM" and "R#, P#" (a page-wide
        wrapper would also contain the Available Players list) */
@@ -146,7 +147,11 @@
   scanDraftBoard();
   const obs = new MutationObserver(scanDraftBoard);
   obs.observe(document.body, { childList: true, subtree: true });
-  setInterval(scanDraftBoard, 1000);
+  if (typeof window !== 'undefined') window.__copilotObserver = obs;
+  const scanIntervalMs = (typeof window !== 'undefined' && typeof window.__COPILOT_SCAN_MS === 'number' && Number.isFinite(window.__COPILOT_SCAN_MS) && window.__COPILOT_SCAN_MS > 0)
+    ? window.__COPILOT_SCAN_MS
+    : 1000;
+  window.__copilotScanInterval = setInterval(scanDraftBoard, scanIntervalMs);
 
   alert('🏒 ' + platform + ' Draft Live Sync Activated!\nPicks will automatically stream to localhost:3333.');
 })();

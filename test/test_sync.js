@@ -8,7 +8,23 @@ const { JSDOM, VirtualConsole } = require('jsdom');
 const SYNC = path.join(__dirname, '..', 'yahoo-sync');
 const playersData = fs.readFileSync(path.join(SYNC, 'players_data.js'), 'utf8');
 const contentJs = fs.readFileSync(path.join(SYNC, 'content.js'), 'utf8');
-const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const SCAN_INTERVAL_MS = 25;
+
+async function waitFor(predicate, { timeout = 4000, interval = 10, message } = {}) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    try {
+      const res = await predicate();
+      if (res) return res;
+    } catch (_) {}
+    await new Promise((r) => setTimeout(r, interval));
+  }
+  const desc = message || (typeof predicate === 'function' ? predicate.toString() : 'predicate');
+  throw new Error(`Timed out after ${timeout}ms waiting for: ${desc}`);
+}
+
+const settle = (cycles = 3, intervalMs = SCAN_INTERVAL_MS) =>
+  new Promise((r) => setTimeout(r, cycles * intervalMs));
 
 // The wrapper holds BOTH the Available Players list and the pick toast: the layout that used to
 // record the top available player (Slafkovsky) as the last pick.
@@ -24,6 +40,7 @@ function makeWindow(html) {
   virtualConsole.on('jsdomError', (e) => console.error(e));
   const dom = new JSDOM(`<!doctype html><body>${html}</body>`, { url: 'https://fantasy.espn.com/hockey/draft', runScripts: 'outside-only', pretendToBeVisual: true, virtualConsole });
   const w = dom.window;
+  w.__COPILOT_SCAN_MS = SCAN_INTERVAL_MS;
   w.__posts = [];
   w.__sockets = [];
   w.__fetchMode = 'ok';
@@ -39,6 +56,58 @@ function makeWindow(html) {
   w.chrome = {
     storage: { local: { get: (k, cb) => cb({}), set() {} }, onChanged: { addListener() {} } },
     runtime: { onMessage: { addListener() {} }, sendMessage() {} }
+  };
+  const activeTimeouts = new Set();
+  const activeIntervals = new Set();
+  const origSetTimeout = w.setTimeout.bind(w);
+  const origClearTimeout = w.clearTimeout.bind(w);
+  const origSetInterval = w.setInterval.bind(w);
+  const origClearInterval = w.clearInterval.bind(w);
+  w.setTimeout = (fn, delay, ...args) => {
+    let id;
+    id = origSetTimeout((...a) => {
+      activeTimeouts.delete(id);
+      return fn(...a);
+    }, delay, ...args);
+    activeTimeouts.add(id);
+    return id;
+  };
+  w.clearTimeout = (id) => {
+    activeTimeouts.delete(id);
+    return origClearTimeout(id);
+  };
+  w.setInterval = (fn, delay, ...args) => {
+    const id = origSetInterval(fn, delay, ...args);
+    activeIntervals.add(id);
+    return id;
+  };
+  w.clearInterval = (id) => {
+    activeIntervals.delete(id);
+    return origClearInterval(id);
+  };
+  const origClose = w.close.bind(w);
+  w.close = () => {
+    if (w.__copilotScanInterval) {
+      origClearInterval(w.__copilotScanInterval);
+      w.__copilotScanInterval = null;
+    }
+    if (w.__copilotWsReconnectTimer) {
+      origClearTimeout(w.__copilotWsReconnectTimer);
+      w.__copilotWsReconnectTimer = null;
+    }
+    if (w.__copilotScanTimer) {
+      origClearTimeout(w.__copilotScanTimer);
+      w.__copilotScanTimer = null;
+    }
+    if (w.__copilotObserver) {
+      w.__copilotObserver.disconnect();
+      w.__copilotObserver = null;
+    }
+    for (const id of activeTimeouts) origClearTimeout(id);
+    for (const id of activeIntervals) origClearInterval(id);
+    activeTimeouts.clear();
+    activeIntervals.clear();
+    origClose();
   };
   return w;
 }
@@ -56,7 +125,7 @@ const names = (w) => w.__posts.map((p) => p.name);
   // 1. Wrapper + available list + toast: only the toast's player, with round/pick, and no ownership guess
   {
     const w = runExtension(WRAPPER_WITH_LIST);
-    await sleep(1400);
+    await waitFor(() => w.__posts.length >= 1);
     assert.deepStrictEqual(names(w), ['Nathan MacKinnon'], 'Only the toast player is recorded, never the Available Players list');
     assert.strictEqual(w.__posts[0].round, 1);
     assert.strictEqual(w.__posts[0].pickInRound, 2);
@@ -68,7 +137,7 @@ const names = (w) => w.__posts.map((p) => p.name);
   // 2. A toast-shaped element inside the player pool is ignored
   {
     const w = runExtension(`<div class="playerPool"><div>Juraj Slafkovsky / MTL, F</div><div>R1, P9</div></div>`);
-    await sleep(1400);
+    await settle(3);
     assert.deepStrictEqual(names(w), [], 'Anything inside the Available Players table is ignored');
     w.close();
     console.log('✓ Extension: player-pool elements ignored');
@@ -77,7 +146,7 @@ const names = (w) => w.__posts.map((p) => p.name);
   // 3. Marker before the name is not a pick
   {
     const w = runExtension(`<div class="toast"><div>R1, P4 - Team X</div><div>Nikita Kucherov / TBL, F</div></div>`);
-    await sleep(1400);
+    await settle(3);
     assert.deepStrictEqual(names(w), [], 'The picked player must precede the round/pick marker');
     w.close();
     console.log('✓ Extension: name-after-marker layout ignored');
@@ -86,13 +155,14 @@ const names = (w) => w.__posts.map((p) => p.name);
   // 4. A toast added later is picked up by the observer/poll
   {
     const w = runExtension('<div class="wrap"></div>');
-    await sleep(400);
+    await waitFor(() => w.document.getElementById('copilot-yahoo-badge'));
     const t = w.document.createElement('div');
     t.innerHTML = '<div>Connor McDavid / EDM, C</div><div>R1, P1 - Other Team</div>';
     w.document.querySelector('.wrap').appendChild(t);
-    await sleep(1400);
+    await waitFor(() => w.__posts.length >= 1);
     assert.deepStrictEqual(names(w), ['Connor McDavid']);
     w.close();
+    assert.strictEqual(w.__copilotScanTimer, null, 'Closing window clears mutation scan timer');
     console.log('✓ Extension: dynamically added toast is recorded');
   }
 
@@ -103,7 +173,7 @@ const names = (w) => w.__posts.map((p) => p.name);
     w.__fetchMode = () => (++calls === 1 ? 'fail' : 'ok');
     w.eval(playersData);
     w.eval(contentJs);
-    await sleep(2600);
+    await waitFor(() => w.__posts.length >= 2);
     assert(w.__posts.length >= 2, 'The pick is re-sent after a network failure');
     assert(w.__posts.every((p) => p.name === 'Nathan MacKinnon'));
     w.close();
@@ -113,7 +183,7 @@ const names = (w) => w.__posts.map((p) => p.name);
   // 6. HUD renders the server evaluation; badge follows the socket state
   {
     const w = runExtension('<div></div>');
-    await sleep(300);
+    await waitFor(() => w.document.getElementById('copilot-hud-card') && w.__sockets.length >= 1);
     assert(w.document.getElementById('copilot-hud-card').classList.contains('espn-layout'), 'On ESPN the HUD docks over the Picks sidebar');
     const sock = w.__sockets[0];
     assert(sock, 'The content script opens a WebSocket to the server');
@@ -140,7 +210,9 @@ const names = (w) => w.__posts.map((p) => p.name);
     assert.strictEqual(d.getElementById('hud-count').textContent, '1 synced');
     sock.onclose();
     assert.strictEqual(d.getElementById('copilot-yahoo-badge').className, 'disconnected', 'Badge goes offline when the socket closes');
+    assert(w.__copilotWsReconnectTimer, 'Socket close schedules a reconnect timer');
     w.close();
+    assert.strictEqual(w.__copilotWsReconnectTimer, null, 'Closing window clears reconnect timer');
     console.log('✓ Extension: HUD renders headline, short list and trade-off; badge follows the socket');
   }
 
@@ -151,7 +223,7 @@ const names = (w) => w.__posts.map((p) => p.name);
     const w = runExtension(`<div id="app"><div class="wrap">
       <div class="toast"><div>Andrei Vasilevskiy / TBL, G</div><div>R22, P8 - Draft Champion</div></div>
     </div></div>`);
-    await sleep(1400);
+    await waitFor(() => w.__posts.length >= 1 && w.__sockets.length >= 1);
     assert.deepStrictEqual(names(w), ['Andrei Vasilevskiy'], 'The final pick is recorded from its toast');
     assert.strictEqual(w.__posts[0].round, 22);
     assert.strictEqual(w.__posts[0].pickInRound, 8);
@@ -173,7 +245,7 @@ const names = (w) => w.__posts.map((p) => p.name);
     assert.strictEqual(d.getElementById('hud-shortlist').children.length, 0, 'No recommended players once the roster is full');
     assert.strictEqual(d.getElementById('hud-tradeoff').textContent, 'No trade-off flagged.', 'No trade-off advice after the roster fills');
     assert.strictEqual(d.getElementById('hud-count').textContent, '1 synced', 'The final pick is counted');
-    await sleep(1500); // several scan cycles: a trailing scan would misfire here
+    await settle(4); // 4 scan cycles: a trailing scan would misfire here
     assert.deepStrictEqual(names(w), ['Andrei Vasilevskiy'], 'No spurious pick POSTs after the final pick');
     w.close();
     console.log('✓ Extension: final pick with no trailing scan records once and the HUD stops recommending');
@@ -191,7 +263,7 @@ const names = (w) => w.__posts.map((p) => p.name);
     };
     w.eval(playersData);
     w.eval(contentJs);
-    await sleep(300);
+    await waitFor(() => w.document.getElementById('copilot-hud-card'));
 
     const hudCard = w.document.getElementById('copilot-hud-card');
     assert(hudCard, 'HUD card should exist');
@@ -200,14 +272,13 @@ const names = (w) => w.__posts.map((p) => p.name);
     assert.strictEqual(srv.textContent, 'http://localhost:3333', 'Invalid syncUrl must fall back to default http://localhost:3333');
 
     // Also test dynamically changed hostile URL
-    if (storageChangedCallback) {
-      storageChangedCallback({ syncUrl: { newValue: '"><script>alert(1)</script>' } }, 'local');
-      assert.strictEqual(hudCard.querySelectorAll('script').length, 0, 'Dynamically changed hostile syncUrl must not inject script');
-      assert.strictEqual(srv.textContent, 'http://localhost:3333', 'Dynamically changed invalid syncUrl falls back to default');
+    assert.strictEqual(typeof storageChangedCallback, 'function', 'chrome.storage.onChanged listener must be registered');
+    storageChangedCallback({ syncUrl: { newValue: '"><script>alert(1)</script>' } }, 'local');
+    assert.strictEqual(hudCard.querySelectorAll('script').length, 0, 'Dynamically changed hostile syncUrl must not inject script');
+    assert.strictEqual(srv.textContent, 'http://localhost:3333', 'Dynamically changed invalid syncUrl falls back to default');
 
-      storageChangedCallback({ syncUrl: { newValue: 'http://127.0.0.1:4444' } }, 'local');
-      assert.strictEqual(srv.textContent, 'http://127.0.0.1:4444', 'Valid http syncUrl is accepted');
-    }
+    storageChangedCallback({ syncUrl: { newValue: 'http://127.0.0.1:4444' } }, 'local');
+    assert.strictEqual(srv.textContent, 'http://127.0.0.1:4444', 'Valid http syncUrl is accepted');
 
     w.close();
     console.log('✓ Extension: hostile stored sync URL cannot inject an element into the HUD');
@@ -224,11 +295,12 @@ const names = (w) => w.__posts.map((p) => p.name);
 
     const w = makeWindow(WRAPPER_WITH_LIST);
     w.eval(bookmarkletJs);
-    await sleep(300);
+    await waitFor(() => w.__posts.length >= 1);
     assert.deepStrictEqual(names(w), ['Nathan MacKinnon'], 'bookmarklet.js: only the toast pick is recorded');
     assert.strictEqual(w.__posts[0].round, 1);
     assert.strictEqual(w.__posts[0].pickInRound, 2);
-    // (window left open: its observer would otherwise fire after teardown; the run exits below)
+    w.clearInterval(w.__copilotScanInterval);
+    w.close();
     console.log('✓ bookmarklet.js: parses and records only the toast pick');
   }
 
@@ -276,6 +348,65 @@ const names = (w) => w.__posts.map((p) => p.name);
     console.log('✓ Manifest permission surface is pinned to the exact fantasy draft host boundary');
   }
 
+  // 10. Scan interval seam: content.js and bookmarklet.js default to 1000ms when window.__COPILOT_SCAN_MS
+  // is unset, zero, negative, or non-numeric, and adopt positive numeric values.
+  {
+    const bookmarkletJs = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'bookmarklet.js'), 'utf8');
+
+    function checkIntervalChoice(script, scanMsVal) {
+      const virtualConsole = new VirtualConsole();
+      const dom = new JSDOM('<!doctype html><body></body>', { url: 'https://fantasy.espn.com/hockey/draft', runScripts: 'outside-only', virtualConsole });
+      const w = dom.window;
+      if (scanMsVal !== undefined) {
+        w.__COPILOT_SCAN_MS = scanMsVal;
+      }
+      let capturedDelay = null;
+      const origSetInterval = w.setInterval;
+      w.setInterval = (fn, delay, ...args) => {
+        if (capturedDelay === null) capturedDelay = delay;
+        return origSetInterval.call(w, fn, delay, ...args);
+      };
+      w.alert = () => {};
+      w.fetch = () => Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
+      w.WebSocket = class { constructor() { this.readyState = 0; } close() {} };
+      w.chrome = {
+        storage: { local: { get: (k, cb) => cb({}), set() {} }, onChanged: { addListener() {} } },
+        runtime: { onMessage: { addListener() {} }, sendMessage() {} }
+      };
+      w.eval(playersData);
+      w.eval(script);
+      if (w.__copilotScanInterval) w.clearInterval(w.__copilotScanInterval);
+      if (w.__copilotWsReconnectTimer) w.clearTimeout(w.__copilotWsReconnectTimer);
+      if (w.__copilotScanTimer) w.clearTimeout(w.__copilotScanTimer);
+      if (w.__copilotObserver) w.__copilotObserver.disconnect();
+      w.close();
+      return capturedDelay;
+    }
+
+    const testValues = [
+      { val: undefined, expected: 1000, label: 'unset' },
+      { val: 0, expected: 1000, label: 'zero' },
+      { val: -1, expected: 1000, label: 'negative' },
+      { val: 'abc', expected: 1000, label: 'string "abc"' },
+      { val: NaN, expected: 1000, label: 'NaN' },
+      { val: Infinity, expected: 1000, label: 'Infinity' },
+      { val: 25, expected: 25, label: 'valid 25ms' },
+    ];
+
+    for (const { val, expected, label } of testValues) {
+      assert.strictEqual(
+        checkIntervalChoice(contentJs, val),
+        expected,
+        `content.js scan interval with ${label} should be ${expected}`
+      );
+      assert.strictEqual(
+        checkIntervalChoice(bookmarkletJs, val),
+        expected,
+        `bookmarklet.js scan interval with ${label} should be ${expected}`
+      );
+    }
+    console.log('✓ content.js and bookmarklet.js scan interval seam defaults to 1000ms unless a positive finite number is given');
+  }
+
   console.log('ALL SYNC TESTS PASSED!');
-  process.exit(0);
 })().catch((err) => { console.error(err); process.exit(1); });
