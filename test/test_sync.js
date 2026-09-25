@@ -408,5 +408,243 @@ const names = (w) => w.__posts.map((p) => p.name);
     console.log('✓ content.js and bookmarklet.js scan interval seam defaults to 1000ms unless a positive finite number is given');
   }
 
+  // 11. Coalesced scan: A burst of draft-room DOM mutations inside one 300ms window triggers
+  // exactly one scanAndSyncAllPicks sweep (not N and not N+interval ticks).
+  {
+    const w = makeWindow('<div class="wrap"></div>');
+    w.__COPILOT_SCAN_MS = 25;
+    w.eval(playersData);
+    w.eval(contentJs);
+    await waitFor(() => w.document.getElementById('copilot-yahoo-badge'));
+
+    // Wait until the initial heartbeat scan has executed and settled
+    await waitFor(() => (w.__copilotScanCount || 0) >= 1);
+    const initialScans = w.__copilotScanCount || 0;
+    const initialPosts = w.__posts.length;
+
+    // Fire a burst of 10 DOM mutations inside the wrap element within a few ms
+    const wrap = w.document.querySelector('.wrap');
+    for (let i = 0; i < 10; i++) {
+      const el = w.document.createElement('div');
+      el.className = 'timer-clock';
+      el.textContent = `00:${String(i).padStart(2, '0')}`;
+      wrap.appendChild(el);
+    }
+    // Also add one toast element representing a pick
+    const toast = w.document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = '<div>Cale Makar / COL, D</div><div>R1, P3 - Team Denver</div>';
+    wrap.appendChild(toast);
+
+    // Wait for the debounced scan to trigger after 300ms
+    await waitFor(() => (w.__copilotScanCount || 0) > initialScans);
+    // Settle across multiple 25ms interval cycles to ensure no trailing ticks fire
+    await settle(4, 25);
+
+    assert.strictEqual(
+      (w.__copilotScanCount || 0) - initialScans,
+      1,
+      'A burst of 10+ DOM mutations inside the 300ms window triggers exactly one scan sweep'
+    );
+    assert.strictEqual(
+      w.__posts.length - initialPosts,
+      1,
+      'Exactly one pick POST is recorded from the burst'
+    );
+    assert.strictEqual(w.__posts[w.__posts.length - 1].name, 'Cale Makar');
+    w.close();
+    console.log('✓ Extension: burst of DOM mutations coalesces into exactly one scan sweep');
+  }
+
+  // 12. No-mutation heartbeat: a draft page with no DOM mutations is still scanned at the
+  // heartbeat cadence so that picks appearing without MutationObserver-visible changes are caught.
+  {
+    const w = makeWindow('<div class="wrap"></div>');
+    w.__COPILOT_SCAN_MS = 30;
+    w.eval(playersData);
+    w.eval(contentJs);
+    await waitFor(() => (w.__copilotScanCount || 0) >= 1);
+
+    // Disconnect the mutation observer to simulate an unobserved DOM change
+    assert(w.__copilotObserver, 'Observer exists');
+    w.__copilotObserver.disconnect();
+
+    // Directly insert a pick toast into the DOM; since observer is disconnected,
+    // only the heartbeat interval can detect it.
+    const toast = w.document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = '<div>Auston Matthews / TOR, C</div><div>R1, P4 - Leaf Nation</div>';
+    w.document.body.appendChild(toast);
+
+    const start = Date.now();
+    await waitFor(() => w.__posts.some((p) => p.name === 'Auston Matthews'), { timeout: 500 });
+    const elapsed = Date.now() - start;
+
+    assert(
+      elapsed <= 150,
+      `Heartbeat scan caught the unobserved pick within ~2-3x scan interval (took ${elapsed}ms)`
+    );
+    assert(
+      w.__posts.some((p) => p.name === 'Auston Matthews'),
+      'Pick was synced via heartbeat floor without any DOM mutations'
+    );
+    w.close();
+    console.log('✓ Extension: draft page with no DOM mutations is scanned at heartbeat cadence');
+  }
+
+  // 13. Background health check: gates network calls on draft tab presence, omits currentPick from
+  // tab messages, and refreshes server status when popup requests it with no draft tab.
+  {
+    const vm = require('vm');
+    const bgJs = fs.readFileSync(path.join(SYNC, 'background.js'), 'utf8');
+
+    function createBackgroundHarness({ queryTabs = [], storedStatus = null, fetchResponse = null } = {}) {
+      let fetchCalls = [];
+      let tabMessages = [];
+      let runtimeMessages = [];
+      let storage = { syncUrl: 'http://localhost:3333' };
+      if (storedStatus) storage.status = storedStatus;
+      let messageListeners = [];
+
+      const fakeFetch = async (url, options) => {
+        fetchCalls.push({ url, options });
+        if (fetchResponse) return fetchResponse(url, options);
+        return {
+          ok: true,
+          status: 200,
+          json: async () => ({ currentPick: 7 })
+        };
+      };
+
+      const fakeChrome = {
+        storage: {
+          local: {
+            get: async (keys) => {
+              if (typeof keys === 'string') return { [keys]: storage[keys] };
+              if (Array.isArray(keys)) {
+                const res = {};
+                keys.forEach((k) => { if (k in storage) res[k] = storage[k]; });
+                return res;
+              }
+              return { ...storage };
+            },
+            set: async (items) => {
+              Object.assign(storage, items);
+            }
+          }
+        },
+        runtime: {
+          onInstalled: { addListener() {} },
+          onStartup: { addListener() {} },
+          onMessage: {
+            addListener(fn) {
+              messageListeners.push(fn);
+            }
+          },
+          sendMessage: async (msg) => {
+            runtimeMessages.push(msg);
+          }
+        },
+        tabs: {
+          query: async (queryInfo) => {
+            return typeof queryTabs === 'function' ? queryTabs(queryInfo) : queryTabs;
+          },
+          sendMessage: async (tabId, msg) => {
+            tabMessages.push({ tabId, msg });
+          }
+        }
+      };
+
+      const sandbox = {
+        chrome: fakeChrome,
+        fetch: fakeFetch,
+        setInterval: () => 12345,
+        clearInterval: () => {},
+        setTimeout,
+        clearTimeout,
+        AbortController,
+        URL,
+        Date,
+        console: { log() {}, warn() {}, error() {} }
+      };
+
+      vm.createContext(sandbox);
+      vm.runInContext(bgJs, sandbox);
+
+      return {
+        sandbox,
+        fakeChrome,
+        getFetchCalls: () => fetchCalls,
+        clearFetchCalls: () => { fetchCalls = []; },
+        getTabMessages: () => tabMessages,
+        clearTabMessages: () => { tabMessages = []; },
+        getRuntimeMessages: () => runtimeMessages,
+        getStorage: () => storage,
+        setQueryTabs: (tabs) => { queryTabs = tabs; },
+        sendMessage: async (msg) => {
+          let response = null;
+          for (const fn of messageListeners) {
+            const res = fn(msg, {}, (r) => { response = r; });
+            if (res === true) {
+              await waitFor(() => response !== null);
+            }
+          }
+          return response;
+        }
+      };
+    }
+
+    // 13a: tabs.query -> [] produces 0 fetch calls and 0 tabs.sendMessage calls
+    let activeTabs = [];
+    const harness = createBackgroundHarness({ queryTabs: () => activeTabs });
+    await settle(1, 20);
+
+    const noTabStatus = await harness.sandbox.checkHealth();
+    assert.strictEqual(harness.getFetchCalls().length, 0, 'No fetch calls when no draft tab open');
+    assert.strictEqual(harness.getTabMessages().length, 0, 'No tab messages when no draft tab open');
+    assert.strictEqual(noTabStatus.connected, false);
+    assert.strictEqual(noTabStatus.error, 'No draft tab open');
+    assert.strictEqual(harness.getStorage().status.error, 'No draft tab open');
+
+    // 13b: tabs.query -> 1 tab produces exactly 1 fetch to /api/state and tab message omits currentPick
+    activeTabs = [{ id: 101, url: 'https://fantasy.espn.com/hockey/draft' }];
+    harness.clearFetchCalls();
+    harness.clearTabMessages();
+
+    const oneTabStatus = await harness.sandbox.checkHealth();
+    assert.strictEqual(harness.getFetchCalls().length, 1, 'Exactly one fetch to /api/state when 1 draft tab open');
+    assert(harness.getFetchCalls()[0].url.endsWith('/api/state'));
+    assert.strictEqual(harness.getTabMessages().length, 1, 'Exactly one message to open draft tab');
+    assert.strictEqual(harness.getTabMessages()[0].tabId, 101);
+
+    const sentTabStatus = harness.getTabMessages()[0].msg.status;
+    assert.strictEqual(sentTabStatus.connected, true);
+    assert.strictEqual('currentPick' in sentTabStatus, false, 'currentPick omitted from draft-tab message');
+    assert.strictEqual(oneTabStatus.currentPick, 7, 'currentPick present in returned status');
+    assert.strictEqual(harness.getStorage().status.currentPick, 7, 'currentPick stored in chrome.storage.local');
+
+    // 13c: popup getStatus stale-status refresh path retrieves accurate server status even with no draft tabs
+    activeTabs = [];
+    harness.clearFetchCalls();
+    harness.getStorage().status = { connected: false, error: 'No draft tab open', lastChecked: Date.now() - 15000 };
+
+    const popupStatus = await harness.sendMessage({ type: 'getStatus' });
+    assert.strictEqual(harness.getFetchCalls().length, 1, 'Stale refresh path issues fetch for popup');
+    assert.strictEqual(popupStatus.connected, true, 'Popup receives connected status');
+    assert.strictEqual(popupStatus.currentPick, 7, 'Popup receives currentPick');
+    assert(typeof popupStatus.latency === 'number', 'Popup receives latency number');
+
+    // 13d: popup getStatus with fresh "No draft tab open" stored status still forces fresh checkHealth
+    harness.clearFetchCalls();
+    harness.getStorage().status = { connected: false, error: 'No draft tab open', lastChecked: Date.now() };
+
+    const popupRecentStatus = await harness.sendMessage({ type: 'getStatus' });
+    assert.strictEqual(harness.getFetchCalls().length, 1, 'Fresh "No draft tab open" triggers server fetch for popup');
+    assert.strictEqual(popupRecentStatus.connected, true);
+    assert.strictEqual(popupRecentStatus.currentPick, 7);
+
+    console.log('✓ Background: health check gates on draft tabs, omits currentPick from tab fan-out, and refreshes for popup');
+  }
+
   console.log('ALL SYNC TESTS PASSED!');
 })().catch((err) => { console.error(err); process.exit(1); });
