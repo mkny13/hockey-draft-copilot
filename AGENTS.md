@@ -11,11 +11,11 @@ See [README.md](README.md) for full system overview.
 ## Build and Verify
 
 ```bash
-npm test            # full suite: engine, data, server API, draft-room sync (jsdom), app UI (jsdom), docs guard, mock-draft regression (~25s)
+npm test            # full suite via scripts/run_tests.js: engine, data, server API, draft-room sync (jsdom), app UI (jsdom), docs guard, mock-draft regression (~14s)
 npm run test:quick  # engine + data only
 ```
 
-- Runs with Node.js built-in `assert`; `jsdom` is the only dev dependency. Full suite covers `test/test_gametheory.js`, `test/test_data.js`, `test/test_server.js`, `test/test_sync.js`, `test/test_app.js`, `test/test_docs.js`, and `test/test_mock_draft.js`.
+- Runs sequentially via `scripts/run_tests.js` with Node.js built-in `assert`; `jsdom` is the only dev dependency. Supports subsets (`node scripts/run_tests.js <files>`), per-file timing, slow test warnings (`TEST_SLOW_MS`), and per-file timeouts (`TEST_TIMEOUT_MS`, default 120000ms). Full suite covers `test/test_gametheory.js`, `test/test_data.js`, `test/test_server.js`, `test/test_sync.js`, `test/test_app.js`, `test/test_docs.js`, and `test/test_mock_draft.js`.
 - Strategy check: `node scripts/mock_draft.js --slots 1-8 --sims 12` (engine vs a pure-ADP drafter). Rerun it after any change to `gametheory.js` decision logic; `test/test_mock_draft.js` guards the basics.
 - Tests never read the live `draft_state.json` (the server tests use a temp file via `DRAFT_STATE_FILE`).
 
@@ -26,6 +26,7 @@ npm run test:quick  # engine + data only
 - `public/js/app.js`: Client-side UI state controller, live search, reactive table rendering, automated trade-off advice cards, auto-comparator handler, and WebSocket receiver.
 - `yahoo-sync/`: Complete Manifest V3 Chrome Extension (`background.js` health monitor, `popup.html`/`popup.js` options UI, `content.js` pick stream + HUD supporting ESPN & Yahoo, `players_data.js` name resolver generated from the board, and `status.css`).
 - `test/`: `test_gametheory.js`, `test_data.js`, `test_server.js`, `test_sync.js`, `test_app.js`, `test_docs.js`, `test_mock_draft.js`.
+- `scripts/run_tests.js`: sequential test runner with per-file timing, per-file timeout (`TEST_TIMEOUT_MS`), slow budget warnings (`TEST_SLOW_MS`), and summary reporting.
 - `scripts/ingest_espn_adp.js`: ESPN ADP updater (Hashtag Hockey only; rejects values that are not plain one-decimal numbers).
 - `scripts/mock_draft.js`: seeded mock drafts and Monte Carlo of the engine vs an ADP drafter.
 - `start.sh`: Executable startup script that installs dependencies, runs tests, starts the server, and opens `http://localhost:3333`.
