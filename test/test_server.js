@@ -9,6 +9,29 @@ const WebSocket = require('ws');
 
 const ROOT = path.join(__dirname, '..');
 
+const activeChildren = new Set();
+
+function killAllActiveChildren() {
+  for (const c of activeChildren) {
+    try { c.kill('SIGKILL'); } catch (_) {}
+  }
+  activeChildren.clear();
+}
+
+process.on('exit', killAllActiveChildren);
+process.on('SIGINT', () => { killAllActiveChildren(); process.exit(130); });
+process.on('SIGTERM', () => { killAllActiveChildren(); process.exit(143); });
+process.on('uncaughtException', (err) => {
+  killAllActiveChildren();
+  console.error(err);
+  process.exit(1);
+});
+process.on('unhandledRejection', (err) => {
+  killAllActiveChildren();
+  console.error(err);
+  process.exit(1);
+});
+
 function freePort() {
   return new Promise((resolve) => {
     const srv = net.createServer();
@@ -16,25 +39,79 @@ function freePort() {
   });
 }
 
-async function startServer(stateFile, envOverrides = {}) {
-  const port = await freePort();
-  const env = Object.assign({}, process.env, { PORT: String(port), DRAFT_STATE_FILE: stateFile }, envOverrides);
-  if (!('HOST' in envOverrides)) {
-    delete env.HOST;
+async function startServer(stateFile, envOverrides = {}, maxAttempts = 3, getPort = freePort) {
+  let lastError = null;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    const port = await getPort();
+    const env = Object.assign({}, process.env, { PORT: String(port), DRAFT_STATE_FILE: stateFile }, envOverrides);
+    if (!('HOST' in envOverrides)) {
+      delete env.HOST;
+    }
+    let stdout = '';
+    let stderr = '';
+    let childExited = false;
+    let exitCode = null;
+
+    const child = spawn(process.execPath, ['server.js'], {
+      cwd: ROOT,
+      env,
+      stdio: ['ignore', 'pipe', 'pipe']
+    });
+    activeChildren.add(child);
+
+    child.stdout.on('data', (d) => { stdout += d.toString(); });
+    child.stderr.on('data', (d) => { stderr += d.toString(); });
+    child.on('exit', (code) => {
+      childExited = true;
+      exitCode = code;
+      activeChildren.delete(child);
+    });
+
+    const base = `http://localhost:${port}`;
+    let started = false;
+    for (let i = 0; i < 50; i++) {
+      if (childExited) {
+        await new Promise((r) => setImmediate(r));
+        break;
+      }
+      try {
+        const res = await fetch(`${base}/api/state`, { signal: AbortSignal.timeout(200) });
+        if (res.ok) {
+          started = true;
+          return {
+            child,
+            base,
+            port,
+            getStdout: () => stdout,
+            getStderr: () => stderr
+          };
+        }
+      } catch (e) {
+        // Not ready yet
+      }
+      await new Promise((r) => setTimeout(r, 100));
+    }
+
+    try { child.kill('SIGKILL'); } catch (_) {}
+    activeChildren.delete(child);
+
+    const combinedOutput = stdout + stderr;
+    const isAddrInUse = exitCode !== null && (
+      combinedOutput.includes('is already in use') ||
+      combinedOutput.includes('EADDRINUSE')
+    );
+
+    lastError = new Error(
+      `server did not start (exit code: ${exitCode !== null ? exitCode : child.exitCode}):\nstdout: ${stdout}\nstderr: ${stderr}`
+    );
+
+    if (isAddrInUse && attempt < maxAttempts) {
+      continue;
+    }
+
+    throw lastError;
   }
-  let stdout = '';
-  const child = spawn(process.execPath, ['server.js'], {
-    cwd: ROOT,
-    env,
-    stdio: ['ignore', 'pipe', 'ignore']
-  });
-  child.stdout.on('data', (d) => { stdout += d.toString(); });
-  const base = `http://localhost:${port}`;
-  for (let i = 0; i < 50; i++) {
-    try { await fetch(`${base}/api/state`); return { child, base, port, getStdout: () => stdout }; } catch (e) { await new Promise((r) => setTimeout(r, 100)); }
-  }
-  child.kill();
-  throw new Error('server did not start');
+  throw lastError || new Error('server did not start');
 }
 
 const post = (base, url, body, headers) => fetch(base + url, {
@@ -45,61 +122,70 @@ const post = (base, url, body, headers) => fetch(base + url, {
 const json = async (p) => (await p).json();
 
 (async () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-'));
-  const stateFile = path.join(tmp, 'state.json');
-  // A stale saved state with the old hardcoded limits must not win over the league config
-  fs.writeFileSync(stateFile, JSON.stringify({ slot: 5, teams: 8, rosterLimits: { C: 3, F: 5, D: 4, G: 2 }, pickHistory: [], drafted: {}, mine: {}, currentPick: 1 }));
-
-  const { child, base, port, getStdout } = await startServer(stateFile);
+  let tmp = null;
   try {
-    // Host binding: 127.0.0.1 default, custom HOST opt-in
-    assert(getStdout().includes('Host:          127.0.0.1'), 'Startup banner logs default host 127.0.0.1');
-    const ifaces = os.networkInterfaces();
-    let nonLoopbackIp = null;
-    for (const addrs of Object.values(ifaces)) {
-      for (const addr of addrs) {
-        if (addr.family === 'IPv4' && !addr.internal) {
-          nonLoopbackIp = addr.address;
-          break;
-        }
-      }
-      if (nonLoopbackIp) break;
-    }
-    if (nonLoopbackIp) {
-      await new Promise((resolve) => {
-        const sock = net.connect({ host: nonLoopbackIp, port }, () => {
-          sock.destroy();
-          assert.fail('Default server bound to loopback should not be reachable via non-loopback IP');
-        });
-        sock.on('error', (err) => {
-          assert(err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT');
-          resolve();
-        });
-      });
-    }
+    tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-'));
+    const stateFile = path.join(tmp, 'state.json');
+    // A stale saved state with the old hardcoded limits must not win over the league config
+    fs.writeFileSync(stateFile, JSON.stringify({ slot: 5, teams: 8, rosterLimits: { C: 3, F: 5, D: 4, G: 2 }, pickHistory: [], drafted: {}, mine: {}, currentPick: 1 }));
 
-    // Verify HOST override (e.g. HOST=0.0.0.0)
-    const tmpHost = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-host-'));
-    const hostStateFile = path.join(tmpHost, 'state.json');
-    const hostSrv = await startServer(hostStateFile, { HOST: '0.0.0.0' });
+    const { child, base, port, getStdout } = await startServer(stateFile);
     try {
-      assert(hostSrv.getStdout().includes('Host:          0.0.0.0'), 'Startup banner logs HOST=0.0.0.0');
-      const res0 = await fetch(`http://127.0.0.1:${hostSrv.port}/api/state`);
-      assert.strictEqual(res0.status, 200);
+      // Host binding: 127.0.0.1 default, custom HOST opt-in
+      assert(getStdout().includes('Host:          127.0.0.1'), 'Startup banner logs default host 127.0.0.1');
+      const resLoopback = await fetch(`http://127.0.0.1:${port}/api/state`);
+      assert.strictEqual(resLoopback.status, 200, 'Server bound to loopback responds on 127.0.0.1');
+
+      const ifaces = os.networkInterfaces();
+      let nonLoopbackIp = null;
+      for (const addrs of Object.values(ifaces)) {
+        for (const addr of addrs) {
+          if (addr.family === 'IPv4' && !addr.internal) {
+            nonLoopbackIp = addr.address;
+            break;
+          }
+        }
+        if (nonLoopbackIp) break;
+      }
       if (nonLoopbackIp) {
-        await new Promise((resolve, reject) => {
-          const sock = net.connect({ host: nonLoopbackIp, port: hostSrv.port }, () => {
+        await new Promise((resolve) => {
+          const sock = net.connect({ host: nonLoopbackIp, port }, () => {
             sock.destroy();
+            assert.fail('Default server bound to loopback should not be reachable via non-loopback IP');
+          });
+          sock.on('error', (err) => {
+            assert(err.code === 'ECONNREFUSED' || err.code === 'ETIMEDOUT');
             resolve();
           });
-          sock.on('error', reject);
         });
+      } else {
+        console.log('SKIPPED: no non-loopback IPv4 on this host');
       }
-    } finally {
-      hostSrv.child.kill();
-      fs.rmSync(tmpHost, { recursive: true, force: true });
-    }
-    console.log('✓ Host binding: listens on 127.0.0.1 by default and on HOST when set');
+
+      // Verify HOST override (e.g. HOST=0.0.0.0)
+      const tmpHost = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-host-'));
+      const hostStateFile = path.join(tmpHost, 'state.json');
+      const hostSrv = await startServer(hostStateFile, { HOST: '0.0.0.0' });
+      try {
+        assert(hostSrv.getStdout().includes('Host:          0.0.0.0'), 'Startup banner logs HOST=0.0.0.0');
+        const res0 = await fetch(`http://127.0.0.1:${hostSrv.port}/api/state`);
+        assert.strictEqual(res0.status, 200);
+        if (nonLoopbackIp) {
+          await new Promise((resolve, reject) => {
+            const sock = net.connect({ host: nonLoopbackIp, port: hostSrv.port }, () => {
+              sock.destroy();
+              resolve();
+            });
+            sock.on('error', reject);
+          });
+        } else {
+          console.log('SKIPPED: no non-loopback IPv4 on this host');
+        }
+      } finally {
+        hostSrv.child.kill();
+        fs.rmSync(tmpHost, { recursive: true, force: true });
+      }
+      console.log('✓ Host binding: listens on 127.0.0.1 by default and on HOST when set');
 
     // League limits come from draft_data.json config
     let st = await json(fetch(`${base}/api/state`));
@@ -441,12 +527,24 @@ const json = async (p) => (await p).json();
     const ws = new WebSocket(`ws://localhost:${port}`);
     ws.on('message', (m) => msgs.push(JSON.parse(m)));
     await new Promise((resolve) => ws.on('open', resolve));
-    await new Promise((r) => setTimeout(r, 200));
+    let initReceived = false;
+    for (let i = 0; i < 40; i++) {
+      if (msgs.length > 0 && msgs[0].type === 'INIT_STATE') {
+        initReceived = true;
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 25));
+    }
+    assert(initReceived, 'INIT_STATE message received on WebSocket connection');
     assert.strictEqual(msgs[0].type, 'INIT_STATE');
     assert.strictEqual(typeof msgs[0].evaluation.headline, 'string');
     await post(base, '/api/pick', { name: 'Connor McDavid' });
-    await new Promise((r) => setTimeout(r, 300));
-    const made = msgs.find((m) => m.type === 'PICK_MADE');
+    let made = null;
+    for (let i = 0; i < 40; i++) {
+      made = msgs.find((m) => m.type === 'PICK_MADE');
+      if (made) break;
+      await new Promise((r) => setTimeout(r, 25));
+    }
     assert(made && made.evaluation && made.evaluation.shortlist.length > 0, 'PICK_MADE carries a fresh evaluation');
     assert(!made.evaluation.shortlist.some((p) => p.name === 'Connor McDavid'), 'The drafted player left the short list');
     ws.close();
@@ -508,7 +606,15 @@ const json = async (p) => (await p).json();
     const wsCrashTest = new WebSocket(`ws://localhost:${port}`);
     await new Promise((resolve) => wsCrashTest.on('open', resolve));
     wsCrashTest._socket.destroy();
-    await new Promise((r) => setTimeout(r, 100));
+    let clientClosed = false;
+    for (let i = 0; i < 40; i++) {
+      if (wsCrashTest.readyState === WebSocket.CLOSED) {
+        clientClosed = true;
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 25));
+    }
+    assert(clientClosed, 'Client socket should reach CLOSED state after destruction');
     await post(base, '/api/pick', { name: 'Elias Pettersson', manual: true, isMine: false });
     const resAfterCrash = await fetch(`${base}/api/state`);
     assert.strictEqual(resAfterCrash.status, 200, 'Server still answers 200 after client socket destroyed');
@@ -585,6 +691,8 @@ const json = async (p) => (await p).json();
       env: Object.assign({}, process.env, { PORT: String(port), DRAFT_STATE_FILE: path.join(tmp, 'busy.json') }),
       stdio: ['ignore', 'pipe', 'pipe']
     });
+    activeChildren.add(busyChild);
+    busyChild.on('exit', () => activeChildren.delete(busyChild));
     let busyOut = '';
     let busyErr = '';
     busyChild.stdout.on('data', (d) => { busyOut += d.toString(); });
@@ -598,6 +706,43 @@ const json = async (p) => (await p).json();
     );
     assert(!combinedOutput.includes('Error: listen EADDRINUSE'), 'Must not dump raw stack trace');
     console.log('✓ Starting a second server on a busy port prints readable message and exits non-zero');
+
+    // startServer retries on EADDRINUSE (bounded at 3 attempts) and reports stdout/stderr/exit-code on failure
+    const tmpRetry = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-retry-'));
+    const retryState = path.join(tmpRetry, 'state.json');
+    const occupiedSrv = net.createServer((sock) => sock.destroy());
+    const occupiedPort = await freePort();
+    await new Promise((resolve) => occupiedSrv.listen(occupiedPort, '127.0.0.1', resolve));
+    try {
+      let callCount = 0;
+      const fakeFreePort = async () => {
+        callCount++;
+        if (callCount === 1) return occupiedPort;
+        return freePort();
+      };
+      const retrySrv = await startServer(retryState, {}, 3, fakeFreePort);
+      try {
+        assert.strictEqual(callCount, 2, 'startServer retried after initial EADDRINUSE');
+        assert.notStrictEqual(retrySrv.port, occupiedPort, 'Retried server bound to new port');
+      } finally {
+        retrySrv.child.kill();
+      }
+
+      // Verify diagnostics on startup failure (max attempts exhausted)
+      let threw = false;
+      try {
+        await startServer(retryState, {}, 2, async () => occupiedPort);
+      } catch (err) {
+        threw = true;
+        assert(err.message.includes('server did not start (exit code: 1):'), 'Error message contains exit code');
+        assert(err.message.includes('is already in use'), 'Error message contains child stderr');
+      }
+      assert(threw, 'startServer should throw when all attempts fail');
+    } finally {
+      await new Promise((resolve) => occupiedSrv.close(resolve));
+      fs.rmSync(tmpRetry, { recursive: true, force: true });
+    }
+    console.log('✓ startServer retries on EADDRINUSE and reports stdout/stderr/exit-code on failure');
 
     // No two draft states share a mutable sub-object: pick, reset, restart on same file
     const tmpIso = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-iso-'));
@@ -631,4 +776,11 @@ const json = async (p) => (await p).json();
     fs.rmSync(tmp, { recursive: true, force: true });
   }
   console.log('ALL SERVER TESTS PASSED!');
-})().catch((err) => { console.error(err); process.exit(1); });
+} finally {
+  killAllActiveChildren();
+}
+})().catch((err) => {
+  killAllActiveChildren();
+  console.error(err);
+  process.exit(1);
+});
