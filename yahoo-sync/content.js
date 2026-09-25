@@ -637,7 +637,13 @@
   }
 
   // 9. Master Multi-Strategy Scanner
+  let lastScanTime = 0;
+
   function scanAndSyncAllPicks(isManual) {
+    lastScanTime = Date.now();
+    if (typeof window !== "undefined") {
+      window.__copilotScanCount = (window.__copilotScanCount || 0) + 1;
+    }
     const toastPicks = scanNotificationToasts();
     const boardPicks = scanBoardAndHistory();
     const allFound = [].concat(toastPicks, boardPicks);
@@ -658,17 +664,19 @@
   }
 
   // 11. Periodic Polling & Mutation Observer
+  let scanTimer = null;
   const scanIntervalMs = (typeof window !== 'undefined' && typeof window.__COPILOT_SCAN_MS === 'number' && Number.isFinite(window.__COPILOT_SCAN_MS) && window.__COPILOT_SCAN_MS > 0)
     ? window.__COPILOT_SCAN_MS
     : 1000;
   window.__copilotScanInterval = setInterval(() => {
     checkSessionUrlChange();
     injectBadge();
-    scanAndSyncAllPicks(false);
+    if (!scanTimer && (Date.now() - lastScanTime >= scanIntervalMs)) {
+      scanAndSyncAllPicks(false);
+    }
   }, scanIntervalMs);
 
   // The draft timer mutates the page every second: coalesce scans instead of running one per mutation
-  let scanTimer = null;
   const observer = new MutationObserver(() => {
     if (scanTimer) return;
     scanTimer = setTimeout(() => {

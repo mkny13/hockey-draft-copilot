@@ -27,9 +27,42 @@ async function getSyncUrl() {
   }
 }
 
-async function checkHealth() {
+async function checkHealth(force = false) {
   const syncUrl = await getSyncUrl();
   const startTime = Date.now();
+
+  let tabs = [];
+  try {
+    if (chrome.tabs && chrome.tabs.query) {
+      tabs = await chrome.tabs.query({
+        url: [
+          "https://fantasy.espn.com/*",
+          "https://hockey.fantasysports.yahoo.com/*",
+          "https://draft.fantasysports.yahoo.com/*"
+        ]
+      });
+    }
+  } catch (err) {
+    // tabs query fails gracefully if permissions are restricted
+  }
+
+  if (!force && (!tabs || tabs.length === 0)) {
+    const status = {
+      connected: false,
+      latency: null,
+      lastChecked: startTime,
+      syncUrl: syncUrl,
+      currentPick: null,
+      error: "No draft tab open"
+    };
+    try {
+      await chrome.storage.local.set({ status });
+    } catch (e) {
+      console.warn("[Background] Failed to persist status in storage:", e);
+    }
+    return status;
+  }
+
   let status = {
     connected: false,
     latency: null,
@@ -75,19 +108,19 @@ async function checkHealth() {
     // Expected error when popup is closed; safely ignore
   });
 
-  // Broadcast to all active ESPN and Yahoo Draft tabs
+  // Broadcast to all active ESPN and Yahoo Draft tabs (omitting currentPick)
   try {
-    if (chrome.tabs && chrome.tabs.query) {
-      const tabs = await chrome.tabs.query({
-        url: [
-          "https://fantasy.espn.com/*",
-          "https://hockey.fantasysports.yahoo.com/*",
-          "https://draft.fantasysports.yahoo.com/*"
-        ]
-      });
+    if (tabs && tabs.length > 0) {
+      const tabStatus = {
+        connected: status.connected,
+        latency: status.latency,
+        lastChecked: status.lastChecked,
+        syncUrl: status.syncUrl,
+        error: status.error
+      };
       for (const tab of tabs) {
         if (tab.id) {
-          chrome.tabs.sendMessage(tab.id, { type: "statusUpdate", status }).catch(() => {
+          chrome.tabs.sendMessage(tab.id, { type: "statusUpdate", status: tabStatus }).catch(() => {
             // Tab may not have content script ready; safely ignore
           });
         }
@@ -123,10 +156,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       try {
         const stored = await chrome.storage.local.get("status");
         // The worker sleeps when idle, pausing the interval: re-check when the stored status is stale
-        if (stored && stored.status && Date.now() - (stored.status.lastChecked || 0) < 10000) {
+        if (stored && stored.status && stored.status.error !== "No draft tab open" && Date.now() - (stored.status.lastChecked || 0) < 10000) {
           sendResponse(stored.status);
         } else {
-          const fresh = await checkHealth();
+          const fresh = await checkHealth(true);
           sendResponse(fresh);
         }
       } catch (e) {
@@ -138,7 +171,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message.type === "checkNow") {
     (async () => {
-      const fresh = await checkHealth();
+      const fresh = await checkHealth(true);
       sendResponse(fresh);
     })();
     return true;
@@ -148,7 +181,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     (async () => {
       const newUrl = validateSyncUrl(message.syncUrl);
       await chrome.storage.local.set({ syncUrl: newUrl });
-      const fresh = await checkHealth();
+      const fresh = await checkHealth(true);
       sendResponse(fresh);
     })();
     return true;
@@ -156,3 +189,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   return false;
 });
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = { checkHealth, validateSyncUrl, getSyncUrl };
+}
