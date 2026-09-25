@@ -13,6 +13,28 @@ const appJs = fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'app.js
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+async function waitFor(predicate, { timeout = 4000, interval = 10, message = '' } = {}) {
+  const start = Date.now();
+  while (Date.now() - start < timeout) {
+    let res = false;
+    try {
+      res = predicate();
+    } catch (_) {}
+    if (res) return res;
+    await new Promise((r) => setTimeout(r, interval));
+  }
+  let finalRes = false;
+  try {
+    finalRes = predicate();
+  } catch (err) {
+    const desc = message || predicate.toString();
+    throw new Error(`Timed out waiting for condition after ${timeout}ms: ${desc} (threw: ${err.message})`);
+  }
+  if (finalRes) return finalRes;
+  const desc = message || predicate.toString();
+  throw new Error(`Timed out waiting for condition after ${timeout}ms: ${desc}`);
+}
+
 const HOSTILE_NAME_1 = '<img src=x onerror=1>';
 const HOSTILE_NAME_2 = '"><script>1</script>';
 const HOSTILE_TEAM = '<b onmouseover=1>TEAM</b>';
@@ -247,9 +269,14 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     const w = makeAppWindow();
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const doc = w.document;
+    await waitFor(
+      () => doc.getElementById('board-tbody')?.children.length > 0 &&
+            doc.getElementById('shortlist-container')?.children.length > 0 &&
+            doc.getElementById('history-feed')?.children.length > 0,
+      { message: 'board table, shortlist, and history feed rendered' }
+    );
 
     // Check board table: hostile name, team, pos, action must not inject tags
     const tbody = doc.getElementById('board-tbody');
@@ -276,27 +303,30 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     // Deliver WebSocket PICK_MADE with hostile name
     const sock = w.__sockets[0];
     assert(sock, 'WebSocket connection opened');
-    if (sock.onopen) sock.onopen();
-    if (sock.onmessage) {
-      sock.onmessage({
-        data: JSON.stringify({
-          type: 'PICK_MADE',
-          payload: { name: HOSTILE_NAME_2, isMine: true },
-          state: {
-            currentPick: 3,
-            slot: 5,
-            teams: 8,
-            pickHistory: [
-              { pickNumber: 1, name: HOSTILE_NAME_1, isMine: false },
-              { pickNumber: 2, name: HOSTILE_NAME_2, isMine: true }
-            ],
-            drafted: { [HOSTILE_NAME_1]: true, [HOSTILE_NAME_2]: true },
-            mine: { [HOSTILE_NAME_2]: true }
-          }
-        })
-      });
-    }
-    await sleep(100);
+    assert.strictEqual(typeof sock.onopen, 'function', 'sock.onopen handler is wired');
+    assert.strictEqual(typeof sock.onmessage, 'function', 'sock.onmessage handler is wired');
+    sock.onopen();
+    sock.onmessage({
+      data: JSON.stringify({
+        type: 'PICK_MADE',
+        payload: { name: HOSTILE_NAME_2, isMine: true },
+        state: {
+          currentPick: 3,
+          slot: 5,
+          teams: 8,
+          pickHistory: [
+            { pickNumber: 1, name: HOSTILE_NAME_1, isMine: false },
+            { pickNumber: 2, name: HOSTILE_NAME_2, isMine: true }
+          ],
+          drafted: { [HOSTILE_NAME_1]: true, [HOSTILE_NAME_2]: true },
+          mine: { [HOSTILE_NAME_2]: true }
+        }
+      })
+    });
+    await waitFor(
+      () => historyFeed.textContent.includes(HOSTILE_NAME_2),
+      { message: 'history feed updated with hostile pick after PICK_MADE' }
+    );
 
     // After PICK_MADE, verify again
     assert.strictEqual(historyFeed.querySelectorAll('img').length, 0, 'No img in history after PICK_MADE');
@@ -309,12 +339,17 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
 
   // 4. Comparator verdict and safe-sleeper pills escape player-derived text
   {
-    const w = makeAppWindow();
+    const undraftedState = { currentPick: 1, slot: 5, teams: 8, stdDev: 7.0, rosterLimits: { C: 4, F: 8, D: 6, G: 2 }, drafted: {}, mine: {}, pickHistory: [] };
+    const w = makeAppWindow(null, undraftedState);
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const doc = w.document;
+    await waitFor(
+      () => doc.getElementById('compare-player-a')?.options.length > 1 &&
+            doc.getElementById('safe-sleepers-container')?.children.length > 0,
+      { message: 'comparator dropdowns and safe sleepers rendered' }
+    );
 
     // Test safe sleepers container
     const sleepers = doc.getElementById('safe-sleepers-container');
@@ -331,7 +366,10 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     selA.value = HOSTILE_NAME_1;
     selB.value = HOSTILE_NAME_2;
     selA.dispatchEvent(new w.Event('change'));
-    await sleep(50);
+    await waitFor(
+      () => verdict.textContent.includes('Option 1') && verdict.textContent.includes('Option 2'),
+      { message: 'comparator verdict rendered trade-off options' }
+    );
 
     assert.strictEqual(verdict.querySelectorAll('img').length, 0, 'No img injected in comparator verdict');
     assert.strictEqual(verdict.querySelectorAll('script').length, 0, 'No script injected in comparator verdict');
@@ -345,17 +383,24 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     const w = makeAppWindow();
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const doc = w.document;
+    await waitFor(
+      () => doc.getElementById('board-tbody')?.children.length > 0,
+      { message: 'board table rendered' }
+    );
+
     const btnReport = doc.getElementById('btn-open-report');
     assert(btnReport, 'Draft Report button exists');
 
     btnReport.onclick();
-    await sleep(150);
-
     const reportContent = doc.getElementById('report-content');
     assert(reportContent, 'Report content container exists');
+    await waitFor(
+      () => reportContent.textContent.includes(HOSTILE_NAME_1) && !reportContent.textContent.includes('Loading report...'),
+      { message: 'post-draft report content loaded and rendered' }
+    );
+
     assert.strictEqual(reportContent.querySelectorAll('img').length, 0, 'No img injected in post-draft report');
     assert.strictEqual(reportContent.querySelectorAll('script').length, 0, 'No script injected in post-draft report');
     assert(reportContent.textContent.includes(HOSTILE_NAME_1), 'Hostile name 1 rendered as literal text in report');
@@ -371,9 +416,13 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     const w = makeAppWindow();
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const doc = w.document;
+    await waitFor(
+      () => doc.getElementById('board-tbody')?.children.length > 0,
+      { message: 'board table rows rendered' }
+    );
+
     const btnMC = doc.getElementById('btn-open-montecarlo');
     assert(btnMC, 'Monte Carlo button exists');
     btnMC.onclick();
@@ -385,10 +434,14 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     targetSelect.value = HOSTILE_NAME_2;
     const btnRun = doc.getElementById('btn-run-montecarlo');
     btnRun.onclick();
-    await sleep(100);
 
     const mcResults = doc.getElementById('montecarlo-results');
     assert(mcResults, 'Monte Carlo results container exists');
+    await waitFor(
+      () => !btnRun.disabled && mcResults.textContent.includes('sims'),
+      { message: 'Monte Carlo simulation results rendered' }
+    );
+
     assert.strictEqual(mcResults.querySelectorAll('img').length, 0, 'No img injected in Monte Carlo results');
     assert.strictEqual(mcResults.querySelectorAll('script').length, 0, 'No script injected in Monte Carlo results');
 
@@ -398,7 +451,10 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     };
 
     btnRun.onclick();
-    await sleep(100);
+    await waitFor(
+      () => !btnRun.disabled && mcResults.textContent.includes('Simulation failed: ' + HOSTILE_ERR),
+      { message: 'Monte Carlo error banner rendered' }
+    );
 
     assert.strictEqual(mcResults.querySelectorAll('img').length, 0, 'No img injected in Monte Carlo error banner');
     assert.strictEqual(mcResults.querySelectorAll('script').length, 0, 'No script injected in Monte Carlo error banner');
@@ -420,7 +476,14 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     const w = makeAppWindow(null, okState);
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
+
+    // Wait for initial render to complete (proved by rendered board table row count)
+    await waitFor(
+      () => w.document.getElementById('board-tbody')?.children.length > 0,
+      { message: 'board table rows rendered' }
+    );
+    // Explicit short settle proving the banner remains hidden when integrity.ok is true (negative assertion)
+    await sleep(25);
 
     const banner = w.document.getElementById('integrity-banner');
     assert.strictEqual(banner.style.display, 'none', 'Integrity banner is hidden when pickHistoryIntegrity.ok is true');
@@ -449,11 +512,15 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     const w = makeAppWindow(null, badState);
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const banner = w.document.getElementById('integrity-banner');
-    assert.strictEqual(banner.style.display, 'block', 'Integrity banner is visible when pickHistoryIntegrity.ok is false');
     const text = w.document.getElementById('integrity-warning-text');
+    await waitFor(
+      () => banner?.style.display === 'block' && text?.textContent.includes('#2'),
+      { message: 'integrity banner visible with warning text' }
+    );
+
+    assert.strictEqual(banner.style.display, 'block', 'Integrity banner is visible when pickHistoryIntegrity.ok is false');
     assert(text.textContent.includes('#2'), 'Names missing pick #2');
     assert(text.textContent.includes('#4'), 'Names missing pick #4');
     assert(text.textContent.includes('#3'), 'Names the repeated pick number #3');
@@ -475,13 +542,23 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     const w = makeAppWindow(null, badState);
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const doc = w.document;
+    await waitFor(
+      () => doc.getElementById('repair-pick-form') !== null && doc.getElementById('integrity-banner')?.style.display === 'block',
+      { message: 'repair pick form ready' }
+    );
+
     doc.getElementById('repair-pick-number').value = '1';
     doc.getElementById('repair-pick-name').value = 'Connor McDavid';
     doc.getElementById('repair-pick-form').dispatchEvent(new w.Event('submit', { cancelable: true }));
-    await sleep(100);
+
+    await waitFor(
+      () => doc.getElementById('repair-pick-number').value === '' && w.__posts.some((p) => p.url === '/api/repair-pick'),
+      { message: 'repair pick form submitted and cleared' }
+    );
+    // Explicit short settle proving error banner remains hidden on success (negative assertion)
+    await sleep(15);
 
     const post = w.__posts.find((p) => p.url === '/api/repair-pick');
     assert(post, '/api/repair-pick was called');
@@ -508,15 +585,23 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     });
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const doc = w.document;
+    await waitFor(
+      () => doc.getElementById('repair-pick-form') !== null && doc.getElementById('integrity-banner')?.style.display === 'block',
+      { message: 'repair pick form ready' }
+    );
+
     doc.getElementById('repair-pick-number').value = '1';
     doc.getElementById('repair-pick-name').value = 'Connor McDavid';
     doc.getElementById('repair-pick-form').dispatchEvent(new w.Event('submit', { cancelable: true }));
-    await sleep(100);
 
     const errorDiv = doc.getElementById('repair-pick-error');
+    await waitFor(
+      () => errorDiv?.style.display === 'block',
+      { message: 'repair pick error banner displayed' }
+    );
+
     assert.strictEqual(errorDiv.style.display, 'block', 'Error banner is shown on a rejected repair');
     assert.strictEqual(errorDiv.textContent, errorMessage, "Server's error text is rendered verbatim");
     assert.strictEqual(errorDiv.querySelectorAll('img,script').length, 0, 'Hostile error text never parses as HTML');
@@ -541,10 +626,14 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     const w = makeAppWindow(null, stateWithHistory);
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const doc = w.document;
     const historyFeed = doc.getElementById('history-feed');
+    await waitFor(
+      () => historyFeed?.querySelectorAll('.hist-remove-btn').length >= 2,
+      { message: 'history feed with remove buttons rendered' }
+    );
+
     assert(historyFeed.textContent.includes('REPAIRED'), 'Repaired entries are shown distinctly in the history feed');
 
     const removeButtons = historyFeed.querySelectorAll('.hist-remove-btn');
@@ -552,7 +641,11 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
 
     // History is rendered newest-first; the last entry (#1) is the second button
     removeButtons[removeButtons.length - 1].onclick({ stopPropagation() {} });
-    await sleep(100);
+
+    await waitFor(
+      () => w.__posts.some((p) => p.url === '/api/undo'),
+      { message: 'targeted undo posted to /api/undo' }
+    );
 
     const post = w.__posts.find((p) => p.url === '/api/undo');
     assert(post, '/api/undo was called for the targeted removal');
@@ -566,10 +659,14 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     const w = makeAppWindow();
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const link = w.document.getElementById('bookmarklet-link');
     assert(link, 'bookmarklet-link element should exist');
+    await waitFor(
+      () => link.href && link.href.startsWith('javascript:'),
+      { message: 'bookmarklet link populated with javascript: href' }
+    );
+
     assert(link.href && link.href.startsWith('javascript:'), 'bookmarklet-link href must start with javascript:');
     assert(link.href.includes(encodeURIComponent('(function(){/*stub*/})();')), 'bookmarklet-link href must contain the encoded source');
     assert(decodeURIComponent(link.href).includes('(function(){/*stub*/})();'), 'bookmarklet-link href must decode to the fetched source');
@@ -584,10 +681,14 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     });
     w.eval(gametheoryJs);
     w.eval(appJs);
-    await sleep(200);
 
     const link = w.document.getElementById('bookmarklet-link');
     assert(link, 'bookmarklet-link element should exist');
+    await waitFor(
+      () => !link.getAttribute('href') && (link.textContent.includes('unavailable') || link.textContent.includes('Unavailable')),
+      { message: 'bookmarklet link disabled with error message' }
+    );
+
     assert(!link.getAttribute('href'), 'Failed bookmarklet fetch removes active href');
     assert(link.textContent.includes('unavailable') || link.textContent.includes('Unavailable'), 'Failed bookmarklet fetch leaves short message');
     w.close();
@@ -595,7 +696,6 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
   }
 
   console.log('ALL APP TESTS PASSED!');
-  process.exit(0);
 })().catch((err) => {
   console.error(err);
   process.exit(1);
