@@ -147,6 +147,7 @@
   scanDraftBoard();
   const obs = new MutationObserver(scanDraftBoard);
   obs.observe(document.body, { childList: true, subtree: true });
+  if (typeof window !== 'undefined') window.__copilotObserver = obs;
   const scanIntervalMs = (typeof window !== 'undefined' && typeof window.__COPILOT_SCAN_MS === 'number' && Number.isFinite(window.__COPILOT_SCAN_MS) && window.__COPILOT_SCAN_MS > 0)
     ? window.__COPILOT_SCAN_MS
     : 1000;

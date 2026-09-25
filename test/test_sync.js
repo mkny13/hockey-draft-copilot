@@ -57,11 +57,56 @@ function makeWindow(html) {
     storage: { local: { get: (k, cb) => cb({}), set() {} }, onChanged: { addListener() {} } },
     runtime: { onMessage: { addListener() {} }, sendMessage() {} }
   };
+  const activeTimeouts = new Set();
+  const activeIntervals = new Set();
+  const origSetTimeout = w.setTimeout.bind(w);
+  const origClearTimeout = w.clearTimeout.bind(w);
+  const origSetInterval = w.setInterval.bind(w);
+  const origClearInterval = w.clearInterval.bind(w);
+  w.setTimeout = (fn, delay, ...args) => {
+    let id;
+    id = origSetTimeout((...a) => {
+      activeTimeouts.delete(id);
+      return fn(...a);
+    }, delay, ...args);
+    activeTimeouts.add(id);
+    return id;
+  };
+  w.clearTimeout = (id) => {
+    activeTimeouts.delete(id);
+    return origClearTimeout(id);
+  };
+  w.setInterval = (fn, delay, ...args) => {
+    const id = origSetInterval(fn, delay, ...args);
+    activeIntervals.add(id);
+    return id;
+  };
+  w.clearInterval = (id) => {
+    activeIntervals.delete(id);
+    return origClearInterval(id);
+  };
   const origClose = w.close.bind(w);
   w.close = () => {
     if (w.__copilotScanInterval) {
-      w.clearInterval(w.__copilotScanInterval);
+      origClearInterval(w.__copilotScanInterval);
+      w.__copilotScanInterval = null;
     }
+    if (w.__copilotWsReconnectTimer) {
+      origClearTimeout(w.__copilotWsReconnectTimer);
+      w.__copilotWsReconnectTimer = null;
+    }
+    if (w.__copilotScanTimer) {
+      origClearTimeout(w.__copilotScanTimer);
+      w.__copilotScanTimer = null;
+    }
+    if (w.__copilotObserver) {
+      w.__copilotObserver.disconnect();
+      w.__copilotObserver = null;
+    }
+    for (const id of activeTimeouts) origClearTimeout(id);
+    for (const id of activeIntervals) origClearInterval(id);
+    activeTimeouts.clear();
+    activeIntervals.clear();
     origClose();
   };
   return w;
@@ -117,6 +162,7 @@ const names = (w) => w.__posts.map((p) => p.name);
     await waitFor(() => w.__posts.length >= 1);
     assert.deepStrictEqual(names(w), ['Connor McDavid']);
     w.close();
+    assert.strictEqual(w.__copilotScanTimer, null, 'Closing window clears mutation scan timer');
     console.log('✓ Extension: dynamically added toast is recorded');
   }
 
@@ -164,7 +210,9 @@ const names = (w) => w.__posts.map((p) => p.name);
     assert.strictEqual(d.getElementById('hud-count').textContent, '1 synced');
     sock.onclose();
     assert.strictEqual(d.getElementById('copilot-yahoo-badge').className, 'disconnected', 'Badge goes offline when the socket closes');
+    assert(w.__copilotWsReconnectTimer, 'Socket close schedules a reconnect timer');
     w.close();
+    assert.strictEqual(w.__copilotWsReconnectTimer, null, 'Closing window clears reconnect timer');
     console.log('✓ Extension: HUD renders headline, short list and trade-off; badge follows the socket');
   }
 
@@ -328,6 +376,9 @@ const names = (w) => w.__posts.map((p) => p.name);
       w.eval(playersData);
       w.eval(script);
       if (w.__copilotScanInterval) w.clearInterval(w.__copilotScanInterval);
+      if (w.__copilotWsReconnectTimer) w.clearTimeout(w.__copilotWsReconnectTimer);
+      if (w.__copilotScanTimer) w.clearTimeout(w.__copilotScanTimer);
+      if (w.__copilotObserver) w.__copilotObserver.disconnect();
       w.close();
       return capturedDelay;
     }

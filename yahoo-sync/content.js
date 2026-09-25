@@ -31,6 +31,11 @@
 
   // 1. WebSocket Live Synchronization with Local Server
   function connectWebSocket() {
+    if (wsReconnectTimer) {
+      clearTimeout(wsReconnectTimer);
+      wsReconnectTimer = null;
+      if (typeof window !== "undefined") window.__copilotWsReconnectTimer = null;
+    }
     if (wsClient && (wsClient.readyState === WebSocket.OPEN || wsClient.readyState === WebSocket.CONNECTING)) {
       return;
     }
@@ -63,10 +68,17 @@
   }
 
   function scheduleWsReconnect() {
-    if (wsReconnectTimer) clearTimeout(wsReconnectTimer);
+    if (wsReconnectTimer) {
+      clearTimeout(wsReconnectTimer);
+      wsReconnectTimer = null;
+      if (typeof window !== "undefined") window.__copilotWsReconnectTimer = null;
+    }
     wsReconnectTimer = setTimeout(() => {
+      wsReconnectTimer = null;
+      if (typeof window !== "undefined") window.__copilotWsReconnectTimer = null;
       connectWebSocket();
     }, 3000);
+    if (typeof window !== "undefined") window.__copilotWsReconnectTimer = wsReconnectTimer;
   }
 
   function handleServerWsMessage(data) {
@@ -661,9 +673,12 @@
     if (scanTimer) return;
     scanTimer = setTimeout(() => {
       scanTimer = null;
+      if (typeof window !== "undefined") window.__copilotScanTimer = null;
       scanAndSyncAllPicks(false);
     }, 300);
+    if (typeof window !== "undefined") window.__copilotScanTimer = scanTimer;
   });
+  if (typeof window !== "undefined") window.__copilotObserver = observer;
 
   if (document.body) {
     observer.observe(document.body, { childList: true, subtree: true });
