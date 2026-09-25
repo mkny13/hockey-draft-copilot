@@ -646,11 +646,14 @@
   }
 
   // 11. Periodic Polling & Mutation Observer
-  setInterval(() => {
+  const scanIntervalMs = (typeof window !== 'undefined' && typeof window.__COPILOT_SCAN_MS === 'number' && Number.isFinite(window.__COPILOT_SCAN_MS) && window.__COPILOT_SCAN_MS > 0)
+    ? window.__COPILOT_SCAN_MS
+    : 1000;
+  window.__copilotScanInterval = setInterval(() => {
     checkSessionUrlChange();
     injectBadge();
     scanAndSyncAllPicks(false);
-  }, 1000);
+  }, scanIntervalMs);
 
   // The draft timer mutates the page every second: coalesce scans instead of running one per mutation
   let scanTimer = null;
