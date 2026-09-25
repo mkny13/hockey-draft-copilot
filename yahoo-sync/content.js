@@ -16,6 +16,13 @@
     return DEFAULT_SYNC_URL;
   }
   const sent = new Set();
+  const syncedNames = new Set();
+  let pendingQueue = [];
+  let isFlushing = false;
+  let pendingRetryTimer = null;
+  let retryBackoffMs = 1000;
+  const MAX_BACKOFF_MS = 10000;
+  let lastInitStatePickHistory = [];
   let pickCount = 0;
   let lastSyncedPick = "None";
   let currentResetId = null;
@@ -40,6 +47,8 @@
       wsClient.onopen = function() {
         console.log(`[Draft Co-Pilot] Connected to live server WebSocket: ${syncWsUrl}`);
         updateBadge({ connected: true, latency: null });
+        retryBackoffMs = 1000;
+        scheduleQueueFlush(300);
       };
 
       wsClient.onmessage = function(event) {
@@ -74,22 +83,37 @@
 
     if (data.evaluation) renderEvaluation(data.evaluation);
 
+    // Every broadcast (not just INIT_STATE) carries the full current pickHistory;
+    // keep the reconciliation snapshot fresh so Deep Scan compares against live state.
+    if (data.state && Array.isArray(data.state.pickHistory)) {
+      lastInitStatePickHistory = [...data.state.pickHistory];
+    }
+
     if (data.type === "INIT_STATE" && data.state) {
+      dropRecordedFromState(data.state);
       syncFromServerState(data.state);
+      flushPendingQueue();
     } else if (data.type === "RESET") {
       resetLocalSyncState("Server board reset received.");
+      renderIntegrityWarning({ ok: true });
     } else if (data.type === "PICK_UNDONE") {
       if (data.payload && data.payload.name) {
-        sent.delete(data.payload.name.trim().toLowerCase());
+        const cleanName = data.payload.name.trim().toLowerCase();
+        sent.delete(cleanName);
+        syncedNames.delete(cleanName);
+        dropRecordedFromPending(cleanName);
         pickCount = Math.max(0, pickCount - 1);
         renderCounters();
       }
     } else if (data.type === "PICK_MADE") {
       if (data.payload && data.payload.name) {
-        sent.add(data.payload.name.trim().toLowerCase());
+        const cleanName = data.payload.name.trim();
+        sent.add(cleanName.toLowerCase());
+        syncedNames.add(cleanName.toLowerCase());
+        dropRecordedFromPending(cleanName);
         if (data.state && Array.isArray(data.state.pickHistory)) {
           pickCount = data.state.pickHistory.length;
-          lastSyncedPick = `${pickCount}. ${data.payload.name}`;
+          lastSyncedPick = `${pickCount}. ${cleanName}`;
           renderCounters();
         }
       }
@@ -106,8 +130,16 @@
     }
 
     sent.clear();
+    syncedNames.clear();
     state.pickHistory.forEach((p) => {
-      if (p.name) sent.add(p.name.trim().toLowerCase());
+      if (p.name) {
+        sent.add(p.name.trim().toLowerCase());
+        syncedNames.add(p.name.trim().toLowerCase());
+      }
+    });
+    // Keep pending queue items in sent so repeated scans do not re-queue them
+    pendingQueue.forEach((item) => {
+      if (item.name) sent.add(item.name.trim().toLowerCase());
     });
     pickCount = state.pickHistory.length;
     const lastPick = state.pickHistory[pickCount - 1];
@@ -117,6 +149,15 @@
 
   function resetLocalSyncState(reason) {
     sent.clear();
+    syncedNames.clear();
+    pendingQueue = [];
+    if (pendingRetryTimer) {
+      clearTimeout(pendingRetryTimer);
+      pendingRetryTimer = null;
+    }
+    retryBackoffMs = 1000;
+    lastInitStatePickHistory = [];
+    renderIntegrityWarning({ ok: true });
     pickCount = 0;
     lastSyncedPick = "None";
     renderCounters();
@@ -129,17 +170,24 @@
   }
 
   function renderCounters() {
+    const pendingText = pendingQueue.length > 0 ? ` (${pendingQueue.length} pending)` : "";
     const countEl = document.getElementById("copilot-badge-count");
-    if (countEl) countEl.textContent = `${pickCount} synced`;
+    if (countEl) countEl.textContent = `${pickCount} synced${pendingText}`;
     const hudCount = document.getElementById("hud-count");
-    if (hudCount) hudCount.textContent = `${pickCount} synced`;
+    if (hudCount) hudCount.textContent = `${pickCount} synced${pendingText}`;
     const hudLast = document.getElementById("hud-last");
     if (hudLast) hudLast.textContent = lastSyncedPick;
+    const hudPending = document.getElementById("hud-pending");
+    if (hudPending) hudPending.textContent = `${pendingQueue.length}`;
+    const hudPendingRow = document.getElementById("hud-pending-row");
+    if (hudPendingRow) hudPendingRow.style.display = pendingQueue.length > 0 ? "flex" : "none";
   }
 
   function renderEvaluation(ev) {
+    if (!ev) return;
+    renderIntegrityWarning(ev.pickHistoryIntegrity);
     const headline = document.getElementById("hud-headline");
-    if (!headline || !ev) return;
+    if (!headline) return;
     const colors = { critical: "#ff7b72", warning: "#d29922", turn: "#3fb950", waiting: "#58a6ff", info: "#c9d1d9" };
     headline.textContent = ev.headline || "";
     headline.style.color = colors[ev.alertType] || "#c9d1d9";
@@ -162,6 +210,47 @@
     });
 
     document.getElementById("hud-tradeoff").textContent = ev.tradeoff || "No trade-off flagged.";
+  }
+
+  function renderIntegrityWarning(integrity) {
+    const row = document.getElementById("hud-integrity-row");
+    if (!row) return;
+
+    if (!integrity || integrity.ok) {
+      row.style.display = "none";
+      row.textContent = "";
+      return;
+    }
+
+    row.textContent = "";
+    row.style.display = "block";
+
+    const parts = [];
+    if (Array.isArray(integrity.missing) && integrity.missing.length > 0) {
+      parts.push(`Missing pick(s): #${integrity.missing.join(", #")}`);
+    }
+    if (Array.isArray(integrity.repeated) && integrity.repeated.length > 0) {
+      const repList = integrity.repeated.map((r) => {
+        const namesStr = r.names && r.names.length ? ` (${r.names.join(", ")})` : ` (${r.count}x)`;
+        return `#${r.pickNumber}${namesStr}`;
+      }).join(", ");
+      parts.push(`Repeated pick(s): ${repList}`);
+    }
+    if (Array.isArray(integrity.duplicateNames) && integrity.duplicateNames.length > 0) {
+      const dupList = integrity.duplicateNames.map((d) => {
+        return `${d.name} (picks #${d.pickNumbers.join(", #")})`;
+      }).join(", ");
+      parts.push(`Duplicate player(s): ${dupList}`);
+    }
+
+    const titleSpan = document.createElement("span");
+    titleSpan.style.fontWeight = "bold";
+    titleSpan.textContent = "⚠️ Integrity: ";
+    row.appendChild(titleSpan);
+
+    const textSpan = document.createElement("span");
+    textSpan.textContent = parts.join(" | ");
+    row.appendChild(textSpan);
   }
 
   // 2. High-contrast In-Room Status Badge & HUD
@@ -204,10 +293,15 @@
           <span class="hud-label">Picks Synced:</span>
           <span class="hud-val" id="hud-count" style="color:#3fb950; font-weight:bold;">0</span>
         </div>
+        <div class="hud-row" id="hud-pending-row" style="display:none;">
+          <span class="hud-label">Pending Retry:</span>
+          <span class="hud-val" id="hud-pending" style="color:#d29922; font-weight:bold;">0</span>
+        </div>
         <div class="hud-row">
           <span class="hud-label">Last Synced:</span>
           <span class="hud-val" id="hud-last">-</span>
         </div>
+        <div id="hud-integrity-row" class="hud-row hud-warning" style="display:none; color:#ff7b72; font-size:11px; margin-top:4px; padding:4px 6px; background:rgba(255,123,114,0.12); border-radius:4px; border:1px solid rgba(255,123,114,0.4); line-height:1.4;"></div>
         <div style="margin-top:10px; display:flex; gap:6px;">
           <button id="copilot-btn-scan" class="hud-btn primary" title="Scan board and history right now">⚡ Scan Board</button>
           <button id="copilot-btn-history" class="hud-btn" style="background:#1f6feb; color:#fff;" title="Deep scan full pick history">📋 Deep Scan</button>
@@ -363,18 +457,125 @@
     });
   }
 
-  // 4. Core Pick Pusher
+  // 4. Core Pick Pusher & Durable Retry Queue
+  function enqueuePending(name, meta) {
+    const clean = name.trim();
+    const lower = clean.toLowerCase();
+    if (!syncedNames.has(lower) && !pendingQueue.some((item) => item.name.trim().toLowerCase() === lower)) {
+      pendingQueue.push({ name: clean, meta: meta || {} });
+    }
+    renderCounters();
+    scheduleQueueFlush();
+  }
+
+  // Removes a specific queued item by reference, not by position: pendingQueue can be
+  // reassigned to a new array (by dropRecordedFromState/dropRecordedFromPending) while
+  // flushPendingQueue is mid-await, so index 0 may no longer be the item just processed.
+  function removeFromPending(item) {
+    const idx = pendingQueue.indexOf(item);
+    if (idx !== -1) pendingQueue.splice(idx, 1);
+  }
+
+  function dropRecordedFromPending(name) {
+    if (!name) return;
+    const lower = name.trim().toLowerCase();
+    const prevLen = pendingQueue.length;
+    pendingQueue = pendingQueue.filter((entry) => entry.name.trim().toLowerCase() !== lower);
+    if (pendingQueue.length !== prevLen) {
+      renderCounters();
+    }
+  }
+
+  function dropRecordedFromState(state) {
+    if (!state || !Array.isArray(state.pickHistory)) return;
+    const recorded = new Set(state.pickHistory.map((p) => (p.name || "").trim().toLowerCase()));
+    const prevLen = pendingQueue.length;
+    pendingQueue = pendingQueue.filter((entry) => !recorded.has(entry.name.trim().toLowerCase()));
+    if (pendingQueue.length !== prevLen) {
+      renderCounters();
+    }
+  }
+
+  function scheduleQueueFlush(delayMs) {
+    if (pendingRetryTimer) clearTimeout(pendingRetryTimer);
+    const delay = typeof delayMs === "number" ? delayMs : retryBackoffMs;
+    pendingRetryTimer = setTimeout(() => {
+      pendingRetryTimer = null;
+      flushPendingQueue();
+    }, delay);
+  }
+
+  async function flushPendingQueue() {
+    if (isFlushing || pendingQueue.length === 0) return;
+    isFlushing = true;
+
+    try {
+      while (pendingQueue.length > 0) {
+        const item = pendingQueue[0];
+        const lower = item.name.trim().toLowerCase();
+
+        if (syncedNames.has(lower)) {
+          removeFromPending(item);
+          renderCounters();
+          continue;
+        }
+
+        let res;
+        try {
+          res = await fetch(`${syncBaseUrl}/api/pick`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ name: item.name, ...item.meta })
+          });
+        } catch (err) {
+          console.warn(`[Draft Co-Pilot] Network error retrying pick: ${item.name}`, err);
+          retryBackoffMs = Math.min(MAX_BACKOFF_MS, Math.round(retryBackoffMs * 1.5));
+          scheduleQueueFlush(retryBackoffMs);
+          return;
+        }
+
+        if (res.ok) {
+          console.log(`[Draft Co-Pilot] ✓ Retry successfully synced pick: ${item.name}`);
+          removeFromPending(item);
+          onPickSuccess(item.name);
+          retryBackoffMs = 1000;
+        } else if (res.status >= 400 && res.status < 500) {
+          console.warn(`[Draft Co-Pilot] Retry received 4xx HTTP ${res.status} for pick: ${item.name}; dropping`);
+          removeFromPending(item);
+          renderCounters();
+        } else {
+          console.warn(`[Draft Co-Pilot] Server returned 5xx HTTP ${res.status} for pick: ${item.name}`);
+          retryBackoffMs = Math.min(MAX_BACKOFF_MS, Math.round(retryBackoffMs * 1.5));
+          scheduleQueueFlush(retryBackoffMs);
+          return;
+        }
+      }
+      retryBackoffMs = 1000;
+    } finally {
+      isFlushing = false;
+    }
+  }
+
+  function onPickSuccess(clean) {
+    console.log(`[Draft Co-Pilot] ✓ Successfully synced pick: ${clean}`);
+    dropRecordedFromPending(clean);
+    const lower = clean.toLowerCase();
+    if (!syncedNames.has(lower)) {
+      syncedNames.add(lower);
+      pickCount++;
+      lastSyncedPick = `${pickCount}. ${clean}`;
+      renderCounters();
+    }
+  }
+
   function pushPick(name, meta) {
     if (!name) return;
     const clean = name.trim();
-    if (sent.has(clean.toLowerCase())) return;
-    sent.add(clean.toLowerCase());
+    const lower = clean.toLowerCase();
+    if (sent.has(lower)) return;
+    sent.add(lower);
 
-    pickCount++;
-    lastSyncedPick = `${pickCount}. ${clean}`;
-    renderCounters();
-
-    console.log(`[Draft Co-Pilot] >>> DETECTED PICK #${pickCount}: ${clean} -> ${syncBaseUrl}/api/pick`);
+    console.log(`[Draft Co-Pilot] >>> DETECTED PICK: ${clean} -> ${syncBaseUrl}/api/pick`);
 
     fetch(`${syncBaseUrl}/api/pick`, {
       method: "POST",
@@ -383,17 +584,18 @@
     })
     .then((res) => {
       if (res.ok) {
-        console.log(`[Draft Co-Pilot] ✓ Successfully synced pick #${pickCount}: ${clean}`);
+        onPickSuccess(clean);
+      } else if (res.status >= 400 && res.status < 500) {
+        console.warn(`[Draft Co-Pilot] Server returned HTTP ${res.status} for pick: ${clean}; giving up`);
+        dropRecordedFromPending(clean);
       } else {
         console.warn(`[Draft Co-Pilot] Server returned HTTP ${res.status} for pick: ${clean}`);
+        enqueuePending(clean, meta);
       }
     })
     .catch((err) => {
       console.warn(`[Draft Co-Pilot] Network error pushing pick: ${clean}`, err);
-      // Server unreachable: forget the pick so the next scan retries it
-      sent.delete(clean.toLowerCase());
-      pickCount = Math.max(0, pickCount - 1);
-      renderCounters();
+      enqueuePending(clean, meta);
     });
   }
 
@@ -438,7 +640,7 @@
 
   // 6. Target A: ESPN Floating Pick Notification Toasts (Bottom-Right Corner)
   // Format: "Nathan MacKinnon / COL, F \n R1, P1 - Is Bobby Orr Available?"
-  function scanNotificationToasts() {
+  function scanNotificationToasts(collectedRoomPlayers) {
     const newlyFound = [];
     const roundPick = /R(\d+),\s*P(\d+)/i;
     const playerTeam = /([A-Z][a-zA-Z\.\'\-\s]+?)\s*\/\s*([A-Z]{2,3})(?:,\s*([A-Z]+))?/i;
@@ -471,12 +673,15 @@
       if (!pMatch || !rMatch || pMatch.index > rMatch.index) continue;
 
       const resolved = window.resolveCopilotPlayer ? window.resolveCopilotPlayer(pMatch[1].trim()) : pMatch[1].trim();
-      if (resolved && !sent.has(resolved.toLowerCase())) {
-        pushPick(resolved, {
-          round: parseInt(rMatch[1], 10),
-          pickInRound: parseInt(rMatch[2], 10)
-        });
-        newlyFound.push(resolved);
+      if (resolved) {
+        if (collectedRoomPlayers) collectedRoomPlayers.add(resolved);
+        if (!sent.has(resolved.toLowerCase())) {
+          pushPick(resolved, {
+            round: parseInt(rMatch[1], 10),
+            pickInRound: parseInt(rMatch[2], 10)
+          });
+          newlyFound.push(resolved);
+        }
       }
     }
 
@@ -484,7 +689,7 @@
   }
 
   // 7. Target B: ESPN & Yahoo Live Draft Board & History Tables
-  function scanBoardAndHistory() {
+  function scanBoardAndHistory(collectedRoomPlayers) {
     const newlyFound = [];
 
     function tryPush(text, elem) {
@@ -492,9 +697,12 @@
       if (elem && isAvailablePlayersElement(elem)) return;
 
       const resolved = window.resolveCopilotPlayer ? window.resolveCopilotPlayer(text) : null;
-      if (resolved && !sent.has(resolved.toLowerCase())) {
-        pushPick(resolved);
-        newlyFound.push(resolved);
+      if (resolved) {
+        if (collectedRoomPlayers) collectedRoomPlayers.add(resolved);
+        if (!sent.has(resolved.toLowerCase())) {
+          pushPick(resolved);
+          newlyFound.push(resolved);
+        }
       }
     }
 
@@ -587,7 +795,7 @@
     return newlyFound;
   }
 
-  // 8. Deep Scanner: Momentarily switches to Pick History or Board tab if on Players tab
+  // 8. Deep Scanner: Momentarily switches to Pick History or Board tab if on Players tab & reconciles against server history
   function deepScanPickHistory() {
     const msgEl = document.getElementById("hud-status-msg");
     if (msgEl) {
@@ -595,32 +803,48 @@
       msgEl.style.color = "#58a6ff";
     }
 
+    const roomPlayers = new Set();
     // First scan visible toasts and elements
-    const initialFound = [].concat(scanNotificationToasts(), scanBoardAndHistory());
+    const initialFound = [].concat(scanNotificationToasts(roomPlayers), scanBoardAndHistory(roomPlayers));
 
     // Check if we are on ESPN and can toggle to "Pick History" or "Board"
     const tabs = Array.from(document.querySelectorAll("button, [role='tab'], a"));
-    const histTab = tabs.find(t => (t.textContent || "").trim().toLowerCase() === "pick history");
-    const boardTab = tabs.find(t => (t.textContent || "").trim().toLowerCase() === "board");
-    const playersTab = tabs.find(t => (t.textContent || "").trim().toLowerCase() === "players");
+    const histTab = tabs.find((t) => (t.textContent || "").trim().toLowerCase() === "pick history");
+    const boardTab = tabs.find((t) => (t.textContent || "").trim().toLowerCase() === "board");
+    const playersTab = tabs.find((t) => (t.textContent || "").trim().toLowerCase() === "players");
 
     const targetTab = histTab || boardTab;
     if (targetTab && playersTab) {
       targetTab.click();
       setTimeout(() => {
-        const foundFromTab = [].concat(scanNotificationToasts(), scanBoardAndHistory());
+        const foundFromTab = [].concat(scanNotificationToasts(roomPlayers), scanBoardAndHistory(roomPlayers));
         playersTab.click();
         const totalNew = initialFound.length + foundFromTab.length;
-        if (msgEl) {
-          msgEl.textContent = `Deep scan complete: ${totalNew} new pick(s) synced. Total: ${pickCount}.`;
-          msgEl.style.color = "#3fb950";
-        }
+        reconcileAndReport(totalNew, roomPlayers);
       }, 200);
     } else {
-      if (msgEl) {
-        msgEl.textContent = `Scan complete: ${initialFound.length} new pick(s). Total: ${pickCount}.`;
-        msgEl.style.color = "#3fb950";
-      }
+      reconcileAndReport(initialFound.length, roomPlayers);
+    }
+  }
+
+  function reconcileAndReport(newlySyncedCount, roomPlayers) {
+    const msgEl = document.getElementById("hud-status-msg");
+    if (!msgEl) return;
+
+    const serverNames = new Set(
+      lastInitStatePickHistory.map((p) => (p.name || "").trim().toLowerCase())
+    );
+    const missingFromServer = Array.from(roomPlayers).filter(
+      (name) => !serverNames.has(name.trim().toLowerCase())
+    );
+
+    if (missingFromServer.length > 0) {
+      const missingList = missingFromServer.join(", ");
+      msgEl.textContent = `Deep scan: ${missingFromServer.length} room player(s) missing from server history: ${missingList}`;
+      msgEl.style.color = "#ff7b72";
+    } else {
+      msgEl.textContent = `Deep scan complete: ${newlySyncedCount} new pick(s) synced. All room players match server history.`;
+      msgEl.style.color = "#3fb950";
     }
   }
 

@@ -27,10 +27,17 @@ function makeWindow(html) {
   w.__posts = [];
   w.__sockets = [];
   w.__fetchMode = 'ok';
+  w.__manualFetches = [];
   w.alert = () => {};
   w.confirm = () => true;
   w.fetch = (u, o) => {
-    if (o && o.body) w.__posts.push(JSON.parse(o.body));
+    const body = o && o.body ? JSON.parse(o.body) : null;
+    if (body) w.__posts.push(body);
+    // 'manual' mode lets a test hold a POST unresolved to simulate a race between an
+    // in-flight retry and a server message that arrives before the retry's fetch settles.
+    if (w.__fetchMode === 'manual') {
+      return new Promise((resolve) => { w.__manualFetches.push({ body, resolve }); });
+    }
     if (typeof w.__fetchMode === 'function' ? w.__fetchMode() === 'fail' : w.__fetchMode === 'fail') return Promise.reject(new Error('offline'));
     return Promise.resolve({ ok: true, json: () => Promise.resolve({}) });
   };
@@ -211,6 +218,252 @@ const names = (w) => w.__posts.map((p) => p.name);
 
     w.close();
     console.log('✓ Extension: hostile stored sync URL cannot inject an element into the HUD');
+  }
+
+  // 5b. A pick posted while __fetchMode is 'fail' is re-sent after the mode flips to 'ok'
+  // even though its toast element has been removed from the DOM
+  {
+    const w = makeWindow('<div class="wrap"><div class="toast"><div>Leon Draisaitl / EDM, F</div><div>R1, P3 - Team C</div></div></div>');
+    w.__fetchMode = 'fail';
+    w.eval(playersData);
+    w.eval(contentJs);
+    await sleep(1400);
+    assert(w.__posts.length >= 1, 'Initial attempt was sent');
+    assert.strictEqual(w.__posts[0].name, 'Leon Draisaitl');
+    const countBefore = w.__posts.length;
+
+    // Remove the toast element from the DOM completely
+    const toast = w.document.querySelector('.toast');
+    toast.remove();
+    assert.strictEqual(w.document.querySelectorAll('.toast').length, 0, 'Toast is gone from DOM');
+
+    // Counters reflect pending
+    const hudCount = w.document.getElementById('hud-count');
+    assert(hudCount.textContent.includes('pending'), 'Pending retry is visible in HUD counter');
+
+    // Server comes back up
+    w.__fetchMode = 'ok';
+
+    // Wait for queue flush retry
+    await sleep(1500);
+    assert(w.__posts.length > countBefore, 'Pick was re-sent after server returned even though toast element was removed');
+    assert.strictEqual(w.__posts[w.__posts.length - 1].name, 'Leon Draisaitl');
+    assert(hudCount.textContent.includes('1 synced'), 'Pick is marked synced after retry');
+    assert(!hudCount.textContent.includes('pending'), 'No pending picks remain');
+    w.close();
+    console.log('✓ Extension: pick whose POST fails is re-sent after server is back, even after toast element is gone');
+  }
+
+  // 5c. Recovery never produces a duplicate POST for a pick the server already recorded
+  {
+    const w = makeWindow('<div class="wrap"><div class="toast"><div>Cale Makar / COL, D</div><div>R1, P4 - Team D</div></div></div>');
+    w.__fetchMode = 'fail';
+    w.eval(playersData);
+    w.eval(contentJs);
+    await sleep(1400);
+    assert(w.__posts.length >= 1, 'Initial attempt was sent');
+    const countBefore = w.__posts.length;
+
+    // Server reports that Cale Makar was already recorded via PICK_MADE
+    const sock = w.__sockets[0];
+    assert(sock, 'WebSocket is present');
+    sock.onopen();
+    sock.onmessage({ data: JSON.stringify({
+      type: 'PICK_MADE',
+      payload: { name: 'Cale Makar' },
+      state: { pickHistory: [{ name: 'Cale Makar' }] }
+    }) });
+
+    // Mode flips to 'ok'
+    w.__fetchMode = 'ok';
+    await sleep(1500);
+
+    // No duplicate POST is sent
+    assert.strictEqual(w.__posts.length, countBefore, 'No second POST made for pick server already recorded');
+    w.close();
+    console.log('✓ Extension: no second POST made for a pick the server subsequently reports via PICK_MADE');
+  }
+
+  // 6d. HUD warning row renders from an INIT_STATE evaluation carrying missing/repeated pick numbers and clears when integrity is ok
+  {
+    const w = runExtension('<div></div>');
+    await sleep(300);
+    const sock = w.__sockets[0];
+    sock.onopen();
+
+    // Server sends evaluation with integrity errors
+    sock.onmessage({ data: JSON.stringify({
+      type: 'INIT_STATE',
+      state: { pickHistory: [{ name: 'Connor McDavid', pickNumber: 1 }] },
+      evaluation: {
+        headline: 'Pick in progress', alertType: 'turn', shortlist: [], tradeoff: '',
+        pickHistoryIntegrity: {
+          checkedUpTo: 5,
+          missing: [2, 3],
+          repeated: [{ pickNumber: 4, count: 2, names: ['Player X', 'Player Y'] }],
+          duplicateNames: [{ name: 'Player X', pickNumbers: [1, 4] }],
+          ok: false
+        }
+      }
+    }) });
+
+    const warnRow = w.document.getElementById('hud-integrity-row');
+    assert(warnRow, 'HUD integrity row exists');
+    assert.strictEqual(warnRow.style.display, 'block', 'Integrity row is displayed when ok is false');
+    assert(warnRow.textContent.includes('Missing pick(s): #2, #3'), 'Missing picks listed');
+    assert(warnRow.textContent.includes('Repeated pick(s): #4'), 'Repeated picks listed');
+    assert(warnRow.textContent.includes('Duplicate player(s): Player X'), 'Duplicate players listed');
+
+    // Clear integrity warning when ok is true
+    sock.onmessage({ data: JSON.stringify({
+      type: 'INIT_STATE',
+      state: { pickHistory: [{ name: 'Connor McDavid', pickNumber: 1 }] },
+      evaluation: {
+        headline: 'Pick in progress', alertType: 'turn', shortlist: [], tradeoff: '',
+        pickHistoryIntegrity: {
+          checkedUpTo: 5,
+          missing: [],
+          repeated: [],
+          duplicateNames: [],
+          ok: true
+        }
+      }
+    }) });
+
+    assert.strictEqual(warnRow.style.display, 'none', 'Integrity row is hidden when ok is true');
+    assert.strictEqual(warnRow.textContent, '', 'Integrity text is cleared when ok is true');
+    w.close();
+    console.log('✓ Extension: HUD integrity warning row renders issues and clears when integrity is ok');
+  }
+
+  // 6e. Deep Scan reconciles: compares room players against last INIT_STATE pickHistory and reports missing players in HUD status line
+  {
+    const html = `
+      <div id="app">
+        <div class="draft-results-table">
+          <table>
+            <tr><td class="name">Connor McDavid</td></tr>
+            <tr><td class="name">Leon Draisaitl</td></tr>
+          </table>
+        </div>
+      </div>
+    `;
+    const w = runExtension(html);
+    await sleep(300);
+    const sock = w.__sockets[0];
+    sock.onopen();
+
+    // Server state only has Connor McDavid; Leon Draisaitl is missing from server history
+    sock.onmessage({ data: JSON.stringify({
+      type: 'INIT_STATE',
+      state: { pickHistory: [{ name: 'Connor McDavid' }] }
+    }) });
+
+    const historyBtn = w.document.getElementById('copilot-btn-history');
+    assert(historyBtn, 'Deep Scan button exists');
+    historyBtn.click();
+    await sleep(300);
+
+    const msgEl = w.document.getElementById('hud-status-msg');
+    assert(msgEl, 'HUD status line element exists');
+    assert(msgEl.textContent.includes('Leon Draisaitl'), 'Missing draft-room player Leon Draisaitl is reported');
+    assert(msgEl.textContent.toLowerCase().includes('missing from server history'), 'Reconciliation status line indicates missing from server history');
+    w.close();
+    console.log('✓ Extension: Deep Scan reports draft-room players that are missing from server history');
+  }
+
+  // 6f. Reconciliation snapshot stays fresh across a live session: a PICK_MADE broadcast (not
+  // just INIT_STATE) must update what Deep Scan compares against, or every pick made after the
+  // first one falsely reports as missing from server history for the rest of the draft.
+  {
+    const html = `
+      <div id="app">
+        <div class="draft-results-table">
+          <table>
+            <tr><td class="name">Connor McDavid</td></tr>
+            <tr><td class="name">Leon Draisaitl</td></tr>
+          </table>
+        </div>
+      </div>
+    `;
+    const w = runExtension(html);
+    await sleep(300);
+    const sock = w.__sockets[0];
+    sock.onopen();
+
+    // Connect-time INIT_STATE only has McDavid
+    sock.onmessage({ data: JSON.stringify({
+      type: 'INIT_STATE',
+      state: { pickHistory: [{ name: 'Connor McDavid' }] }
+    }) });
+
+    // A later PICK_MADE (no new INIT_STATE) records Draisaitl, as happens in any ongoing draft
+    sock.onmessage({ data: JSON.stringify({
+      type: 'PICK_MADE',
+      payload: { name: 'Leon Draisaitl' },
+      state: { pickHistory: [{ name: 'Connor McDavid' }, { name: 'Leon Draisaitl' }] }
+    }) });
+
+    const historyBtn = w.document.getElementById('copilot-btn-history');
+    historyBtn.click();
+    await sleep(300);
+
+    const msgEl = w.document.getElementById('hud-status-msg');
+    assert(!msgEl.textContent.includes('Leon Draisaitl'), 'Draisaitl was recorded via PICK_MADE and must not be reported missing');
+    assert(msgEl.textContent.toLowerCase().includes('all room players match server history'), 'Reconciliation should find no discrepancy');
+    w.close();
+    console.log('✓ Extension: Deep Scan reconciliation snapshot stays current after PICK_MADE broadcasts, not just INIT_STATE');
+  }
+
+  // 5d. A pending pick's own successful retry must not silently discard an unrelated, still-
+  // unsynced pending pick when the pendingQueue array is reassigned mid-await (e.g. the same
+  // pick that's mid-retry gets recorded separately, such as via the app's own "+Mine" button).
+  {
+    const html = `<div id="app"><div class="wrap">
+      <div class="toastA"><div>Connor McDavid / EDM, C</div><div>R1, P1 - Team A</div></div>
+      <div class="toastB"><div>Leon Draisaitl / EDM, F</div><div>R1, P2 - Team B</div></div>
+    </div></div>`;
+    const w = makeWindow(html);
+    w.__fetchMode = 'fail';
+    w.eval(playersData);
+    w.eval(contentJs);
+
+    // Both picks fail their initial POST and land in the pending retry queue
+    await sleep(1400);
+    assert(w.document.getElementById('hud-count').textContent.includes('2 pending'), 'Both picks are pending after initial failures');
+
+    // Switch to manual mode and kick off a flush: the retry for McDavid (queue head) starts
+    // and its fetch is held open, simulating an in-flight request
+    w.__fetchMode = 'manual';
+    const sock = w.__sockets[0];
+    sock.onopen();
+    await sleep(400);
+    assert.strictEqual(w.__manualFetches.length, 1, 'Retry for the first pending pick (McDavid) is in flight');
+    const mcDavidFetch = w.__manualFetches[0];
+    assert.strictEqual(mcDavidFetch.body.name, 'Connor McDavid');
+
+    // While that retry is still in flight, the server reports McDavid recorded through another
+    // path (e.g. the app's own "+Mine" button), which reassigns pendingQueue to drop McDavid
+    sock.onmessage({ data: JSON.stringify({
+      type: 'PICK_MADE',
+      payload: { name: 'Connor McDavid' },
+      state: { pickHistory: [{ name: 'Connor McDavid' }] }
+    }) });
+
+    // Now McDavid's own in-flight retry resolves successfully too (a race, not an error)
+    mcDavidFetch.resolve({ ok: true, json: () => Promise.resolve({}) });
+    await sleep(100);
+
+    // Draisaitl must still be retried, not silently dropped along with McDavid
+    assert.strictEqual(w.__manualFetches.length, 2, 'Draisaitl (unrelated pending pick) is still retried, not discarded');
+    assert.strictEqual(w.__manualFetches[1].body.name, 'Leon Draisaitl');
+
+    w.__manualFetches[1].resolve({ ok: true, json: () => Promise.resolve({}) });
+    await sleep(100);
+
+    assert.strictEqual(w.document.getElementById('hud-count').textContent, '2 synced', 'Both picks end up synced with none silently lost');
+    w.close();
+    console.log('✓ Extension: durable retry queue survives a mid-flight pendingQueue reassignment without dropping an unrelated pick');
   }
 
   // 7. Served bookmarklet: runs against the wrapper fixture and records only the toast pick
