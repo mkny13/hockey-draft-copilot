@@ -8,6 +8,9 @@ const readmeMd = fs.readFileSync(path.join(repoRoot, 'README.md'), 'utf8');
 const agentsMd = fs.readFileSync(path.join(repoRoot, 'AGENTS.md'), 'utf8');
 const pkgJson = JSON.parse(fs.readFileSync(path.join(repoRoot, 'package.json'), 'utf8'));
 
+const runnerJs = fs.readFileSync(path.join(repoRoot, 'scripts', 'run_tests.js'), 'utf8');
+const { TEST_FILES: runnerTestFiles } = require(path.join(repoRoot, 'scripts', 'run_tests.js'));
+
 // 1. Every route literal matched by /app\.(get|post|put|delete)\('(\/[^']*)'/g in server.js
 // appears verbatim in README.md and in AGENTS.md.
 const routeRegex = /app\.(get|post|put|delete)\('(\/[^']*)'/g;
@@ -32,15 +35,17 @@ for (const route of routes) {
 }
 
 // 2. Every test/test_*.js filename on disk appears in README.md and in AGENTS.md,
-// and every one is present in the test script in package.json.
+// and every one is present in the runner's TEST_FILES list in scripts/run_tests.js.
 const testDir = path.join(repoRoot, 'test');
 const testFiles = fs.readdirSync(testDir)
   .filter((file) => /^test_.*\.js$/.test(file))
   .sort();
 
-const testScript = (pkgJson.scripts && pkgJson.scripts.test) || '';
-
 for (const file of testFiles) {
+  assert(
+    runnerTestFiles.includes(file) && runnerJs.includes(file),
+    `scripts/run_tests.js is missing test file "${file}"`
+  );
   assert(
     readmeMd.includes(file),
     `README.md is missing test file "${file}"`
@@ -48,10 +53,6 @@ for (const file of testFiles) {
   assert(
     agentsMd.includes(file),
     `AGENTS.md is missing test file "${file}"`
-  );
-  assert(
-    testScript.includes(file),
-    `package.json test script is missing test file "${file}"`
   );
 }
 
