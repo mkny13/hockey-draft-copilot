@@ -619,7 +619,17 @@ assert.strictEqual(GT.getTopMatchup([], 5, 7.0), null, 'Top matchup must be null
 console.log('✓ getTopMatchup surfaces the board anchor matchup and is empty-safe');
 
 // 17. evaluateBoard() with no rosterCounts/rosterLimits must default to the FLEX roster
-// shape (C2 F6 D6 UTIL1 G2 BN5), not the legacy pre-flex curve.
+// shape (C2 F6 D6 UTIL1 G2 BN5), not the legacy pre-flex curve, and use default roster counts.
+const resTrulyNoOptions = GT.evaluateBoard(rawData.players, {
+  currentPick: 40, slot: 5, teams: 8, drafted: {}, mine: {}
+});
+assert(resTrulyNoOptions.shortlist.length > 0, 'Shortlist must not be empty with entirely undefined roster options');
+assert(resTrulyNoOptions.availableRows.every((p) => !Number.isNaN(p.adjVorp)), 'No adjVorp may be NaN with entirely undefined roster options');
+const makarTrulyNoOpts = resTrulyNoOptions.availableRows.find((p) => p.name === 'Cale Makar');
+assert.strictEqual(makarTrulyNoOpts.isDiminished, false, 'With default (zero) rosterCounts, players must not be diminished');
+
+// 17b. D:4 hits the legacy D limit (4), so the pre-flex curve diminishes him (0.85x).
+// The same D:4 is still under the FLEX-shaped D limit (6), so the default path must not.
 const dHeavyCounts = { C: 0, F: 0, D: 4, G: 0, total: 4 };
 const resNoRosterOpts = GT.evaluateBoard(rawData.players, {
   currentPick: 40, slot: 5, teams: 8, drafted: {}, mine: {}, rosterCounts: dHeavyCounts
@@ -629,14 +639,9 @@ const resLegacyRosterOpts = GT.evaluateBoard(rawData.players, {
   rosterLimits: { C: 3, F: 5, D: 4, G: 2 }
 });
 
-assert(resNoRosterOpts.shortlist.length > 0, 'Shortlist must not be empty with no roster options');
-assert(resNoRosterOpts.availableRows.every((p) => !Number.isNaN(p.adjVorp)), 'No adjVorp may be NaN with no roster options');
-
 const makarNoOpts = resNoRosterOpts.availableRows.find((p) => p.name === 'Cale Makar');
 const makarLegacyOpts = resLegacyRosterOpts.availableRows.find((p) => p.name === 'Cale Makar');
-// D:4 already meets the legacy D limit (4), so the pre-flex curve diminishes him (0.85x).
-// The same D:4 is still under the FLEX-shaped D limit (6), so the default path must not.
-assert.strictEqual(makarNoOpts.isDiminished, false, 'With no roster options, D:4 must sit under the FLEX D limit (6) and stay undiminished');
+assert.strictEqual(makarNoOpts.isDiminished, false, 'With default rosterLimits, D:4 must sit under the FLEX D limit (6) and stay undiminished');
 assert.strictEqual(makarLegacyOpts.isDiminished, true, 'The legacy D limit (4) would have diminished the same roster shape');
 assert.strictEqual(makarNoOpts.adjVorp, makarNoOpts.rawVorp, 'FLEX path leaves an under-limit player at full value');
 console.log('✓ evaluateBoard() with no roster options takes the FLEX multiplier path, not the legacy curve');
