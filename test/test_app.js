@@ -233,6 +233,19 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
   w.alert = () => {};
   w.confirm = () => true;
 
+  const origClose = w.close.bind(w);
+  w.close = () => {
+    if (w.__copilotSearchDebounceTimer) {
+      w.clearTimeout(w.__copilotSearchDebounceTimer);
+      w.__copilotSearchDebounceTimer = null;
+    }
+    if (w.__copilotSearchTimer) {
+      w.clearTimeout(w.__copilotSearchTimer);
+      w.__copilotSearchTimer = null;
+    }
+    return origClose();
+  };
+
   return w;
 }
 
@@ -693,6 +706,247 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     assert(link.textContent.includes('unavailable') || link.textContent.includes('Unavailable'), 'Failed bookmarklet fetch leaves short message');
     w.close();
     console.log('✓ Failed bookmarklet fetch leaves link disabled with short message without throwing');
+  }
+
+  // 13. Search debounce: coalescing keystroke burst into a single table rebuild
+  {
+    const w = makeAppWindow();
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+
+    const doc = w.document;
+    const tbody = doc.getElementById('board-tbody');
+    const filterSearch = doc.getElementById('filter-search');
+
+    await waitFor(() => tbody?.children.length > 0, { message: 'board table initial render' });
+
+    let renderCount = 0;
+    const origRender = w.renderBoardTable;
+    w.renderBoardTable = function () {
+      renderCount++;
+      return origRender.apply(this, arguments);
+    };
+
+    const query = 'Tim Stüt'; // 8-character query
+    assert.strictEqual(query.length, 8, 'Query is 8 characters long');
+
+    for (let i = 0; i < query.length; i++) {
+      filterSearch.value = query.slice(0, i + 1);
+      filterSearch.dispatchEvent(new w.Event('input'));
+    }
+
+    // Immediately after the 8 input events, table has not been rebuilt yet
+    assert.strictEqual(renderCount, 0, 'Typing burst does not trigger synchronous renders');
+    assert(w.__copilotSearchDebounceTimer, 'Debounce timer handle is exposed on window');
+
+    // Wait for the trailing debounce timer (~120ms) to fire
+    await waitFor(() => renderCount === 1, { timeout: 1000, message: 'debounce timer fired once' });
+
+    // Assert it rebuilt once, not eight times
+    assert.strictEqual(renderCount, 1, 'Typing an eight-character query rebuilds the board table once, not eight times');
+    assert.strictEqual(w.__copilotSearchDebounceTimer, null, 'Debounce timer handle is cleared after firing');
+
+    // Final rendered rows match the last query typed ("Tim Stüt" -> Tim Stützle)
+    assert.strictEqual(tbody.children.length, 1, 'Rendered rows match last query typed');
+    assert(tbody.children[0].textContent.includes('Tim Stützle'), 'Row contains Tim Stützle');
+
+    w.close();
+    console.log('✓ Search debounce coalesces an 8-character burst into exactly one board rebuild');
+  }
+
+  // 14. Batch row attachment: renderBoardTable attaches rows through a single DocumentFragment append
+  {
+    const w = makeAppWindow();
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+
+    const doc = w.document;
+    const tbody = doc.getElementById('board-tbody');
+
+    await waitFor(() => tbody?.children.length > 0, { message: 'board table initial render' });
+
+    let appendCalls = 0;
+    let appendedNodes = [];
+    const origAppendChild = tbody.appendChild.bind(tbody);
+    tbody.appendChild = function (child) {
+      appendCalls++;
+      appendedNodes.push(child);
+      return origAppendChild(child);
+    };
+
+    w.renderBoardTable();
+
+    assert.strictEqual(appendCalls, 1, 'renderBoardTable() appends to tableTbody exactly once');
+    assert.strictEqual(
+      appendedNodes[0].nodeType,
+      w.Node.DOCUMENT_FRAGMENT_NODE,
+      'renderBoardTable() attaches rows through a DocumentFragment append'
+    );
+    assert.strictEqual(tbody.children.length, 3, 'All rows attached to tableTbody');
+
+    w.close();
+    console.log('✓ renderBoardTable attaches rows through a single DocumentFragment append');
+  }
+
+  // 15. Render-output parity against main fixtures across filter combinations
+  {
+    const fixtureFile = path.join(__dirname, 'fixtures_board_render.json');
+    const fixtures = JSON.parse(fs.readFileSync(fixtureFile, 'utf8'));
+
+    const parityPlayers = [
+      {
+        id: 1, rank: 1, name: HOSTILE_NAME_1, team: '<b onmouseover=1>TEAM</b>',
+        pos: ['C', 'F'], rawPos: ['C'], posLabel: '<i onclick=1>C</i>',
+        vorp: 200, rawVorp: 200, adjVorp: 200, dropoff: 25, fp: 450, adp: 2.0,
+        action: 'MUST REACH (Cliff)', survivalProb: 0.15, adpDelta: 5.0
+      },
+      {
+        id: 2, rank: 2, name: HOSTILE_NAME_2, team: 'COL',
+        pos: ['F'], rawPos: ['F'], posLabel: 'F',
+        vorp: 180, rawVorp: 180, adjVorp: 180, dropoff: 10, fp: 400, adp: 15.0,
+        action: 'WAIT (ADP Safe)', survivalProb: 0.85, adpDelta: 10.0
+      },
+      {
+        id: 3, rank: 3, name: 'Tim Stützle', team: 'OTT',
+        pos: ['C', 'F'], rawPos: ['C'], posLabel: 'C/F',
+        vorp: 150, rawVorp: 150, adjVorp: 150, dropoff: 5, fp: 350, adp: 30.0,
+        action: 'TARGET', survivalProb: 0.50, adpDelta: 2.0
+      },
+      {
+        id: 4, rank: 4, name: 'Cale Makar', team: 'COL',
+        pos: ['D'], rawPos: ['D'], posLabel: 'D',
+        vorp: 140, rawVorp: 140, adjVorp: 140, dropoff: 16, fp: 380, adp: 8.0,
+        action: 'NOW OR NEVER', survivalProb: 0.05, adpDelta: -2.0
+      },
+      {
+        id: 5, rank: 5, name: 'Connor Hellebuyck', team: 'WPG',
+        pos: ['G'], rawPos: ['G'], posLabel: 'G',
+        vorp: 100, rawVorp: 100, adjVorp: 100, dropoff: 0, fp: 320, adp: 40.0,
+        action: 'TARGET', survivalProb: 0.90, adpDelta: 0.0
+      }
+    ];
+
+    const parityState = {
+      currentPick: 3,
+      slot: 5,
+      teams: 8,
+      stdDev: 7.0,
+      rosterLimits: { C: 4, F: 8, D: 6, G: 2 },
+      drafted: { [HOSTILE_NAME_1]: true, 'Cale Makar': true },
+      mine: { 'Cale Makar': true },
+      pickHistory: [
+        { pickNumber: 1, name: HOSTILE_NAME_1, isMine: false },
+        { pickNumber: 2, name: 'Cale Makar', isMine: true }
+      ]
+    };
+
+    const filterCases = [
+      { q: '', pos: 'ALL', hide: false },
+      { q: 'Stützle', pos: 'ALL', hide: false },
+      { q: 'COL', pos: 'ALL', hide: false },
+      { q: '', pos: 'C', hide: false },
+      { q: '', pos: 'ALL', hide: true },
+      { q: 'x', pos: 'F', hide: false }
+    ];
+
+    for (const c of filterCases) {
+      const w = makeAppWindow(parityPlayers, parityState);
+      w.eval(gametheoryJs);
+      w.eval(appJs);
+
+      const doc = w.document;
+      const tbody = doc.getElementById('board-tbody');
+      const filterSearch = doc.getElementById('filter-search');
+      const toggleHide = doc.getElementById('toggle-hide-drafted');
+
+      await waitFor(() => tbody?.children.length > 0, { message: 'board table initial render for parity' });
+
+      filterSearch.value = c.q;
+      filterSearch.dispatchEvent(new w.Event('input'));
+
+      toggleHide.checked = c.hide;
+      toggleHide.dispatchEvent(new w.Event('change'));
+
+      const chip = Array.from(doc.querySelectorAll('.filter-chip')).find((el) => el.getAttribute('data-pos') === c.pos);
+      if (chip) chip.click();
+
+      // Wait for debounce timer if query was input
+      if (c.q) {
+        await waitFor(() => w.__copilotSearchDebounceTimer === null, { message: 'debounce timer finished' });
+      }
+
+      const key = `${c.q}|${c.pos}|${c.hide}`;
+      assert.strictEqual(
+        tbody.innerHTML,
+        fixtures[key],
+        `tableTbody.innerHTML is byte-identical to main fixture for case (${key})`
+      );
+
+      w.close();
+    }
+    console.log('✓ tableTbody.innerHTML is identical to main across all tested filter combinations');
+  }
+
+  // 16. Sidebar pick lookup via Map and total VORP integrity
+  {
+    const sidebarPlayers = [
+      {
+        id: 1, rank: 1, name: 'Leon Draisaitl', team: 'EDM',
+        pos: ['C', 'F'], rawPos: ['C'], posLabel: 'C/F',
+        vorp: 180.4, rawVorp: 180.4, adjVorp: 180.4, dropoff: 10, fp: 420, adp: 3.0,
+        action: 'TARGET', survivalProb: 0.1, adpDelta: 1.0
+      },
+      {
+        id: 2, rank: 2, name: 'Cale Makar', team: 'COL',
+        pos: ['D'], rawPos: ['D'], posLabel: 'D',
+        vorp: 165.2, rawVorp: 165.2, adjVorp: 165.2, dropoff: 15, fp: 410, adp: 6.0,
+        action: 'TARGET', survivalProb: 0.2, adpDelta: 2.0
+      }
+    ];
+
+    const stateWithPicks = {
+      currentPick: 5,
+      slot: 5,
+      teams: 8,
+      stdDev: 7.0,
+      rosterLimits: { C: 4, F: 8, D: 6, G: 2 },
+      drafted: { 'Leon Draisaitl': true, 'Cale Makar': true, 'Nathan MacKinnon': true, 'Ghost Player': true },
+      mine: { 'Leon Draisaitl': true, 'Cale Makar': true, 'Ghost Player': true },
+      pickHistory: [
+        { pickNumber: 1, name: 'Leon Draisaitl', isMine: true },
+        { pickNumber: 2, name: 'Nathan MacKinnon', isMine: false },
+        { pickNumber: 3, name: 'Ghost Player', isMine: true }, // Absent from allRows
+        { pickNumber: 4, name: 'Cale Makar', isMine: true }
+      ]
+    };
+
+    const w = makeAppWindow(sidebarPlayers, stateWithPicks);
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+
+    const doc = w.document;
+    const statTotalVorp = doc.getElementById('stat-total-vorp');
+    const rosterTotalCount = doc.getElementById('roster-total-count');
+
+    await waitFor(
+      () => statTotalVorp?.textContent && statTotalVorp.textContent !== '0.0',
+      { message: 'sidebar total VORP rendered' }
+    );
+
+    // Draisaitl (180.4) + Makar (165.2) = 345.6; Ghost Player is skipped rather than NaN
+    const expectedTotal = (180.4 + 165.2).toFixed(1);
+    assert.strictEqual(
+      statTotalVorp.textContent,
+      expectedTotal,
+      '#stat-total-vorp shows the exact total from Map lookup (345.6)'
+    );
+    assert(!statTotalVorp.textContent.includes('NaN'), 'Total VORP does not contain NaN');
+
+    // Total roster count reflects the 3 mine picks
+    assert(rosterTotalCount.textContent.startsWith('3 /'), 'roster total count reflects all mine picks');
+
+    w.close();
+    console.log('✓ renderSidebar resolves picks through name Map and preserves total VORP with absent picks skipped');
   }
 
   console.log('ALL APP TESTS PASSED!');
