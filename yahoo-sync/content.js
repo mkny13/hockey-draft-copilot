@@ -140,7 +140,7 @@
   function renderEvaluation(ev) {
     const headline = document.getElementById("hud-headline");
     if (!headline || !ev) return;
-    const colors = { critical: "#ff7b72", warning: "#d29922", turn: "#3fb950", waiting: "#58a6ff" };
+    const colors = { critical: "#ff7b72", warning: "#d29922", turn: "#3fb950", waiting: "#58a6ff", info: "#c9d1d9" };
     headline.textContent = ev.headline || "";
     headline.style.color = colors[ev.alertType] || "#c9d1d9";
     document.getElementById("hud-subtext").textContent = ev.subtext || "";

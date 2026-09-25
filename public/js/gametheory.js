@@ -90,14 +90,6 @@
     return "Flat";
   }
 
-  /**
-   * Graded Positional Diminishing Returns Curve
-   * - Under starter limit: 1.0 (100% utility)
-   * - At starter limit (1st bench): 0.85
-   * - 1 over limit (2nd bench): 0.65
-   * - 2+ over limit (excess): 0.35
-   * Multi-position players use the most favorable open slot.
-   */
   // Value of a player who only makes the bench, relative to a starter
   var BENCH_VALUE = 0.3;
 
@@ -131,6 +123,14 @@
     return used;
   }
 
+  /**
+   * Graded Positional Diminishing Returns Curve
+   * - Under starter limit: 1.0 (100% utility)
+   * - At starter limit (1st bench): 0.85
+   * - 1 over limit (2nd bench): 0.65
+   * - 2+ over limit (excess): 0.35
+   * Multi-position players use the most favorable open slot.
+   */
   function getDiminishingMultiplier(positions, myRosterCounts, limits) {
     limits = limits || { C: 3, F: 5, D: 4, G: 2 };
     if (!positions || !positions.length) return 1.0;
@@ -483,8 +483,8 @@
     options = options || {};
     var currentPick = options.currentPick || 1, stdDev = options.stdDev || 7.0;
     var draftedSet = options.drafted || {}, mineSet = options.mine || {};
-    var rosterCounts = options.rosterCounts || { C: 0, LW: 0, RW: 0, D: 0, G: 0 };
-    var rosterLimits = options.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
+    var rosterCounts = options.rosterCounts || { C: 0, F: 0, D: 0, G: 0, total: 0 };
+    var rosterLimits = options.rosterLimits || { C: 2, F: 6, D: 6, G: 2, UTIL: 1, FLEX: 6 };
 
     // Phase
     var phase = computeDraftPhase(options);
