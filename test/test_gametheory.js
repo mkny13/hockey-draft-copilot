@@ -601,13 +601,14 @@ const gtRows = [
 const targetTradeoffs = GT.computeTargetTradeoffs(gtRows, 5, 7.0);
 assert.strictEqual(Object.keys(targetTradeoffs.tradeoffs).length, gtRows.length, 'One trade-off row per eligible target');
 assert.strictEqual(targetTradeoffs.pTop.name, 'Star', 'Highest adjVorp candidate anchors the board');
-Object.keys(targetTradeoffs.tradeoffs).forEach((name) => {
+const rowsRequiringCmp = ['Star', 'Rival', 'Filler'];
+rowsRequiringCmp.forEach((name) => {
   const row = targetTradeoffs.tradeoffs[name];
+  assert(row, `Trade-offs must include a row for ${name}`);
   assert.notStrictEqual(row.vsPlayer, name, `${name}'s fallback matchup must never be itself`);
-  if (row.cmp) {
-    assert(row.cmp.pSurviveA >= 0 && row.cmp.pSurviveA <= 1, 'pSurviveA must be a probability in [0, 1]');
-    assert(row.cmp.pSurviveB >= 0 && row.cmp.pSurviveB <= 1, 'pSurviveB must be a probability in [0, 1]');
-  }
+  assert(row.cmp, `${name} must carry a comparator object`);
+  assert(row.cmp.pSurviveA >= 0 && row.cmp.pSurviveA <= 1, `${name} cmp.pSurviveA must be a probability in [0, 1]`);
+  assert(row.cmp.pSurviveB >= 0 && row.cmp.pSurviveB <= 1, `${name} cmp.pSurviveB must be a probability in [0, 1]`);
 });
 console.log('✓ computeTargetTradeoffs produces one bounded, non-self-referential row per target');
 
