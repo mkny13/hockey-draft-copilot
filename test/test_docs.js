@@ -167,4 +167,45 @@ assert(
 );
 
 console.log('✓ CLAUDE.md remains a pure @AGENTS.md pointer');
+// 7. The verification, test-seam, finishing and extension rules stay present, and every seam
+// identifier and script path they name still exists where AGENTS.md says it does.
+for (const heading of ['## Verifying a change', '## Test seams', '## Finishing a run']) {
+  assert(
+    agentsMd.includes(`\n${heading}\n`),
+    `AGENTS.md is missing the section heading "${heading}"`
+  );
+}
+assert(
+  /\*\*Extension changes:\*\*/.test(agentsMd) && agentsMd.includes('yahoo-sync/manifest.json'),
+  'AGENTS.md is missing the "Extension changes" convention naming yahoo-sync/manifest.json'
+);
+
+const seamSources = {
+  DRAFT_STATE_FILE: 'server.js',
+  __COPILOT_SCAN_MS: 'yahoo-sync/content.js',
+  __copilotScanInterval: 'yahoo-sync/content.js',
+  __fetchMode: 'test/test_sync.js',
+  TEST_TIMEOUT_MS: 'scripts/run_tests.js',
+  TEST_SLOW_MS: 'scripts/run_tests.js'
+};
+const seamsSection = (agentsMd.split('\n## Test seams\n')[1] || '').split('\n## ')[0];
+for (const [seam, file] of Object.entries(seamSources)) {
+  assert(
+    seamsSection.includes(seam) && seamsSection.includes(`\`${file}\``),
+    `AGENTS.md "Test seams" must name ${seam} and its home file ${file}`
+  );
+  assert(
+    fs.readFileSync(path.join(repoRoot, file), 'utf8').includes(seam),
+    `Test seam "${seam}" no longer appears in ${file}, where AGENTS.md says it lives`
+  );
+}
+
+const mockDraftMatch = agentsMd.match(/node (scripts\/mock_draft\.js)/);
+assert(mockDraftMatch, 'AGENTS.md must show the "node scripts/mock_draft.js" strategy check command');
+assert(
+  fs.existsSync(path.join(repoRoot, mockDraftMatch[1])),
+  `AGENTS.md mock-draft command names a script that does not exist: ${mockDraftMatch[1]}`
+);
+
+console.log('✓ AGENTS.md workflow sections, test seams, and mock-draft path are present and real');
 console.log('ALL DOCS TESTS PASSED!');

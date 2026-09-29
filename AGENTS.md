@@ -20,6 +20,28 @@ npm run test:quick   # engine + data only
 - Strategy check: `node scripts/mock_draft.js --slots 1-8 --sims 12` (engine vs a pure-ADP drafter). Rerun it after any change to `gametheory.js` decision logic; `test/test_mock_draft.js` guards the basics.
 - Tests never read the live `draft_state.json` (the server tests use a temp file via `DRAFT_STATE_FILE`).
 
+## Verifying a change
+
+- Run `npm install` first in a fresh clone or worktree; without `jsdom`, `test_sync.js` and `test_app.js` fail.
+- Run the full `npm test` and check that its `--- Test Summary ---` block shows `pass` for all seven files before calling anything done. A `TIMEOUT` / `timeout` line from `scripts/run_tests.js` is a failure, not a slow pass.
+- A subset run (`node scripts/run_tests.js <file>`) is for iteration only; it is not evidence that the suite passes.
+- After any `public/js/gametheory.js` decision-logic change, also rerun the strategy check above (`node scripts/mock_draft.js --slots 1-8 --sims 12`).
+- `npm test` cannot prove `yahoo-sync/` works in the real draft room (jsdom is not Chrome); see Extension changes under Conventions.
+
+## Test seams
+
+- `DRAFT_STATE_FILE` (`server.js`): `test/test_server.js` spawns the real server against a temp state file, so tests never touch the live `draft_state.json`.
+- `window.__COPILOT_SCAN_MS` and `window.__copilotScanInterval` (`yahoo-sync/content.js`): let jsdom set the scan cadence and clear the scan loop so the harness can exit.
+- `__fetchMode` (the jsdom `fetch` stub in `test/test_sync.js`): `'fail'` (or a function returning it) drives failure-path tests.
+- `TEST_TIMEOUT_MS` / `TEST_SLOW_MS` (`scripts/run_tests.js`): per-file kill limit and slow-test warning threshold.
+- Convention: any new timer or network call in browser-side code gets a `window.__copilot*` handle so the jsdom harnesses can control it.
+
+## Finishing a run
+
+- Commit on the branch you were handed and push it to its existing upstream; confirm the tracked branch with `git status -sb`. Never create a new remote branch by name-matching.
+- Put `Fixes #N` in the PR body.
+- A run that ends with nothing committed is a failed run.
+
 ## Architecture & Code Map
 
 - `server.js`: Node.js Express & WebSocket server. Reads env vars `PORT` (default `3333`), `HOST` (default `127.0.0.1`, loopback), `DRAFT_STATE_FILE` (default `draft_state.json`), and `WS_PING_MS` (default `30000`). Manages live draft state (`draft_state.json`), a scoped origin-allowlist regex constant (`ALLOWED_ORIGIN`, defined in `server.js`, not an env var) rejecting cross-origin state mutations, live `pickHistoryIntegrity` snapshot (`missing`, `repeated`, `duplicateNames`), endpoints `/api/pick`, `/api/undo`, `/api/repair-pick` (backfills missed picks without advancing `currentPick`), `/api/reset`, `/api/settings`, `/api/state`, `/api/evaluation`, `/api/report`, `/draft_data.json`, and live WS broadcast (each broadcast carries an `evaluation` snapshot for the in-room HUD; also `GET /api/evaluation`).
@@ -35,6 +57,7 @@ npm run test:quick   # engine + data only
 ## Conventions
 
 - **Where things run:** the Chrome extension is loaded unpacked from the **main checkout's** `yahoo-sync/`, and `npm start` runs from there. Work done in a git worktree is invisible to Chrome until it is merged into main; always sync/merge and rerun `npm test` in main.
+- **Extension changes:** bump `version` in `yahoo-sync/manifest.json` with any behavioral change under `yahoo-sync/`, so a reloaded extension is distinguishable from the old one. Always list "reload the unpacked extension and run a practice draft" under "Needs a human to check", because jsdom coverage is not proof the real draft room works.
 - **Board data:** `draft_data.json` is the single committed **sample** board (real names/ADP, synthetic FP/VORP) with the league settings (C2 F6 D6 UTIL1 G2 BN5, 8 teams), served to the browser through the `/draft_data.json` route. The author's real board lives in the gitignored `draft_data.local.json`, which `server.js` prefers (scripts and tests still read the sample); never rebuild VORP/FP from raw source data. Only ADP columns come from `scripts/ingest_espn_adp.js`. Roster limits are derived from `config.league.slots` in that file.
 - **Pick ownership** is decided by the server from the snake schedule and the configured slot, never from the draft page's DOM. The only override is the app's own "+ Mine" / "Taken" buttons, which send `manual: true`. The draft slot is a user setting (default 5 is a placeholder).
 - **Pick-history integrity and repairs:** The server maintains a live `pickHistoryIntegrity` snapshot on draft state (verifying contiguous pick numbers below `currentPick`, detecting repeated pick numbers or duplicate player names), broadcast over WS and returned on `/api/state`. Desynced or missed picks are patched via `POST /api/repair-pick` without advancing the live `currentPick` counter.
