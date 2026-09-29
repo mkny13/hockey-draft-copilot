@@ -72,7 +72,99 @@ for (const envVar of envVars) {
     readmeMd.includes(envVar),
     `README.md is missing environment variable "${envVar}" read by server.js`
   );
+  assert(
+    agentsMd.includes(envVar),
+    `AGENTS.md is missing environment variable "${envVar}" read by server.js`
+  );
 }
 
 console.log('✓ Docs surface matches server routes, test files, and environment variables');
+
+// 4. Every repo path named in backticks in AGENTS.md that looks like a file path exists on
+// disk somewhere in the repo (exact relative-path match, or by basename for a bare filename
+// like `background.js` that is documented under a preceding `yahoo-sync/` bullet).
+const PATH_ALLOWLIST = new Set(['draft_state.json', 'draft_data.local.json']);
+
+function listRepoFiles(dir, out) {
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    if (entry.name === 'node_modules' || entry.name === '.git') continue;
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) {
+      listRepoFiles(full, out);
+    } else {
+      out.push(path.relative(repoRoot, full));
+    }
+  }
+  return out;
+}
+
+const repoFiles = listRepoFiles(repoRoot, []);
+const repoFileSet = new Set(repoFiles);
+const repoBasenames = new Set(repoFiles.map((f) => path.basename(f)));
+
+const pathRegex = /^[\w./-]+\.(js|json|md|sh|css|html)$/;
+const backtickRegex = /`([^`]+)`/g;
+const candidatePaths = [];
+// Fenced ```code blocks``` contain an odd number of backtick characters clustered together
+// (the 3-backtick fence), which flips open/close parity for every inline `backtick` span
+// that follows; strip fences first so the rest of the file re-syncs correctly.
+const agentsMdProse = agentsMd.replace(/```[\s\S]*?```/g, '');
+let backtickMatch;
+while ((backtickMatch = backtickRegex.exec(agentsMdProse)) !== null) {
+  const candidate = backtickMatch[1];
+  if (pathRegex.test(candidate) && !candidatePaths.includes(candidate)) {
+    candidatePaths.push(candidate);
+  }
+}
+
+for (const candidate of candidatePaths) {
+  if (PATH_ALLOWLIST.has(candidate)) continue;
+  const stripped = candidate.replace(/^\//, '');
+  const existsExact = repoFileSet.has(stripped);
+  const existsByBasename = !stripped.includes('/') && repoBasenames.has(stripped);
+  if (existsExact || existsByBasename) continue;
+  // A bare *.html filename with no directory is treated as an example argument to the
+  // ingest command (e.g. a saved ADP page), not a real repo path.
+  if (/\.html$/.test(candidate) && !candidate.includes('/')) continue;
+  assert(
+    false,
+    `AGENTS.md names a repo path that does not exist on disk: "${candidate}"`
+  );
+}
+
+console.log('✓ AGENTS.md file references resolve to real repo paths');
+
+// 5. Every `npm <script>` invocation in AGENTS.md names a script defined in package.json.
+const scripts = pkgJson.scripts || {};
+
+const npmRunRegex = /npm run ([\w:-]+)/g;
+let npmRunMatch;
+while ((npmRunMatch = npmRunRegex.exec(agentsMd)) !== null) {
+  const scriptName = npmRunMatch[1];
+  assert(
+    Object.prototype.hasOwnProperty.call(scripts, scriptName),
+    `AGENTS.md runs "npm run ${scriptName}" but package.json has no such script`
+  );
+}
+
+for (const alias of ['test', 'start']) {
+  const aliasRegex = new RegExp(`npm ${alias}\\b`);
+  if (aliasRegex.test(agentsMd)) {
+    assert(
+      Object.prototype.hasOwnProperty.call(scripts, alias),
+      `AGENTS.md runs "npm ${alias}" but package.json has no "${alias}" script`
+    );
+  }
+}
+
+console.log('✓ AGENTS.md npm invocations name real package.json scripts');
+
+// 6. CLAUDE.md stays a pure pointer to AGENTS.md so rules never fork into a second file.
+const claudeMd = fs.readFileSync(path.join(repoRoot, 'CLAUDE.md'), 'utf8');
+assert(
+  claudeMd.trim() === '@AGENTS.md',
+  'CLAUDE.md must contain only the "@AGENTS.md" pointer; move any new rules into AGENTS.md instead'
+);
+
+console.log('✓ CLAUDE.md remains a pure @AGENTS.md pointer');
 console.log('ALL DOCS TESTS PASSED!');

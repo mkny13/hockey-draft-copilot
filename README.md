@@ -93,7 +93,7 @@ Located in [`yahoo-sync/`](yahoo-sync/):
   - Reads ESPN pick toasts (`Name / TEAM, POS` + `R#, P#`), the draft board, and history feeds. A toast is recognised only as the **innermost small element** holding both the player and the round/pick marker, and anything inside the Available Players table is ignored, so the top available player can never be recorded as a pick.
   - The extension sends the round and pick number with each pick. **Ownership is decided by the server from the snake schedule and your slot**, not from page CSS; the page's own "mine" flag is ignored because it proved unreliable. The app's own **+ Mine** / **Taken** buttons are the one manual override.
 - **Background Health Service Worker (`background.js`)**:
-  - Runs periodic 5-second health checks against `http://localhost:3333/api/state`.
+  - Runs periodic 5-second health checks against `http://localhost:3333/api/state` while an ESPN or Yahoo draft tab is open; otherwise the interval still fires but skips the network request.
   - Measures latency and broadcasts status updates to the popup and open ESPN/Yahoo Draft tabs.
 - **Extension Options Popup (`popup.html` / `popup.js`)**:
   - Displays live server status (`● Connected` with millisecond latency or `● Disconnected / Offline`).
