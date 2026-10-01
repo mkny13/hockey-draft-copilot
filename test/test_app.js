@@ -949,6 +949,109 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
     console.log('✓ renderSidebar resolves picks through name Map and preserves total VORP with absent picks skipped');
   }
 
+  // Rejected requests are shown, and stale/restarted state is ordered by revision + bootId
+  {
+    const base = {
+      currentPick: 2, slot: 5, teams: 8, stdDev: 7.0,
+      rosterLimits: { C: 4, F: 8, D: 6, G: 2 },
+      drafted: { [HOSTILE_NAME_1]: true }, mine: {},
+      pickHistory: [{ pickNumber: 1, name: HOSTILE_NAME_1, isMine: false, round: 1, pickInRound: 1 }],
+      revision: 5, bootId: 'boot-A'
+    };
+
+    // a) rejected /api/settings: error text shown (escaped), select snaps back
+    {
+      const w = makeAppWindow(undefined, base, undefined, {
+        '/api/settings': () => ({ ok: false, status: 400, json: () => Promise.resolve({ error: HOSTILE_ERR }) })
+      });
+      w.eval(gametheoryJs);
+      w.eval(appJs);
+      const doc = w.document;
+      await waitFor(() => doc.getElementById('board-tbody')?.children.length > 0, { message: 'board rendered' });
+      const sel = doc.getElementById('select-slot');
+      const teams = doc.getElementById('select-teams');
+      const bar = doc.getElementById('request-error');
+      assert.strictEqual(bar.style.display, 'none', 'no error shown initially');
+      sel.value = '7';
+      sel.onchange();
+      await waitFor(() => bar.style.display !== 'none', { message: 'error bar shown' });
+      assert(bar.textContent.includes(HOSTILE_ERR), 'server error text shown literally');
+      assert.strictEqual(bar.querySelectorAll('img').length, 0, 'error text is not injected as HTML');
+      await waitFor(() => sel.value === '5', { message: 'slot select reverted' });
+      assert.strictEqual(teams.value, '8', 'teams select stays at the server value');
+      doc.getElementById('request-error-dismiss').onclick();
+      assert.strictEqual(bar.style.display, 'none', 'error bar dismissable');
+      w.close();
+      console.log('✓ rejected /api/settings shows the error and reverts the controls');
+    }
+
+    // b) network failure is shown too
+    {
+      const w = makeAppWindow(undefined, base, undefined, {
+        '/api/settings': () => Promise.reject(new Error('offline'))
+      });
+      w.eval(gametheoryJs);
+      w.eval(appJs);
+      const doc = w.document;
+      await waitFor(() => doc.getElementById('board-tbody')?.children.length > 0, { message: 'board rendered' });
+      const sel = doc.getElementById('select-slot');
+      sel.value = '7';
+      sel.onchange();
+      const bar = doc.getElementById('request-error');
+      await waitFor(() => bar.textContent.includes('offline'), { message: 'network error shown' });
+      await waitFor(() => sel.value === '5', { message: 'slot select reverted' });
+      w.close();
+      console.log('✓ network failure shows an error in the app');
+    }
+
+    // c) stale HTTP response after a newer WS broadcast is ignored; new bootId is applied
+    {
+      let release;
+      const pending = new Promise((r) => { release = r; });
+      const w = makeAppWindow(undefined, base, undefined, {
+        '/api/settings': () => pending
+      });
+      w.eval(gametheoryJs);
+      w.eval(appJs);
+      const doc = w.document;
+      await waitFor(() => doc.getElementById('board-tbody')?.children.length > 0, { message: 'board rendered' });
+      const sock = w.__sockets[0];
+      const sel = doc.getElementById('select-slot');
+      sel.value = '6';
+      sel.onchange();
+
+      sock.onmessage({ data: JSON.stringify({
+        type: 'PICK_MADE', payload: {},
+        state: { ...base, currentPick: 3, revision: 7,
+          drafted: { [HOSTILE_NAME_1]: true, 'Cale Makar': true },
+          pickHistory: [
+            { pickNumber: 1, name: HOSTILE_NAME_1, isMine: false },
+            { pickNumber: 2, name: 'Cale Makar', isMine: false }
+          ] }
+      }) });
+      const cur = doc.getElementById('disp-current-pick');
+      await waitFor(() => cur.textContent === '3', { message: 'newer WS state applied' });
+
+      release({ ok: true, status: 200, json: () => Promise.resolve({ success: true, state: { ...base, slot: 6, revision: 6 } }) });
+      await sleep(50);
+      assert.strictEqual(cur.textContent, '3', 'stale HTTP response does not roll currentPick back');
+
+      // restart: lower revision under a new bootId is applied
+      sock.onmessage({ data: JSON.stringify({
+        type: 'INIT_STATE',
+        state: { ...base, currentPick: 1, revision: 1, bootId: 'boot-B', drafted: {}, pickHistory: [] }
+      }) });
+      await waitFor(() => cur.textContent === '1', { message: 'INIT_STATE with new bootId applied' });
+      // and an ordinary state with a new bootId is applied despite a lower revision
+      sock.onmessage({ data: JSON.stringify({
+        type: 'PICK_MADE', state: { ...base, currentPick: 2, revision: 2, bootId: 'boot-B' }
+      }) });
+      await waitFor(() => cur.textContent === '2', { message: 'newer revision under new bootId applied' });
+      w.close();
+      console.log('✓ stale HTTP state never rolls back newer WS state; restart (new bootId) is applied');
+    }
+  }
+
   console.log('ALL APP TESTS PASSED!');
 })().catch((err) => {
   console.error(err);

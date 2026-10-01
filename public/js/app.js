@@ -98,7 +98,7 @@
 
       recomputeAndRender();
     } catch (err) {
-      console.error("Error during initialization:", err);
+      showRequestError("Could not load the draft board: " + err.message);
     }
   }
 
@@ -127,7 +127,7 @@
         // Every broadcast type (PICK_MADE, PICK_UNDONE, PICK_REPAIRED, RESET,
         // SETTINGS_UPDATED, INIT_STATE) carries the full state; apply it uniformly.
         if (msg.state) {
-          applyServerState(msg.state);
+          applyServerState(msg.state, msg.type === "INIT_STATE");
         }
         // Fall back to the evaluation snapshot's integrity field if state omitted it
         if ((!msg.state || !msg.state.pickHistoryIntegrity) && msg.evaluation && msg.evaluation.pickHistoryIntegrity) {
@@ -357,8 +357,21 @@
 
   // ===================== Server State =====================
 
-  function applyServerState(s) {
+  // Last applied { bootId, revision }; HTTP responses and WS messages share this check
+  var lastApplied = null;
+
+  function isStaleState(s, isInit) {
+    if (isInit || !lastApplied || s.revision === undefined || s.bootId === undefined) return false;
+    return s.bootId === lastApplied.bootId && s.revision < lastApplied.revision;
+  }
+
+  function applyServerState(s, isInit) {
     if (!s) return;
+    if (isStaleState(s, isInit)) return;
+    if (s.revision !== undefined && s.bootId !== undefined) {
+      lastApplied = { bootId: s.bootId, revision: s.revision };
+    }
+    state.lastGoodState = s;
     state.currentPick = s.currentPick || 1;
     state.slot = s.slot || 5;
     state.teams = s.teams || 8;
@@ -504,6 +517,53 @@
     }
   }
 
+  function showRequestError(message) {
+    var bar = document && document.getElementById("request-error"); // document is gone once a test window closes
+    if (!bar) return;
+    // textContent only: the server's error text may echo an untrusted player name
+    bar.querySelector(".request-error-text").textContent = message;
+    bar.style.display = "flex";
+  }
+
+  function dismissRequestError() {
+    var bar = document.getElementById("request-error");
+    if (bar) bar.style.display = "none";
+  }
+
+  // One path for every mutating request: applies the returned state, or shows the
+  // error and re-renders from the last good state so the controls snap back.
+  function sendRequest(url, options, failLabel) {
+    return fetch(url, options)
+      .then(function (r) {
+        return r.json().catch(function () { return {}; }).then(function (data) {
+          return { ok: r.ok, status: r.status, data: data || {} };
+        });
+      })
+      .then(function (result) {
+        if (!result.ok) {
+          showRequestError(result.data.error || (failLabel + " (HTTP " + result.status + ")"));
+          applyServerState(state.lastGoodState);
+          recomputeAndRender();
+          return result;
+        }
+        dismissRequestError();
+        if (result.data.state) {
+          applyServerState(result.data.state);
+          recomputeAndRender();
+        }
+        return result;
+      })
+      .catch(function (err) {
+        showRequestError(failLabel + ": " + err.message);
+        try {
+          applyServerState(state.lastGoodState);
+          recomputeAndRender();
+        } catch (renderErr) {
+          showRequestError(failLabel + ": " + renderErr.message);
+        }
+      });
+  }
+
   function submitRepairPick(pickNumber, name) {
     var errorDiv = document.getElementById("repair-pick-error");
     errorDiv.style.display = "none";
@@ -538,19 +598,11 @@
   }
 
   function removePick(pickNumber) {
-    fetch("/api/undo", {
+    sendRequest("/api/undo", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ pickNumber: pickNumber })
-    })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (data.state) {
-          applyServerState(data.state);
-          recomputeAndRender();
-        }
-      })
-      .catch(function (err) { console.error("Error removing pick:", err); });
+    }, "Could not remove pick");
   }
 
   function renderShortlist() {
@@ -970,7 +1022,7 @@
 
   function draftPlayer(player, isMine) {
     if (!player || !player.name) return;
-    fetch("/api/pick", {
+    sendRequest("/api/pick", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -980,42 +1032,18 @@
         isMine: isMine,
         manual: true // an explicit click in the app overrides the snake schedule
       })
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.state) {
-        applyServerState(data.state);
-        recomputeAndRender();
-      }
-    })
-    .catch(err => console.error("Error drafting player:", err));
+    }, "Could not record pick");
   }
 
   function undoLastPick() {
-    fetch("/api/undo", { method: "POST" })
-      .then(r => r.json())
-      .then(data => {
-        if (data.state) {
-          applyServerState(data.state);
-          recomputeAndRender();
-        }
-      })
-      .catch(err => console.error("Error undoing pick:", err));
+    sendRequest("/api/undo", { method: "POST" }, "Could not undo pick");
   }
 
   function resetDraft() {
     if (!confirm("Are you sure you want to reset the entire draft? All picks will be cleared.")) {
       return;
     }
-    fetch("/api/reset", { method: "POST" })
-      .then(r => r.json())
-      .then(data => {
-        if (data.state) {
-          applyServerState(data.state);
-          recomputeAndRender();
-        }
-      })
-      .catch(err => console.error("Error resetting draft:", err));
+    sendRequest("/api/reset", { method: "POST" }, "Could not reset draft");
   }
 
   function renderReport(report) {
@@ -1132,13 +1160,16 @@
     var content = document.getElementById("report-content");
     if (!content) return;
     fetch("/api/report")
-      .then(r => r.json())
+      .then(r => r.json().then(data => {
+        if (!r.ok) throw new Error(data.error || ("HTTP " + r.status));
+        return data;
+      }))
       .then(data => {
         if (!data.success || !data.report) throw new Error("Invalid report payload");
         renderReport(data.report);
       })
       .catch(err => {
-        console.error("Error loading post-draft report:", err);
+        showRequestError("Could not load the post-draft report: " + err.message);
         content.innerHTML = "<div style='font-size:12px; color:var(--red); padding:16px; text-align:center;'>Could not load the post-draft report. Make sure the server is running and try again.</div>";
       });
   }
@@ -1290,22 +1321,16 @@
     if (delta.teams !== undefined) payload.teams = delta.teams;
     if (delta.currentPick !== undefined) payload.currentPick = delta.currentPick;
 
-    fetch("/api/settings", {
+    sendRequest("/api/settings", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
-    })
-    .then(r => r.json())
-    .then(data => {
-      if (data.state) {
-        applyServerState(data.state);
-        recomputeAndRender();
-      }
-    })
-    .catch(err => console.error("Error updating settings:", err));
+    }, "Could not update settings");
   }
 
   function setupEventListeners() {
+    var errDismiss = document.getElementById("request-error-dismiss");
+    if (errDismiss) errDismiss.onclick = dismissRequestError;
     document.getElementById("btn-inc-pick").onclick = function () {
       updateSettings({ currentPick: state.currentPick + 1 });
     };

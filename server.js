@@ -233,12 +233,18 @@ app.use(express.static(path.join(__dirname, 'public'), {
 
 // State revision counter and memoized board evaluation
 let stateRevision = 0;
+const BOOT_ID = Date.now() + '-' + process.pid; // lets the app tell a restart from a stale message
 let evaluationCache = null;
 let evaluationCallCount = 0;
 
 function bumpState() {
   stateRevision++;
   evaluationCache = null;
+  // Stamp the live state so every HTTP response, broadcast and INIT_STATE carries it
+  if (draftState) {
+    draftState.revision = stateRevision;
+    draftState.bootId = BOOT_ID;
+  }
 }
 
 // Default draft state factory: produces fresh sub-objects every time
@@ -253,11 +259,14 @@ function makeDefaultState() {
     drafted: {}, // name -> true
     mine: {},    // name -> true
     pickHistory: [], // array of { pickNumber, name, team, pos, isMine, timestamp }
-    resetId: Date.now()
+    resetId: Date.now(),
+    revision: stateRevision,
+    bootId: BOOT_ID
   };
 }
 
-let draftState = makeDefaultState();
+let draftState = null;
+draftState = makeDefaultState();
 
 const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
 
