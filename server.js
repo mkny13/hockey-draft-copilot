@@ -259,14 +259,62 @@ function makeDefaultState() {
 
 let draftState = makeDefaultState();
 
+const isPlainObject = (v) => v !== null && typeof v === 'object' && !Array.isArray(v);
+
+// Keep only the fields of a loaded state file that have the right type and range;
+// anything else falls back to the default. Returns the sanitized fields and the reset names.
+function sanitizeLoadedState(loaded, defaults) {
+  const out = {};
+  const reset = [];
+  const take = (key, ok) => {
+    if (loaded[key] !== undefined && ok(loaded[key])) out[key] = loaded[key];
+    else if (loaded[key] !== undefined) reset.push(key);
+  };
+  take('drafted', isPlainObject);
+  take('mine', isPlainObject);
+  take('currentPick', (v) => parseBoundedInt(v, 1, 2000) === v);
+  take('teams', (v) => parseBoundedInt(v, 2, 32) === v);
+  take('stdDev', (v) => typeof v === 'number' && parseBoundedFloat(v, 0.1, 100) === v);
+  const teams = out.teams !== undefined ? out.teams : defaults.teams;
+  take('slot', (v) => parseBoundedInt(v, 1, teams) === v);
+  if (loaded.pickHistory !== undefined) {
+    if (Array.isArray(loaded.pickHistory)) {
+      out.pickHistory = loaded.pickHistory.filter((e) => isPlainObject(e) && typeof e.name === 'string');
+      if (out.pickHistory.length !== loaded.pickHistory.length) reset.push('pickHistory (some entries)');
+    } else {
+      reset.push('pickHistory');
+    }
+  }
+  if (loaded.resetId !== undefined) out.resetId = loaded.resetId;
+  // Never let the counter sit at or below a recorded pick number (e.g. a malformed currentPick)
+  if (out.pickHistory && out.pickHistory.length) {
+    let maxNum = 0;
+    for (const e of out.pickHistory) {
+      const n = parseBoundedInt(e.pickNumber, 1, 2000);
+      if (n !== null && n > maxNum) maxNum = n;
+    }
+    const cur = out.currentPick !== undefined ? out.currentPick : defaults.currentPick;
+    if (maxNum >= cur) out.currentPick = Math.min(maxNum + 1, 2000);
+  }
+  return { out, reset };
+}
+
 function loadState() {
   const defaults = makeDefaultState();
   try {
     if (fs.existsSync(STATE_FILE)) {
       const data = fs.readFileSync(STATE_FILE, 'utf8');
       const loaded = JSON.parse(data);
+      if (!isPlainObject(loaded)) {
+        console.error('State file is not a JSON object, using defaults.');
+        draftState = defaults;
+        bumpState();
+        return;
+      }
+      const { out, reset } = sanitizeLoadedState(loaded, defaults);
+      if (reset.length) console.error(`State file had invalid fields, reset to defaults: ${reset.join(', ')}`);
       // League slots always come from the board data, never from a stale saved state
-      draftState = { ...defaults, ...loaded, rosterLimits: defaults.rosterLimits };
+      draftState = { ...defaults, ...out, rosterLimits: defaults.rosterLimits };
       bumpState();
       console.log(`Loaded state: Pick ${draftState.currentPick}, ${draftState.pickHistory.length} picks recorded.`);
     } else {
@@ -510,7 +558,7 @@ app.post('/api/pick', (req, res) => {
   };
 
   draftState.pickHistory.push(entry);
-  draftState.currentPick = Math.max(draftState.currentPick, pickNum) + 1;
+  draftState.currentPick = Math.max(draftState.currentPick, pickNum + 1);
   bumpState();
   refreshIntegrity();
   saveState();
@@ -526,21 +574,30 @@ app.post('/api/undo', (req, res) => {
     return res.json({ message: 'No picks to undo', state: draftState });
   }
 
-  // Undo normally pops the latest entry; a pickNumber targets that exact entry,
+  // Undo normally removes the latest pick, meaning the highest pick number (late
+  // numbered picks are appended out of order); a pickNumber targets that exact entry,
   // e.g. to remove a mis-entered historical pick without touching the counter.
-  const requested = parseInt(req.body && req.body.pickNumber, 10);
+  const hist = draftState.pickHistory;
+  const numOf = (e) => (Number.isFinite(e.pickNumber) ? e.pickNumber : 0);
+  let highestIdx = 0;
+  hist.forEach((e, i) => { if (numOf(e) >= numOf(hist[highestIdx])) highestIdx = i; });
+  const supplied = req.body && req.body.pickNumber !== undefined && req.body.pickNumber !== null;
   let idx;
-  if (Number.isFinite(requested)) {
-    idx = draftState.pickHistory.findIndex((e) => e.pickNumber === requested);
+  if (supplied) {
+    const requested = parseBoundedInt(req.body.pickNumber, 1, 2000);
+    if (requested === null) {
+      return res.status(400).json({ error: 'pickNumber must be an integer between 1 and 2000' });
+    }
+    idx = hist.findIndex((e) => e.pickNumber === requested);
     if (idx === -1) {
       return res.status(404).json({ error: `Pick #${requested} is not in the draft history` });
     }
   } else {
-    idx = draftState.pickHistory.length - 1;
+    idx = highestIdx;
   }
 
-  const wasLatest = idx === draftState.pickHistory.length - 1;
-  const removed = draftState.pickHistory.splice(idx, 1)[0];
+  const wasLatest = idx === highestIdx;
+  const removed = hist.splice(idx, 1)[0];
 
   // Only clear the ownership maps when no remaining entry still records the player
   const stillRecorded = draftState.pickHistory.some((e) => e.name === removed.name);
@@ -551,7 +608,8 @@ app.post('/api/undo', (req, res) => {
 
   // Only a removed latest pick rewinds the counter; historical repairs undo in place
   if (wasLatest) {
-    draftState.currentPick = Math.max(1, removed.pickNumber || draftState.currentPick - 1);
+    const highestRemaining = hist.reduce((m, e) => Math.max(m, numOf(e)), 0);
+    draftState.currentPick = Math.max(1, numOf(removed) || draftState.currentPick - 1, highestRemaining + 1);
   }
   bumpState();
   refreshIntegrity();
@@ -568,8 +626,8 @@ app.post('/api/undo', (req, res) => {
 // always comes from the snake schedule, like every other recorded pick.
 app.post('/api/repair-pick', (req, res) => {
   const { pickNumber, name } = req.body || {};
-  const num = parseInt(pickNumber, 10);
-  if (!Number.isFinite(num) || num < 1) {
+  const num = parseBoundedInt(pickNumber, 1, 2000);
+  if (num === null) {
     return res.status(400).json({ error: 'A positive pickNumber is required' });
   }
   const validName = validatePickName(name);

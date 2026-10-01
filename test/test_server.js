@@ -236,7 +236,7 @@ const json = async (p) => (await p).json();
     // Pick numbering: currentPick moves past the highest pick seen
     // 12 (Celebrini) + un-numbered Draisaitl takes #13; the earlier-numbered Bouchard must not pull it back
     st = await json(fetch(`${base}/api/state`));
-    assert.strictEqual(st.currentPick, 15, 'currentPick only ever moves forward past the highest pick seen');
+    assert.strictEqual(st.currentPick, 14, 'currentPick only ever moves forward past the highest pick seen');
     r = await json(post(base, '/api/pick', { name: 'Zach Werenski', round: 1, pickInRound: 20 }));
     assert.strictEqual(r.pick.pickNumber, 20, 'A pick-in-round above the team count is an overall pick number');
     console.log('✓ Pick numbering from round/pick');
@@ -247,6 +247,54 @@ const json = async (p) => (await p).json();
     assert.strictEqual(r.state.currentPick, 20, 'Undo makes the undone pick the current pick again');
     assert.strictEqual(r.state.drafted['Zach Werenski'], undefined);
     console.log('✓ Undo restores the pick number');
+
+    // Late numbered pick, plain undo, and strict pickNumber parsing
+    const missingBefore = (await json(fetch(`${base}/api/state`))).pickHistoryIntegrity.missing;
+    r = await json(post(base, '/api/pick', { name: 'Late Pick Probe', round: 1, pickInRound: 3 }));
+    st = await json(fetch(`${base}/api/state`));
+    assert.deepStrictEqual(st.pickHistoryIntegrity.missing, missingBefore.filter((n) => n !== 3), 'A late numbered pick opens no new gap');
+    assert.strictEqual(st.currentPick, 20, 'A numbered pick below the counter leaves it unchanged');
+    r = await json(post(base, '/api/undo'));
+    assert.notStrictEqual(r.undone.name, 'Late Pick Probe', 'Plain undo removes the highest-numbered pick, not the last appended');
+    assert.ok(r.state.currentPick > Math.max(...r.state.pickHistory.map((e) => e.pickNumber)), 'Counter stays above every recorded pick');
+    for (const bad of ['12abc', 12.7]) {
+      assert.strictEqual((await post(base, '/api/undo', { pickNumber: bad })).status, 400, `undo rejects ${bad}`);
+      assert.strictEqual((await post(base, '/api/repair-pick', { pickNumber: bad, name: 'X Y' })).status, 400, `repair rejects ${bad}`);
+    }
+    console.log('✓ Late picks, undo of highest pick, strict pickNumber parsing');
+
+    // Malformed state file loads with bad fields defaulted
+    const badTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hockey-bad-'));
+    const badFile = path.join(badTmp, 'state.json');
+    fs.writeFileSync(badFile, JSON.stringify({ drafted: null, pickHistory: {}, currentPick: 'x', slot: 5 }));
+    const badSrv = await startServer(badFile);
+    try {
+      const pr = await post(badSrv.base, '/api/pick', { name: 'Connor McDavid' });
+      assert.strictEqual(pr.status, 200, '/api/pick works against a malformed state file');
+    } finally {
+      badSrv.child.kill();
+      fs.rmSync(badTmp, { recursive: true, force: true });
+    }
+    // Malformed counter with valid history: counter derives from the history
+    const badTmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'hockey-bad-'));
+    const badFile2 = path.join(badTmp2, 'state.json');
+    fs.writeFileSync(badFile2, JSON.stringify({
+      drafted: { 'Connor McDavid': true }, currentPick: 'x', slot: 5,
+      pickHistory: [{ pickNumber: 1, name: 'Connor McDavid', team: 1, pos: 'C', isMine: false }, { pickNumber: 2, name: 'Nathan MacKinnon', team: 2, pos: 'C', isMine: false }],
+    }));
+    const badSrv2 = await startServer(badFile2);
+    try {
+      const st2 = await json(fetch(`${badSrv2.base}/api/state`));
+      assert.strictEqual(st2.currentPick, 3, 'Malformed currentPick derives from retained history');
+      const pr2 = await post(badSrv2.base, '/api/pick', { name: 'Auston Matthews' });
+      assert.strictEqual(pr2.status, 200);
+      const st3 = await json(fetch(`${badSrv2.base}/api/state`));
+      assert.strictEqual(st3.pickHistory.filter((e) => e.pickNumber === 1).length, 1, 'No duplicate pick #1');
+    } finally {
+      badSrv2.child.kill();
+      fs.rmSync(badTmp2, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    }
+    console.log('✓ Malformed state file fields fall back to defaults');
 
     // Settings validation: out-of-range values return 400 and leave state unchanged
     const prevSettings = await json(fetch(`${base}/api/state`));
