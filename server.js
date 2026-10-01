@@ -286,6 +286,16 @@ function sanitizeLoadedState(loaded, defaults) {
     }
   }
   if (loaded.resetId !== undefined) out.resetId = loaded.resetId;
+  // Never let the counter sit at or below a recorded pick number (e.g. a malformed currentPick)
+  if (out.pickHistory && out.pickHistory.length) {
+    let maxNum = 0;
+    for (const e of out.pickHistory) {
+      const n = parseBoundedInt(e.pickNumber, 1, 2000);
+      if (n !== null && n > maxNum) maxNum = n;
+    }
+    const cur = out.currentPick !== undefined ? out.currentPick : defaults.currentPick;
+    if (maxNum >= cur) out.currentPick = Math.min(maxNum + 1, 2000);
+  }
   return { out, reset };
 }
 

@@ -275,6 +275,25 @@ const json = async (p) => (await p).json();
       badSrv.child.kill();
       fs.rmSync(badTmp, { recursive: true, force: true });
     }
+    // Malformed counter with valid history: counter derives from the history
+    const badTmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'hockey-bad-'));
+    const badFile2 = path.join(badTmp2, 'state.json');
+    fs.writeFileSync(badFile2, JSON.stringify({
+      drafted: { 'Connor McDavid': true }, currentPick: 'x', slot: 5,
+      pickHistory: [{ pickNumber: 1, name: 'Connor McDavid', team: 1, pos: 'C', isMine: false }, { pickNumber: 2, name: 'Nathan MacKinnon', team: 2, pos: 'C', isMine: false }],
+    }));
+    const badSrv2 = await startServer(badFile2);
+    try {
+      const st2 = await json(fetch(`${badSrv2.base}/api/state`));
+      assert.strictEqual(st2.currentPick, 3, 'Malformed currentPick derives from retained history');
+      const pr2 = await post(badSrv2.base, '/api/pick', { name: 'Auston Matthews' });
+      assert.strictEqual(pr2.status, 200);
+      const st3 = await json(fetch(`${badSrv2.base}/api/state`));
+      assert.strictEqual(st3.pickHistory.filter((e) => e.pickNumber === 1).length, 1, 'No duplicate pick #1');
+    } finally {
+      badSrv2.child.kill();
+      fs.rmSync(badTmp2, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
+    }
     console.log('✓ Malformed state file fields fall back to defaults');
 
     // Settings validation: out-of-range values return 400 and leave state unchanged
