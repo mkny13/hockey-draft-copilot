@@ -453,7 +453,7 @@
   function scanNotificationToasts() {
     const newlyFound = [];
     const roundPick = /R(\d+),\s*P(\d+)/i;
-    const playerTeam = /([A-Z][a-zA-Z\.\'\-\s]+?)\s*\/\s*([A-Z]{2,3})(?:,\s*([A-Z]+))?/i;
+    const playerTeam = /([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F\.\'\-\s]+?)\s*\/\s*([A-Z]{2,3})(?:,\s*([A-Z]+))?/i;
 
     // Start from the text nodes carrying "R#, P#" (cheap: one regex per node) and climb
     // to the smallest small ancestor that also holds "Name / TEAM". The length cap
@@ -530,13 +530,13 @@
       if (isAvailablePlayersElement(item)) return;
       const txt = item.textContent || "";
 
-      const m1 = txt.match(/(?:drafted|selected)\s+([A-Z][a-zA-Z\.\'\-\s]+?)(?:\s*,|\s*\(|\s+with|\s+as|\s+by|$)/i);
+      const m1 = txt.match(/(?:drafted|selected)\s+([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F\.\'\-\s]+?)(?:\s*,|\s*\(|\s+with|\s+as|\s+by|$)/i);
       if (m1 && m1[1]) tryPush(m1[1], item);
 
-      const m2 = txt.match(/([A-Z][a-zA-Z\.\'\-\s]+?)\s+(?:was\s+drafted|drafted|selected)\s+by/i);
+      const m2 = txt.match(/([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F\.\'\-\s]+?)\s+(?:was\s+drafted|drafted|selected)\s+by/i);
       if (m2 && m2[1]) tryPush(m2[1], item);
 
-      const m3 = txt.match(/(?:pick\s*#?\d+[:\s]+)([A-Z][a-zA-Z\.\'\-\s]+?)(?:\s*\(|\s*,|\s+by|$)/i);
+      const m3 = txt.match(/(?:pick\s*#?\d+[:\s]+)([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F\.\'\-\s]+?)(?:\s*\(|\s*,|\s+by|$)/i);
       if (m3 && m3[1]) tryPush(m3[1], item);
 
       if (/(?:drafted|selected|pick\s*#?\d+|round\s*\d+)/i.test(txt)) {
@@ -584,7 +584,7 @@
     topBanners.forEach((banner) => {
       if (isAvailablePlayersElement(banner)) return;
       const txt = banner.textContent || "";
-      const m = txt.match(/(?:selected|drafted|last pick[:\s]*|recent pick[:\s]*|pick\s*#?\d+[:\s]*)\s*([A-Z][a-zA-Z\.\'\-\s]+?)(?:\s*,|\s*\(|$)/i);
+      const m = txt.match(/(?:selected|drafted|last pick[:\s]*|recent pick[:\s]*|pick\s*#?\d+[:\s]*)\s*([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F\.\'\-\s]+?)(?:\s*,|\s*\(|$)/i);
       if (m && m[1]) tryPush(m[1], banner);
     });
 

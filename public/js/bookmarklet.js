@@ -92,7 +92,7 @@
       if (isAvailablePlayer(card)) return;
       const txt = card.textContent || '';
       const rm = txt.match(/R(\d+),\s*P(\d+)/i);
-      const pMatch = txt.match(/([A-Z][a-zA-Z\.\'\-\s]+?)\s*\/\s*([A-Z]{2,3})/i);
+      const pMatch = txt.match(/([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F\.\'\-\s]+?)\s*\/\s*([A-Z]{2,3})/i);
       if (pMatch && rm && pMatch.index <= rm.index) {
         notifySync(pMatch[1], false, parseInt(rm[1], 10), parseInt(rm[2], 10));
       }
@@ -124,9 +124,9 @@
     items.forEach(item => {
       if (isAvailablePlayer(item)) return;
       const txt = item.textContent || '';
-      const m1 = txt.match(/(?:drafted|selected)\s+([A-Z][a-zA-Z\.\'\-\s]+?)(?:\s*,|\s*\(|\s+with|\s+as|\s+by|$)/i);
+      const m1 = txt.match(/(?:drafted|selected)\s+([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F\.\'\-\s]+?)(?:\s*,|\s*\(|\s+with|\s+as|\s+by|$)/i);
       if (m1 && m1[1]) notifySync(m1[1], false);
-      const m2 = txt.match(/([A-Z][a-zA-Z\.\'\-\s]+?)\s+(?:was\s+drafted|drafted|selected)\s+by/i);
+      const m2 = txt.match(/([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F\.\'\-\s]+?)\s+(?:was\s+drafted|drafted|selected)\s+by/i);
       if (m2 && m2[1]) notifySync(m2[1], false);
       if (/(?:drafted|selected|pick\s*#?\d+)/i.test(txt)) {
         const link = item.querySelector('a[href*="player"], a[href*="athlete"], [data-player-id], a.F-link');
@@ -139,7 +139,7 @@
     banners.forEach(b => {
       if (isAvailablePlayer(b)) return;
       const txt = b.textContent || '';
-      const m = txt.match(/(?:selected|drafted|last pick[:\s]*|recent pick[:\s]*|pick\s*#?\d+[:\s]*)\s*([A-Z][a-zA-Z\.\'\-\s]+?)(?:\s*,|\s*\(|$)/i);
+      const m = txt.match(/(?:selected|drafted|last pick[:\s]*|recent pick[:\s]*|pick\s*#?\d+[:\s]*)\s*([A-Z\u00C0-\u024F][a-zA-Z\u00C0-\u024F\.\'\-\s]+?)(?:\s*,|\s*\(|$)/i);
       if (m && m[1]) notifySync(m[1], false);
     });
   }
