@@ -236,7 +236,7 @@ const json = async (p) => (await p).json();
     // Pick numbering: currentPick moves past the highest pick seen
     // 12 (Celebrini) + un-numbered Draisaitl takes #13; the earlier-numbered Bouchard must not pull it back
     st = await json(fetch(`${base}/api/state`));
-    assert.strictEqual(st.currentPick, 15, 'currentPick only ever moves forward past the highest pick seen');
+    assert.strictEqual(st.currentPick, 14, 'currentPick only ever moves forward past the highest pick seen');
     r = await json(post(base, '/api/pick', { name: 'Zach Werenski', round: 1, pickInRound: 20 }));
     assert.strictEqual(r.pick.pickNumber, 20, 'A pick-in-round above the team count is an overall pick number');
     console.log('✓ Pick numbering from round/pick');
@@ -247,6 +247,35 @@ const json = async (p) => (await p).json();
     assert.strictEqual(r.state.currentPick, 20, 'Undo makes the undone pick the current pick again');
     assert.strictEqual(r.state.drafted['Zach Werenski'], undefined);
     console.log('✓ Undo restores the pick number');
+
+    // Late numbered pick, plain undo, and strict pickNumber parsing
+    const missingBefore = (await json(fetch(`${base}/api/state`))).pickHistoryIntegrity.missing;
+    r = await json(post(base, '/api/pick', { name: 'Late Pick Probe', round: 1, pickInRound: 3 }));
+    st = await json(fetch(`${base}/api/state`));
+    assert.deepStrictEqual(st.pickHistoryIntegrity.missing, missingBefore.filter((n) => n !== 3), 'A late numbered pick opens no new gap');
+    assert.strictEqual(st.currentPick, 20, 'A numbered pick below the counter leaves it unchanged');
+    r = await json(post(base, '/api/undo'));
+    assert.notStrictEqual(r.undone.name, 'Late Pick Probe', 'Plain undo removes the highest-numbered pick, not the last appended');
+    assert.ok(r.state.currentPick > Math.max(...r.state.pickHistory.map((e) => e.pickNumber)), 'Counter stays above every recorded pick');
+    for (const bad of ['12abc', 12.7]) {
+      assert.strictEqual((await post(base, '/api/undo', { pickNumber: bad })).status, 400, `undo rejects ${bad}`);
+      assert.strictEqual((await post(base, '/api/repair-pick', { pickNumber: bad, name: 'X Y' })).status, 400, `repair rejects ${bad}`);
+    }
+    console.log('✓ Late picks, undo of highest pick, strict pickNumber parsing');
+
+    // Malformed state file loads with bad fields defaulted
+    const badTmp = fs.mkdtempSync(path.join(os.tmpdir(), 'hockey-bad-'));
+    const badFile = path.join(badTmp, 'state.json');
+    fs.writeFileSync(badFile, JSON.stringify({ drafted: null, pickHistory: {}, currentPick: 'x', slot: 5 }));
+    const badSrv = await startServer(badFile);
+    try {
+      const pr = await post(badSrv.base, '/api/pick', { name: 'Connor McDavid' });
+      assert.strictEqual(pr.status, 200, '/api/pick works against a malformed state file');
+    } finally {
+      badSrv.child.kill();
+      fs.rmSync(badTmp, { recursive: true, force: true });
+    }
+    console.log('✓ Malformed state file fields fall back to defaults');
 
     // Settings validation: out-of-range values return 400 and leave state unchanged
     const prevSettings = await json(fetch(`${base}/api/state`));
