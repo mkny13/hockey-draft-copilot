@@ -1047,6 +1047,12 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
         type: 'PICK_MADE', state: { ...base, currentPick: 2, revision: 2, bootId: 'boot-B' }
       }) });
       await waitFor(() => cur.textContent === '2', { message: 'newer revision under new bootId applied' });
+      // a late message from the pre-restart process must not overwrite the new boot's state
+      sock.onmessage({ data: JSON.stringify({
+        type: 'PICK_MADE', state: { ...base, currentPick: 9, revision: 99, bootId: 'boot-A' }
+      }) });
+      await sleep(50);
+      assert.strictEqual(cur.textContent, '2', 'state from a retired bootId is ignored');
       w.close();
       console.log('✓ stale HTTP state never rolls back newer WS state; restart (new bootId) is applied');
     }

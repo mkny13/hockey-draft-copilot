@@ -359,16 +359,27 @@
 
   // Last applied { bootId, revision }; HTTP responses and WS messages share this check
   var lastApplied = null;
+  var retiredBoots = {}; // bootIds superseded by a restart; their late responses are stale
+
+  // Server bootIds are "<start ms>-<pid>", so a smaller start time is an older process
+  function bootStart(id) {
+    var n = parseInt(String(id), 10);
+    return isNaN(n) ? null : n;
+  }
 
   function isStaleState(s, isInit) {
-    if (isInit || !lastApplied || s.revision === undefined || s.bootId === undefined) return false;
-    return s.bootId === lastApplied.bootId && s.revision < lastApplied.revision;
+    if (!lastApplied || s.revision === undefined || s.bootId === undefined) return false;
+    if (s.bootId === lastApplied.bootId) return !isInit && s.revision < lastApplied.revision;
+    if (retiredBoots[s.bootId]) return true;
+    var a = bootStart(s.bootId), b = bootStart(lastApplied.bootId);
+    return a !== null && b !== null && a < b;
   }
 
   function applyServerState(s, isInit) {
     if (!s) return;
     if (isStaleState(s, isInit)) return;
     if (s.revision !== undefined && s.bootId !== undefined) {
+      if (lastApplied && lastApplied.bootId !== s.bootId) retiredBoots[lastApplied.bootId] = true;
       lastApplied = { bootId: s.bootId, revision: s.revision };
     }
     state.lastGoodState = s;
