@@ -751,6 +751,26 @@ const json = async (p) => (await p).json();
     ws.close();
     console.log('✓ WebSocket INIT_STATE and PICK_MADE carry the evaluation');
 
+    // revision/bootId on every state the server sends; revision strictly increases per mutation
+    {
+      assert.strictEqual(typeof msgs[0].state.revision, 'number', 'INIT_STATE state has revision');
+      assert.strictEqual(typeof msgs[0].state.bootId, 'string', 'INIT_STATE state has bootId');
+      assert(made.state.revision > msgs[0].state.revision, 'PICK_MADE broadcast revision increased');
+      const stGet = await json(fetch(`${base}/api/state`));
+      assert.strictEqual(stGet.revision, made.state.revision, '/api/state carries the current revision');
+      assert.strictEqual(stGet.bootId, msgs[0].state.bootId, 'bootId is stable within one process');
+      const revs = [stGet.revision];
+      const pk = await json(await post(base, '/api/pick', { name: 'Auston Matthews' }));
+      revs.push(pk.state.revision);
+      const un = await json(await post(base, '/api/undo'));
+      revs.push(un.state.revision);
+      const se = await json(await post(base, '/api/settings', { slot: 3 }));
+      revs.push(se.state.revision);
+      for (let i = 1; i < revs.length; i++) assert(revs[i] > revs[i - 1], `revision strictly increases (${revs.join(',')})`);
+      assert.strictEqual(se.state.bootId, stGet.bootId);
+      console.log('✓ revision strictly increases across pick, undo, settings; bootId present everywhere');
+    }
+
     // WebSocket origin verification: foreign origin rejected; allowed origin and no-origin receive INIT_STATE
     // 1. Foreign origin is rejected
     await new Promise((resolve, reject) => {

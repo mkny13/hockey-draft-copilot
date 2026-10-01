@@ -863,3 +863,15 @@ tr.is-myteam td {
   display: inline-block;
   margin-right: 6px;
 }
+
+.request-error {
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 16px;
+  background: rgba(255, 70, 70, 0.15);
+  border-bottom: 1px solid var(--red);
+  color: var(--red);
+  font-size: 12px;
+  font-weight: 600;
+}
