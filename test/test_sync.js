@@ -304,6 +304,20 @@ const names = (w) => w.__posts.map((p) => p.name);
     console.log('✓ bookmarklet.js: parses and records only the toast pick');
   }
 
+  // 7b. Accented names (Stützle, Šimon) are captured whole, not truncated at the first non-ASCII letter
+  for (const [label, run] of [
+    ['bookmarklet.js', (w) => w.eval(fs.readFileSync(path.join(__dirname, '..', 'public', 'js', 'bookmarklet.js'), 'utf8'))],
+    ['content.js', (w) => { w.eval(playersData); w.eval(contentJs); }]
+  ]) {
+    const w = makeWindow('<div class="toast"><div>Tim Stützle / OTT, F</div><div>R2, P3 - Some Team</div></div>');
+    run(w);
+    await waitFor(() => w.__posts.length >= 1);
+    assert.strictEqual(w.__posts[0].name, label === 'content.js' ? 'Tim Stutzle' : 'Tim Stützle', `${label}: accented surname must not be truncated`);
+    w.clearInterval(w.__copilotScanInterval);
+    w.close();
+    console.log(`✓ ${label}: accented player names are captured whole`);
+  }
+
   // 8. The extension manifest is valid and ships nothing dead
   {
     const manifest = JSON.parse(fs.readFileSync(path.join(SYNC, 'manifest.json'), 'utf8'));
