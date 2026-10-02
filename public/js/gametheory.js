@@ -45,6 +45,15 @@
     return Math.max(0, Math.min(1, 1.0 - cdf));
   }
 
+  /** ADP number for a player row (live board order: espn, average, yahoo, fantrax), or null. */
+  function resolveAdp(row) {
+    var adpVal = (row.adp && typeof row.adp === "object")
+      ? (row.adp.espn || row.adp.average || row.adp.yahoo || row.adp.fantrax)
+      : row.adp;
+    var adpNum = parseFloat(adpVal);
+    return isNaN(adpNum) ? null : adpNum;
+  }
+
   /**
    * Snake Draft Turn Schedule Calculator
    */
@@ -269,9 +278,7 @@
     var rosterComplete = rosterSize > 0 && myPickCount >= rosterSize;
 
     var onTheClock = !draftComplete && !rosterComplete && isMyTurn(currentPick, slot, teams);
-    var targetTurn = onTheClock
-      ? getNextSnakePick(currentPick + 1, slot, teams)
-      : getNextSnakePick(currentPick, slot, teams);
+    var targetTurn = getNextSnakePick(currentPick, slot, teams);
 
     var picksUntilTurn = (onTheClock || rosterComplete) ? 0 : Math.max(0, targetTurn - currentPick);
 
@@ -300,10 +307,7 @@
     var isMine = !!mineSet[name];
     var isDrafted = isMine || !!draftedSet[name];
 
-    var adpVal = (r.adp && typeof r.adp === "object")
-      ? (r.adp.espn || r.adp.average || r.adp.yahoo || r.adp.fantrax)
-      : r.adp;
-    var adpNum = parseFloat(adpVal) || 999;
+    var adpNum = resolveAdp(r) || 999;
 
     var surv = isDrafted ? 0 : pSurvive(targetTurn, adpNum, stdDev);
     var posArray = r.pos || r.p || [];
@@ -855,10 +859,7 @@
       var pl = players[i];
       var nm = pl.name || pl.n;
       if (!nm) continue;
-      var adpVal = (pl.adp && typeof pl.adp === "object")
-        ? (pl.adp.yahoo || pl.adp.average || pl.adp.fantrax)
-        : pl.adp;
-      var adpNum = parseFloat(adpVal) || 999;
+      var adpNum = resolveAdp(pl) || 999;
       var posArr = pl.pos || pl.p || [];
       byName[nm] = {
         name: nm,
@@ -1059,14 +1060,6 @@
     return mean + gaussian(rng) * s;
   }
 
-  function resolveAdpValue(row) {
-    var adpVal = (row.adp && typeof row.adp === "object")
-      ? (row.adp.yahoo || row.adp.average || row.adp.fantrax)
-      : row.adp;
-    var adpNum = parseFloat(adpVal);
-    return isNaN(adpNum) ? null : adpNum;
-  }
-
   /**
    * Overall pick number of `slot` in round `r` of a snake draft.
    */
@@ -1134,7 +1127,7 @@
       if (!name || nameSet[name]) continue;
       nameSet[name] = true;
 
-      var adp = resolveAdpValue(row);
+      var adp = resolveAdp(row);
       if (adp === null) continue;
       if (draftedSet[name] || mineSet[name]) continue;
 

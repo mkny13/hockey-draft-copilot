@@ -658,4 +658,29 @@ assert.strictEqual(makarOverflowNoOpts.adjVorp, makarOverflowNoOpts.rawVorp, 'Wi
 assert.strictEqual(makarOverflowNoOpts.isDiminished, false, 'The UTIL-slot overflow pick must not be flagged as diminished');
 console.log('✓ evaluateBoard() default rosterLimits price the first overflow pick at UTIL (full value), not BENCH_VALUE');
 
+// Snake-turn back-to-back picks: on the clock at the turn, the next pick is the very next one
+const turnRows = [{ name: 'Turn Guy', pos: ['C'], adp: 20, vorp: 50 }];
+const turn8 = GT.evaluateBoard(turnRows, { slot: 8, teams: 8, currentPick: 8, rosterLimits: goldenLimits });
+assert.strictEqual(turn8.onTheClock, true);
+assert.strictEqual(turn8.targetTurn, 9, 'Slot 8 at pick 8 picks again at 9');
+const turn1 = GT.evaluateBoard(turnRows, { slot: 1, teams: 8, currentPick: 16, rosterLimits: goldenLimits });
+assert.strictEqual(turn1.onTheClock, true);
+assert.strictEqual(turn1.targetTurn, 17, 'Slot 1 at pick 16 picks again at 17');
+console.log('✓ evaluateBoard() targetTurn at the snake turn is the back-to-back pick');
+
+// One ADP resolution (espn first) across board, grader and Monte Carlo
+const adpRows = [
+  { name: 'Dual Adp', pos: ['C'], adp: { espn: 10, yahoo: 40 }, vorp: 80 },
+  { name: 'Filler One', pos: ['F'], adp: { espn: 30 }, vorp: 40 },
+  { name: 'Filler Two', pos: ['D'], adp: { yahoo: 50 }, vorp: 30 }
+];
+const adpBoard = GT.evaluateBoard(adpRows, { slot: 5, teams: 8, currentPick: 1, rosterLimits: goldenLimits });
+const adpBoardRow = (adpBoard.rows || adpBoard.shortlist || adpBoard.board).find((r) => r.name === 'Dual Adp');
+assert.strictEqual(adpBoardRow.adp, 10, 'evaluateBoard uses ESPN ADP');
+const adpGrade = GT.gradeDraft([{ pickNumber: 1, name: 'Dual Adp', pos: ['C'], isMine: true }], adpRows, { rosterLimits: { C: 3, F: 5, D: 4, G: 2 } });
+assert.strictEqual(adpGrade.picks[0].adp, 10, 'gradeDraft uses ESPN ADP');
+const adpMc = GT.runMonteCarlo(adpRows, { teams: 8, slot: 5, currentPick: 1, seed: 1, targets: ['Dual Adp'] }, 3, 20);
+assert.strictEqual(adpMc.targets[0].adp, 10, 'runMonteCarlo uses ESPN ADP');
+console.log('✓ evaluateBoard/gradeDraft/runMonteCarlo resolve the same (ESPN-first) ADP');
+
 console.log('ALL GAMETHEORY TESTS PASSED!');

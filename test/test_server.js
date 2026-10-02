@@ -273,7 +273,7 @@ const json = async (p) => (await p).json();
       assert.strictEqual(pr.status, 200, '/api/pick works against a malformed state file');
     } finally {
       badSrv.child.kill();
-      fs.rmSync(badTmp, { recursive: true, force: true });
+      fs.rmSync(badTmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
     // Malformed counter with valid history: counter derives from the history
     const badTmp2 = fs.mkdtempSync(path.join(os.tmpdir(), 'hockey-bad-'));
