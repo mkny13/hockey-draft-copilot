@@ -24,7 +24,7 @@ cd hockey-draft-copilot
 ./start.sh          # macOS only: installs deps, runs quick tests, starts the server, opens the browser
 ```
 
-`start.sh` opens the browser with macOS `open` and always opens port 3333. On any other OS, or to use a different `PORT`, run `npm install && npm start` and open <http://localhost:3333> yourself. The server binds to loopback (`127.0.0.1`) by default; set `HOST=0.0.0.0` if you need to access it over your local network. Server configuration is controlled by environment variables: `PORT` (default `3333`), `HOST` (default `127.0.0.1`), `DRAFT_STATE_FILE` (draft state file path, default `draft_state.json`), and `WS_PING_MS` (WebSocket keepalive ping interval in milliseconds, default `30000`).
+`start.sh` opens the browser with macOS `open` and always opens port 3333. On any other OS, or to use a different `PORT`, run `npm install && npm start` and open `http://localhost:<PORT>` (your configured port; `http://localhost:3333` by default) yourself. The server binds to loopback (`127.0.0.1`) by default; set `HOST=0.0.0.0` if you need to access it over your local network. Server configuration is controlled by environment variables: `PORT` (default `3333`), `HOST` (default `127.0.0.1`), `DRAFT_STATE_FILE` (draft state file path, default `draft_state.json`), and `WS_PING_MS` (WebSocket keepalive ping interval in milliseconds, default `30000`).
 
 ### Using it in a draft
 
