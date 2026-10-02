@@ -208,4 +208,34 @@ assert(
 );
 
 console.log('✓ AGENTS.md workflow sections, test seams, and mock-draft path are present and real');
+// 4. README's stated Node floor matches package.json engines.node.
+const enginesFloor = ((pkgJson.engines || {}).node || '').match(/>=\s*(\d+\.\d+)/);
+assert(enginesFloor, 'package.json must declare engines.node as ">=X.Y.Z"');
+const readmeNode = readmeMd.match(/Node\.js\]\([^)]*\)\s*(\d+\.\d+)\+/);
+assert(readmeNode, 'README.md must state the Node.js version as "<major>.<minor>+"');
+assert.strictEqual(readmeNode[1], enginesFloor[1], 'README Node version must match package.json engines.node');
+
+// 5. Every relative link/image in README resolves on disk; every #anchor matches a heading slug.
+const slug = (h) => h.trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s/g, '-');
+const slugs = new Set(readmeMd.split('\n').filter((l) => /^#{1,6}\s/.test(l)).map((l) => slug(l.replace(/^#+\s+/, ''))));
+const targets = [...readmeMd.matchAll(/!?\[[^\]]*\]\(([^)\s]+)\)/g)].map((m) => m[1])
+  .concat([...readmeMd.matchAll(/<img[^>]*\ssrc="([^"]+)"/g)].map((m) => m[1]));
+for (const t of targets) {
+  if (/^[a-z]+:/i.test(t)) continue;
+  if (t.startsWith('#')) {
+    assert(slugs.has(t.slice(1)), `README.md anchor ${t} matches no heading`);
+  } else {
+    assert(fs.existsSync(path.join(repoRoot, t.split('#')[0])), `README.md links to a missing file: ${t}`);
+  }
+}
+
+// 6. Every --flag scripts/mock_draft.js parses appears in README.md.
+const mockSrc = fs.readFileSync(path.join(repoRoot, 'scripts', 'mock_draft.js'), 'utf8');
+const mockFlags = [...new Set([...mockSrc.matchAll(/argv\[i\] === '(--[a-z]+)'/g)].map((m) => m[1]))];
+assert(mockFlags.length >= 5, 'expected to find the mock_draft.js flags');
+for (const flag of mockFlags) {
+  assert(new RegExp(`${flag}\\b`).test(readmeMd), `README.md is missing mock_draft.js flag ${flag}`);
+}
+
+console.log('✓ README Node floor, links, anchors, and mock_draft flags match the repo');
 console.log('ALL DOCS TESTS PASSED!');

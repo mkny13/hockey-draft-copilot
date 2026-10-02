@@ -12,7 +12,7 @@ See [README.md](README.md) for full system overview.
 
 ```bash
 npm install          # first run in a fresh clone or worktree; test_sync.js and test_app.js require jsdom
-npm test             # full suite via scripts/run_tests.js: engine, data, server API, draft-room sync (jsdom), app UI (jsdom), mock-draft regression, docs guard (~19s)
+npm test             # full suite via scripts/run_tests.js: engine, data, server API, draft-room sync (jsdom), app UI (jsdom), mock-draft regression, docs guard (~20s)
 npm run test:quick   # engine + data only
 ```
 
@@ -44,13 +44,13 @@ npm run test:quick   # engine + data only
 
 ## Architecture & Code Map
 
-- `server.js`: Node.js Express & WebSocket server. Reads env vars `PORT` (default `3333`), `HOST` (default `127.0.0.1`, loopback), `DRAFT_STATE_FILE` (default `draft_state.json`), and `WS_PING_MS` (default `30000`). Manages live draft state (`draft_state.json`), a scoped origin-allowlist regex constant (`ALLOWED_ORIGIN`, defined in `server.js`, not an env var) rejecting cross-origin state mutations, live `pickHistoryIntegrity` snapshot (`missing`, `repeated`, `duplicateNames`), endpoints `/api/pick`, `/api/undo`, `/api/repair-pick` (backfills missed picks without advancing `currentPick`), `/api/reset`, `/api/settings`, `/api/state`, `/api/evaluation`, `/api/report`, `/draft_data.json`, and live WS broadcast (each broadcast carries an `evaluation` snapshot for the in-room HUD; also `GET /api/evaluation`).
+- `server.js`: Node.js Express & WebSocket server. Reads env vars `PORT` (default `3333`), `HOST` (default `127.0.0.1`, loopback), `DRAFT_STATE_FILE` (default `draft_state.json`), and `WS_PING_MS` (default `30000`). Manages live draft state (`draft_state.json`), a scoped origin-allowlist regex constant (`ALLOWED_ORIGIN`, defined in `server.js`, not an env var: `https://` ESPN/Yahoo hosts and subdomains plus `http(s)://localhost|127.0.0.1` on any port) that withholds CORS headers from other origins and rejects foreign-origin non-GET requests, `OPTIONS` preflights, and WebSocket handshakes (GETs are still answered; requests with no `Origin` are allowed), live `pickHistoryIntegrity` snapshot (`missing`, `repeated`, `duplicateNames`), endpoints `/api/pick`, `/api/undo`, `/api/repair-pick` (backfills missed picks without advancing `currentPick`), `/api/reset`, `/api/settings`, `/api/state`, `/api/evaluation`, `/api/report`, `/draft_data.json`, and live WS broadcast (each broadcast carries an `evaluation` snapshot for the in-room HUD; also `GET /api/evaluation`).
 - `public/js/gametheory.js`: Mathematical game-theory engine implementing survival odds ($P_{survive}$ via Abramowitz & Stegun normal CDF), snake schedule turn calculations, roster counting with a UTIL/bench flex pool and must-fill starters, diminishing returns ($Adj\_VORP$), automated target trade-offs (`computeTargetTradeoffs`), top matchup selector (`getTopMatchup`), survival-weighted fallbacks (`findNextAlt`), and 2-round EVONA comparator (`comparePlayersGameTheory`), plus the post-draft grader and Monte Carlo.
 - `public/js/app.js`: Client-side UI state controller, live search, reactive table rendering, automated trade-off advice cards, auto-comparator handler, and WebSocket receiver.
 - `yahoo-sync/`: Complete Manifest V3 Chrome Extension (`background.js` health monitor, polling only while an ESPN or Yahoo draft tab is open, `popup.html`/`popup.js` options UI, `content.js` pick stream + HUD supporting ESPN & Yahoo, `players_data.js` hand-maintained name resolver kept in sync with `draft_data.json` and guarded by `test/test_data.js`, and `status.css`).
 - `test/`: `test_gametheory.js`, `test_data.js`, `test_server.js`, `test_sync.js`, `test_app.js`, `test_mock_draft.js`, `test_docs.js`.
 - `scripts/run_tests.js`: sequential test runner with per-file timing, per-file timeout (`TEST_TIMEOUT_MS`), slow budget warnings (`TEST_SLOW_MS`), and summary reporting.
-- `scripts/ingest_espn_adp.js`: ESPN ADP updater (Hashtag Hockey only; rejects values that are not plain one-decimal numbers).
+- `scripts/ingest_espn_adp.js`: ESPN ADP updater (Hashtag Hockey only; input is a saved-HTML path argument or the `HASHTAG_HTML` env var; rejects values that are not plain one-decimal numbers).
 - `scripts/mock_draft.js`: seeded mock drafts and Monte Carlo of the engine vs an ADP drafter.
 - `start.sh`: Executable startup script that installs dependencies, runs tests, starts the server, and opens `http://localhost:3333`.
 
