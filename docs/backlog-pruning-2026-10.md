@@ -41,7 +41,7 @@ No other issue was open. **Nothing was closed by this pass**, so no
   2026-09-25 on the strength of that comment.
 - The two issues are not the same work. #12 landed in `main` as the **server-side**
   `pickHistoryIntegrity` snapshot and the `POST /api/repair-pick` route (`server.js:169`,
-  `server.js:569`), guarded by `test/test_server.js`. #22 is the **extension-side** half:
+  `server.js:636`), guarded by `test/test_server.js`. #22 is the **extension-side** half:
   a durable pick queue in `yahoo-sync/content.js`, a HUD integrity row and reconciliation
   against the draft board, with coverage in `test/test_sync.js`. `test/test_sync.js` has no
   `repair`/`integrity`/`queue`/`pending` coverage, which is the same conclusion from the
