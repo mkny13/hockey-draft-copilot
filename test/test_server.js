@@ -39,6 +39,15 @@ function freePort() {
   });
 }
 
+function terminate(child) {
+  if (child.exitCode !== null) return Promise.resolve();
+  return new Promise((resolve) => {
+    const t = setTimeout(() => resolve(), 1000);
+    child.on('exit', () => { clearTimeout(t); resolve(); });
+    try { child.kill('SIGKILL'); } catch (_) { clearTimeout(t); resolve(); }
+  });
+}
+
 async function startServer(stateFile, envOverrides = {}, maxAttempts = 3, getPort = freePort) {
   let lastError = null;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
@@ -182,7 +191,7 @@ const json = async (p) => (await p).json();
           console.log('SKIPPED: no non-loopback IPv4 on this host');
         }
       } finally {
-        hostSrv.child.kill();
+        await terminate(hostSrv.child);
         fs.rmSync(tmpHost, { recursive: true, force: true });
       }
       console.log('✓ Host binding: listens on 127.0.0.1 by default and on HOST when set');
@@ -272,7 +281,7 @@ const json = async (p) => (await p).json();
       const pr = await post(badSrv.base, '/api/pick', { name: 'Connor McDavid' });
       assert.strictEqual(pr.status, 200, '/api/pick works against a malformed state file');
     } finally {
-      badSrv.child.kill();
+      await terminate(badSrv.child);
       fs.rmSync(badTmp, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
     // Malformed counter with valid history: counter derives from the history
@@ -291,7 +300,7 @@ const json = async (p) => (await p).json();
       const st3 = await json(fetch(`${badSrv2.base}/api/state`));
       assert.strictEqual(st3.pickHistory.filter((e) => e.pickNumber === 1).length, 1, 'No duplicate pick #1');
     } finally {
-      badSrv2.child.kill();
+      await terminate(badSrv2.child);
       fs.rmSync(badTmp2, { recursive: true, force: true, maxRetries: 5, retryDelay: 100 });
     }
     console.log('✓ Malformed state file fields fall back to defaults');
@@ -482,7 +491,7 @@ const json = async (p) => (await p).json();
       const repBody = await repOver.json();
       assert(repBody.error && repBody.error.includes('2000'), 'Repair error mentions 2000 limit');
     } finally {
-      srv2000.child.kill();
+      await terminate(srv2000.child);
       fs.rmSync(tmp2000, { recursive: true, force: true });
     }
     console.log('✓ Refuses to grow pickHistory past 2000 entries');
@@ -589,8 +598,7 @@ const json = async (p) => (await p).json();
       const bText2 = await bResCond2.text();
       assert(bText2.includes('_testTimestamp'), 'Contains modified content in body');
     } finally {
-      srvBoard.child.kill('SIGKILL');
-      await new Promise((resolve) => srvBoard.child.on('exit', resolve));
+      await terminate(srvBoard.child);
       if (fs.existsSync(localBoardFile)) fs.unlinkSync(localBoardFile);
       fs.rmSync(tmpBoardDir, { recursive: true, force: true });
     }
@@ -862,7 +870,7 @@ const json = async (p) => (await p).json();
       assert(reaped, 'Captured stdout must report the dead client was terminated');
       wsDead._socket.destroy();
     } finally {
-      srvPing.child.kill();
+      await terminate(srvPing.child);
       fs.rmSync(tmpPing, { recursive: true, force: true });
     }
     console.log('✓ Dead client reaping terminates unresponsive client within two intervals and logs reap');
@@ -888,8 +896,7 @@ const json = async (p) => (await p).json();
       assert.strictEqual(rtSt.pickHistory.length, diskParsed.pickHistory.length, 'Compact state round-trips through loadState');
       assert.strictEqual(rtSt.currentPick, diskParsed.currentPick);
     } finally {
-      srvRt.child.kill('SIGKILL');
-      await new Promise((resolve) => srvRt.child.on('exit', resolve));
+      await terminate(srvRt.child);
       fs.rmSync(tmpRoundTrip, { recursive: true, force: true });
     }
     console.log('✓ draft_state.json is written compact, round-trips through loadState, and replaced by atomic rename');
@@ -919,7 +926,7 @@ const json = async (p) => (await p).json();
       const bannerMatches = (srvShut.getStdout().match(/Shutting down/g) || []).length;
       assert.strictEqual(bannerMatches, 1, 'Shutdown banner printed exactly once despite repeated signals');
     } finally {
-      try { srvShut.child.kill(); } catch (_) {}
+      await terminate(srvShut.child);
       fs.rmSync(tmpShut, { recursive: true, force: true });
     }
     console.log('✓ SIGINT/SIGTERM saves state, closes servers, exits 0, and avoids double-banner on repeated signals');
@@ -964,7 +971,7 @@ const json = async (p) => (await p).json();
         assert.strictEqual(callCount, 2, 'startServer retried after initial EADDRINUSE');
         assert.notStrictEqual(retrySrv.port, occupiedPort, 'Retried server bound to new port');
       } finally {
-        retrySrv.child.kill();
+        await terminate(retrySrv.child);
       }
 
       // Verify diagnostics on startup failure (max attempts exhausted)
@@ -999,19 +1006,19 @@ const json = async (p) => (await p).json();
       assert.deepStrictEqual(stAfter.drafted, {});
       assert.deepStrictEqual(stAfter.mine, {});
 
-      srvIso.child.kill();
+      await terminate(srvIso.child);
       srvIso = await startServer(isoState);
       let stRestart = await json(fetch(`${srvIso.base}/api/state`));
       assert.strictEqual(stRestart.pickHistory.length, 0, 'pickHistory is empty after restart');
       assert.deepStrictEqual(stRestart.drafted, {}, 'drafted has no keys after restart');
       assert.deepStrictEqual(stRestart.mine, {}, 'mine has no keys after restart');
     } finally {
-      srvIso.child.kill();
+      await terminate(srvIso.child);
       fs.rmSync(tmpIso, { recursive: true, force: true });
     }
     console.log('✓ No two draft states share a mutable sub-object; reset survives server restart');
   } finally {
-    child.kill();
+    await terminate(child);
     fs.rmSync(tmp, { recursive: true, force: true });
   }
   console.log('ALL SERVER TESTS PASSED!');
