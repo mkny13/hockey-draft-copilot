@@ -42,6 +42,14 @@ npm run test:quick   # engine + data only
 - Put `Fixes #N` in the PR body.
 - A run that ends with nothing committed is a failed run.
 
+### Mahler participation (project `hockey`)
+
+- **Start from an issue:** file one with `mahler add hockey "title"` if none exists, then `mahler claim hockey#N` before writing code. Long work keeps the claim alive with `mahler heartbeat hockey#N`; abandoning it uses `mahler release hockey#N`.
+- **Branch and worktree:** work in your own worktree on branch `mahler/<N>-short-slug`, never by switching branches in the primary checkout.
+- **Verify, commit, push:** the verify command is `npm test`. Run it before every push, commit after each meaningful step, and push to the branch's upstream.
+- **Hand off, never leave a PR open:** interactive sessions run `mahler ship hockey#N` once the branch is pushed (or merge it by hand); put `Fixes #N` in any PR you open. The conductor opens the PR, reviews it, watches CI, and merges on green.
+- **Autonomous runs** (`MAHLER_ISSUE` set) stop at the push and end the final message with exactly one `STATUS:` line (`DONE`, `NEEDS-YOU`, `BLOCKED`, or `YIELDED`).
+
 ## Architecture & Code Map
 
 - `server.js`: Node.js Express & WebSocket server. Reads env vars `PORT` (default `3333`), `HOST` (default `127.0.0.1`, loopback), `DRAFT_STATE_FILE` (default `draft_state.json`), and `WS_PING_MS` (default `30000`). Manages live draft state (`draft_state.json`), a scoped origin-allowlist regex constant (`ALLOWED_ORIGIN`, defined in `server.js`, not an env var: `https://` ESPN/Yahoo hosts and subdomains plus `http(s)://localhost|127.0.0.1` on any port) that withholds CORS headers from other origins and rejects foreign-origin non-GET requests, `OPTIONS` preflights, and WebSocket handshakes (GETs are still answered; requests with no `Origin` are allowed), live `pickHistoryIntegrity` snapshot (`missing`, `repeated`, `duplicateNames`), endpoints `/api/pick`, `/api/undo`, `/api/repair-pick` (backfills missed picks without advancing `currentPick`), `/api/reset`, `/api/settings`, `/api/state`, `/api/evaluation`, `/api/report`, `/draft_data.json`, and live WS broadcast (each broadcast carries an `evaluation` snapshot for the in-room HUD; also `GET /api/evaluation`).
