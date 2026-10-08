@@ -208,12 +208,14 @@ assert(
 );
 
 console.log('✓ AGENTS.md workflow sections, test seams, and mock-draft path are present and real');
-// 4. README's stated Node floor matches package.json engines.node.
-const enginesFloor = ((pkgJson.engines || {}).node || '').match(/>=\s*(\d+\.\d+)/);
-assert(enginesFloor, 'package.json must declare engines.node as ">=X.Y.Z"');
-const readmeNode = readmeMd.match(/Node\.js\]\([^)]*\)\s*(\d+\.\d+)\+/);
-assert(readmeNode, 'README.md must state the Node.js version as "<major>.<minor>+"');
-assert.strictEqual(readmeNode[1], enginesFloor[1], 'README Node version must match package.json engines.node');
+// 4. README's stated Node versions match package.json engines.node.
+const enginesRange = (pkgJson.engines || {}).node || '';
+const enginesFloors = [...enginesRange.matchAll(/(?:\^|>=)\s*(\d+)\.(\d+)/g)].map((m) => m[1] + '.' + m[2]);
+assert(enginesFloors.length, 'package.json must declare engines.node as a range of "^X.Y.Z" / ">=X.Y.Z" terms');
+const readmeNode = readmeMd.match(/Node\.js\]\([^)]*\)\s*([^(]+?)\s*\(/);
+assert(readmeNode, 'README.md must state the Node.js versions as "<major>.<minor>+" terms before a parenthesis');
+const readmeFloors = [...readmeNode[1].matchAll(/(\d+\.\d+|\d+)\+/g)].map((m) => (m[1].includes('.') ? m[1] : m[1] + '.0'));
+assert.deepStrictEqual(readmeFloors, enginesFloors, 'README Node versions must match package.json engines.node');
 
 // 5. Every relative link/image in README resolves on disk; every #anchor matches a heading slug.
 const slug = (h) => h.trim().toLowerCase().replace(/[^\w\s-]/g, '').replace(/\s/g, '-');
