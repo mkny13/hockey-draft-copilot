@@ -80,5 +80,5 @@ npm run test:quick   # engine + data only
 
 - The server is loopback-only by default (`http://localhost:3333`); it is not exposed beyond the local machine.
 - The extension's `host_permissions` and content-script `matches` cover only the fantasy draft hosts (`https://fantasy.espn.com/*`, `https://*.fantasysports.yahoo.com/*`) plus `http://localhost:3333/*` for the health check — never bare ESPN/Yahoo domains.
-- No credentials or `.env` files are used anywhere in this project.
+- No credentials or `.env` files are used anywhere in this project. Tracked files contain zero secrets, credentials, or private personal data, and documentation screenshots (`docs/screenshots/app.png` and `docs/screenshots/hud.png`) are non-sensitive synthetic UI assets.
 - Untrusted draft-room text (player names, stored sync URLs) is escaped at render time in both the app UI and the in-room HUD.
