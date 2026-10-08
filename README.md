@@ -16,7 +16,7 @@ Built and tested for an 8-team ESPN league (**C2 · F6 · D6 · UTIL1 · G2 · B
 
 ## Quick Start
 
-Requires [Node.js](https://nodejs.org) 20.19+ (the `jsdom` dev dependency used by `npm test` needs it; `package.json` declares it in `engines`).
+Requires [Node.js](https://nodejs.org) 22.22+, 24.15+ or 26+ (the `jsdom` dev dependency used by `npm test` needs it; `package.json` declares it in `engines`).
 
 ```bash
 git clone https://github.com/mkny13/hockey-draft-copilot.git
