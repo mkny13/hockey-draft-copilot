@@ -460,6 +460,19 @@ const json = async (p) => (await p).json();
     assert.strictEqual(hugeRes.status, 413, 'Payload > 64kb returns 413 Payload Too Large');
     console.log('✓ Over-limit request body rejected with 413');
 
+    // Express 5 leaves req.body undefined without a JSON body: no POST endpoint may 500
+    for (const route of ['/api/pick', '/api/repair-pick']) {
+      assert.strictEqual((await fetch(base + route, { method: 'POST' })).status, 400, `${route} with no body returns 400`);
+      assert.strictEqual((await fetch(base + route, { method: 'POST', headers: { 'content-type': 'text/plain' }, body: 'hi' })).status, 400, `${route} with non-JSON body returns 400`);
+    }
+    for (const route of ['/api/undo', '/api/settings']) {
+      const r = await fetch(base + route, { method: 'POST' });
+      assert.ok(r.status < 500, `${route} with no body must not 500 (got ${r.status})`);
+    }
+    const malformed = await fetch(`${base}/api/pick`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{bad' });
+    assert.strictEqual(malformed.status, 400, 'malformed JSON returns 400');
+    console.log('✓ POST endpoints survive missing/non-JSON/malformed bodies without a 500');
+
     // Refuse to grow pickHistory past 2000 entries
     const tmp2000 = fs.mkdtempSync(path.join(os.tmpdir(), 'copilot-2000-'));
     const state2000File = path.join(tmp2000, 'state.json');
@@ -508,6 +521,12 @@ const json = async (p) => (await p).json();
     st = await json(fetch(`${base}/api/state`));
     assert(st.pickHistory.length > 0, 'The rejected reset did not clear the draft');
     console.log('✓ Origin check: foreign origins blocked, ESPN/Yahoo/localhost allowed');
+
+    // Reset with no body (req.body undefined on Express 5) must not 500; last, since it clears the draft
+    const resetNoBody = await fetch(`${base}/api/reset`, { method: 'POST' });
+    assert.ok(resetNoBody.status < 500, `/api/reset with no body must not 500 (got ${resetNoBody.status})`);
+    st = await json(fetch(`${base}/api/state`));
+    assert.strictEqual(st.pickHistory.length, 0, 'reset with no body clears the draft');
 
     // Scoped CORS for GET endpoints: /api/state, /api/report, /draft_data.json
     const getRoutes = ['/api/state', '/api/report', '/draft_data.json'];
