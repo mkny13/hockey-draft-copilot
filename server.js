@@ -179,8 +179,9 @@ app.use((err, req, res, next) => {
   if (err && (err.status === 413 || err.type === 'entity.too.large')) {
     return res.status(413).json({ error: 'Payload too large (maximum 64kb)' });
   }
-  if (err && (err.status === 400 || err instanceof SyntaxError)) {
-    return res.status(400).json({ error: 'Invalid request body' });
+  if (err && (err instanceof SyntaxError || (err.status >= 400 && err.status < 500))) {
+    // Any other body-parser client error (400 bad JSON/encoding, 415 unsupported charset, ...)
+    return res.status(err instanceof SyntaxError ? 400 : err.status).json({ error: 'Invalid request body' });
   }
   next(err);
 });
