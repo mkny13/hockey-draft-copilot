@@ -218,7 +218,8 @@ app.use((req, res, next) => {
 // The browser loads the board from here so the local override reaches the UI too
 app.get('/draft_data.json', (req, res) => {
   res.set('Cache-Control', 'no-cache, must-revalidate');
-  res.sendFile(DATA_FILE);
+  // Express 5 refuses absolute paths containing dot-directories (e.g. a .worktrees checkout); a root option avoids that
+  res.sendFile(path.basename(DATA_FILE), { root: path.dirname(DATA_FILE) });
 });
 
 // Serve frontend static assets with no-cache headers to ensure immediate updates in browser
