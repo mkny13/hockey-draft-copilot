@@ -471,6 +471,9 @@ const json = async (p) => (await p).json();
     }
     const malformed = await fetch(`${base}/api/pick`, { method: 'POST', headers: { 'content-type': 'application/json' }, body: '{bad' });
     assert.strictEqual(malformed.status, 400, 'malformed JSON returns 400');
+    const badCharset = await fetch(`${base}/api/pick`, { method: 'POST', headers: { 'content-type': 'application/json', 'content-encoding': 'compress' }, body: '{}' });
+    assert.strictEqual(badCharset.status, 415, 'unsupported content-encoding keeps its 4xx status');
+    assert.deepStrictEqual(await badCharset.json(), { error: 'Invalid request body' }, 'other body-parser 4xx errors get the JSON error body');
     console.log('✓ POST endpoints survive missing/non-JSON/malformed bodies without a 500');
 
     // Refuse to grow pickHistory past 2000 entries
