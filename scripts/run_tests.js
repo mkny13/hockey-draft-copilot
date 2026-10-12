@@ -12,6 +12,7 @@ const TEST_FILES = [
   'test_app.js',
   'test_mock_draft.js',
   'test_docs.js',
+  'test_mcp.js',
 ];
 
 const DEFAULT_TIMEOUT_MS = 120000;

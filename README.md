@@ -112,6 +112,12 @@ Located in [`yahoo-sync/`](yahoo-sync/):
 
 ---
 
+## In-season stats (MCP)
+
+`mcp/` is a separate local MCP server, `nhl-stats`, that gives Claude Code raw NHL stats on demand (MoneyPuck xG plus the NHL API): goalie/skater/team stats, game logs, player lookup, schedule and standings, for any season MoneyPuck covers. It does not touch the draft board. Setup and tools: [mcp/README.md](mcp/README.md).
+
+---
+
 ## Running Tests
 
 ```bash
@@ -128,6 +134,7 @@ Plain Node `assert` executed sequentially via `scripts/run_tests.js`, reporting 
 | `test/test_sync.js` | Runs the real extension content script and the bookmarklet in jsdom: wrapper-with-available-list layout (the "top available player recorded as a pick" bug), player-pool guard, marker order, dynamic toasts, retry after network failure, HUD rendering, badge state, accented names, manifest permission surface, background health check |
 | `test/test_app.js` | App UI in jsdom: untrusted text escaping / XSS protection across board, shortlist, comparator, reports, and Monte Carlo; live pick-history integrity banner, repair-pick control, and targeted undo; rejected requests surface an error, and stale HTTP state never rolls back newer WebSocket state |
 | `test/test_docs.js` | Documentation surface guard: asserts all server routes, test files, and environment variables are documented across README.md, AGENTS.md, and package.json; README Node version matches `engines`; README relative links and `#anchors` resolve; every `mock_draft.js` flag is documented |
+| `test/test_mcp.js` | NHL stats MCP server logic (`mcp/lib/`) offline from fixtures: CSV parsing, name/team normalization, each of the seven tools (GSAx math, filters, field selection, past seasons), `include_xg` only when asked, disk cache TTL and stale-on-error, and a guard that nothing reads the draft board |
 | `test/test_mock_draft.js` | Strategy regression: the engine beats a pure-ADP drafter, fills 2 goalies and a full lineup, and drafts are deterministic |
 
 ---
@@ -154,6 +161,7 @@ The Co-Pilot's recommended pick drives one team; the other seven draft from ESPN
 - `scripts/run_tests.js`: sequential test runner with per-file timing, per-file timeout (`TEST_TIMEOUT_MS`), slow budget (`TEST_SLOW_MS`), and summary reporting.
 - `scripts/ingest_espn_adp.js`: merges ESPN ADP from Hashtag Hockey only into `draft_data.json` (input: a saved HTML path argument or the `HASHTAG_HTML` env var). Values must be plain numbers with at most one decimal; Daily Faceoff's text has columns glued together and produced corrupt values, so it is no longer used.
 - `scripts/mock_draft.js`: seeded mock-draft / Monte Carlo simulator (see above).
+- `mcp/`: local `nhl-stats` MCP server (own `package.json`; `mcp/lib/` is Node built-ins only and covered by `test/test_mcp.js`). See [mcp/README.md](mcp/README.md).
 - `docs/screenshots/`: images used by this README.
 - `yahoo-sync/`: Manifest V3 extension (version 1.8) for `fantasy.espn.com` and `*.fantasysports.yahoo.com`.
 

@@ -1,0 +1,16 @@
+{
+  "name": "nhl-stats-mcp",
+  "version": "1.0.0",
+  "description": "Local stdio MCP server: raw NHL stats from MoneyPuck (xG) and the NHL API",
+  "private": true,
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node ../test/test_mcp.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.8"
+  },
+  "license": "MIT"
+}
