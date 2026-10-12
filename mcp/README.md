@@ -8,7 +8,7 @@ tool for any season MoneyPuck covers, with no fantasy scoring. Design: [docs/nhl
 
 ```bash
 cd mcp && npm install
-claude mcp add nhl-stats -- node /Volumes/ExtSSD160/scripts/Hockey/mcp/server.js
+claude mcp add nhl-stats -- node mcp/server.js
 ```
 
 Run these from the main checkout. A worktree's copy is not what Claude Code launches.

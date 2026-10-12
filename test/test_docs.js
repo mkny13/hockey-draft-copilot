@@ -80,6 +80,21 @@ for (const envVar of envVars) {
 
 console.log('✓ Docs surface matches server routes, test files, and environment variables');
 
+// 1b. No machine-specific absolute paths (e.g. /Volumes/... or /Users/...) may leak into
+// tracked docs or AGENTS.md; the README's `claude mcp add` command must use a repo-relative
+// path so it works from any checkout.
+const absPathRegex = /(\/(?:Volumes|Users|home|tmp|var|private|opt|srv|mnt|media)\/[^\s`"'<>]+)/g;
+for (const doc of [readmeMd, agentsMd]) {
+  let absMatch;
+  while ((absMatch = absPathRegex.exec(doc)) !== null) {
+    assert(
+      false,
+      `docs contain a machine-specific absolute path: "${absMatch[1]}"`
+    );
+  }
+}
+console.log('✓ Docs contain no machine-specific absolute paths');
+
 // 4. Every repo path named in backticks in AGENTS.md that looks like a file path exists on
 // disk somewhere in the repo (exact relative-path match, or by basename for a bare filename
 // like `background.js` that is documented under a preceding `yahoo-sync/` bullet).
