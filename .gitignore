@@ -2,3 +2,5 @@ node_modules/
 .DS_Store
 draft_state.json
 draft_data.local.json
+mcp/.cache/
+mcp/node_modules/

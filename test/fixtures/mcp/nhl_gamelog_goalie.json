@@ -1,0 +1,75 @@
+{
+"seasonId": 20252026,
+"gameTypeId": 2,
+"gameLog": [
+{
+"gameId": 2025021268,
+"teamAbbrev": "NYR",
+"homeRoadFlag": "R",
+"gameDate": "2026-04-11",
+"goals": 0,
+"assists": 0,
+"commonName": {
+"default": "Rangers"
+},
+"opponentCommonName": {
+"default": "Stars"
+},
+"gamesStarted": 1,
+"decision": "L",
+"shotsAgainst": 18,
+"goalsAgainst": 1,
+"savePctg": 0.944444,
+"shutouts": 0,
+"pim": 0,
+"toi": "59:32",
+"opponentAbbrev": "DAL"
+},
+{
+"gameId": 2025021244,
+"teamAbbrev": "NYR",
+"homeRoadFlag": "H",
+"gameDate": "2026-04-08",
+"goals": 0,
+"assists": 0,
+"commonName": {
+"default": "Rangers"
+},
+"opponentCommonName": {
+"default": "Sabres"
+},
+"gamesStarted": 1,
+"decision": "L",
+"shotsAgainst": 26,
+"goalsAgainst": 4,
+"savePctg": 0.846154,
+"shutouts": 0,
+"pim": 0,
+"toi": "58:27",
+"opponentAbbrev": "BUF"
+},
+{
+"gameId": 2025021227,
+"teamAbbrev": "NYR",
+"homeRoadFlag": "H",
+"gameDate": "2026-04-05",
+"goals": 0,
+"assists": 0,
+"commonName": {
+"default": "Rangers"
+},
+"opponentCommonName": {
+"default": "Capitals"
+},
+"gamesStarted": 1,
+"decision": "W",
+"shotsAgainst": 21,
+"goalsAgainst": 1,
+"savePctg": 0.952381,
+"shutouts": 0,
+"pim": 0,
+"toi": "60:00",
+"opponentAbbrev": "WSH"
+}
+]
+}

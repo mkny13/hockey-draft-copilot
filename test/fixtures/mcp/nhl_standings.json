@@ -1,0 +1,100 @@
+{
+"standings": [
+{
+"teamAbbrev": {
+"default": "COL"
+},
+"teamName": {
+"default": "Colorado Avalanche",
+"fr": "Avalanche du Colorado"
+},
+"teamCommonName": {
+"default": "Avalanche"
+},
+"placeName": {
+"default": "Colorado"
+},
+"gamesPlayed": 74,
+"wins": 49,
+"losses": 15,
+"otLosses": 10,
+"points": 108,
+"goalFor": 283,
+"goalAgainst": 193,
+"date": "2026-04-01",
+"seasonId": 20252026
+},
+{
+"teamAbbrev": {
+"default": "TBL"
+},
+"teamName": {
+"default": "Tampa Bay Lightning",
+"fr": "Lightning de Tampa Bay"
+},
+"teamCommonName": {
+"default": "Lightning"
+},
+"placeName": {
+"default": "Tampa Bay"
+},
+"gamesPlayed": 74,
+"wins": 46,
+"losses": 22,
+"otLosses": 6,
+"points": 98,
+"goalFor": 268,
+"goalAgainst": 207,
+"date": "2026-04-01",
+"seasonId": 20252026
+},
+{
+"teamAbbrev": {
+"default": "EDM"
+},
+"teamName": {
+"default": "Edmonton Oilers",
+"fr": "Oilers d'Edmonton"
+},
+"teamCommonName": {
+"default": "Oilers"
+},
+"placeName": {
+"default": "Edmonton"
+},
+"gamesPlayed": 75,
+"wins": 38,
+"losses": 28,
+"otLosses": 9,
+"points": 85,
+"goalFor": 261,
+"goalAgainst": 251,
+"date": "2026-04-01",
+"seasonId": 20252026
+},
+{
+"teamAbbrev": {
+"default": "NYR"
+},
+"teamName": {
+"default": "New York Rangers",
+"fr": "Rangers de New York"
+},
+"teamCommonName": {
+"default": "Rangers"
+},
+"placeName": {
+"default": "NY Rangers"
+},
+"gamesPlayed": 75,
+"wins": 31,
+"losses": 35,
+"otLosses": 9,
+"points": 71,
+"goalFor": 215,
+"goalAgainst": 233,
+"date": "2026-04-01",
+"seasonId": 20252026
+}
+]
+}

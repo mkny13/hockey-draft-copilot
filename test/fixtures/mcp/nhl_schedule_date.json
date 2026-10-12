@@ -1,0 +1,60 @@
+{
+"gameWeek": [
+{
+"date": "2026-03-10",
+"games": [
+{
+"id": 2025021012,
+"season": 20252026,
+"gameType": 2,
+"startTimeUTC": "2026-03-10T23:00:00Z",
+"gameState": "OFF",
+"awayTeam": {
+"id": 26,
+"abbrev": "LAK",
+"score": 1
+},
+"homeTeam": {
+"id": 6,
+"abbrev": "BOS",
+"score": 2
+}
+},
+{
+"id": 2025021013,
+"season": 20252026,
+"gameType": 2,
+"startTimeUTC": "2026-03-10T23:00:00Z",
+"gameState": "OFF",
+"awayTeam": {
+"id": 28,
+"abbrev": "SJS",
+"score": 3
+},
+"homeTeam": {
+"id": 7,
+"abbrev": "BUF",
+"score": 6
+}
+},
+{
+"id": 2025021014,
+"season": 20252026,
+"gameType": 2,
+"startTimeUTC": "2026-03-10T23:00:00Z",
+"gameState": "OFF",
+"awayTeam": {
+"id": 10,
+"abbrev": "TOR",
+"score": 1
+},
+"homeTeam": {
+"id": 8,
+"abbrev": "MTL",
+"score": 3
+}
+}
+]
+}
+]
+}
