@@ -8,9 +8,12 @@ You review changes to the draft server and the draft-room sync. Read-only: repor
 
 Check, in `server.js`:
 - Every route (`/api/pick`, `/api/undo`, `/api/repair-pick`, `/api/reset`, `/api/settings`, `/api/state`, `/api/evaluation`, `/api/report`, `/draft_data.json`) validates its body and returns sensible 4xx on bad input.
-- Origin allowlist (`ALLOWED_ORIGIN`) is applied to CORS, non-GET requests, preflights and WebSocket handshakes; no route bypasses it.
+- Every non-GET endpoint enforces the `ALLOWED_ORIGIN` allowlist (foreign origins rejected; requests with no `Origin` allowed), as do preflights and CORS headers; no route bypasses it.
+- Body size limits are present (`express.json` / `urlencoded` `limit`, and the body-error middleware) and no new route parses bodies outside them.
+- No new endpoint leaks draft state to foreign origins: GETs that return draft state send no CORS headers for non-allowlisted origins.
+- The WebSocket handshake rejects foreign origins.
 - Pick ownership is decided server-side from the snake schedule and slot; only `manual: true` overrides it.
-- `pickHistoryIntegrity` stays correct after pick/undo/repair; `/api/repair-pick` never advances `currentPick`.
+- `pickHistoryIntegrity` is refreshed (`refreshIntegrity()`) on every pick, undo, repair and reset path, and stays correct; `/api/repair-pick` never advances `currentPick`.
 - State writes go through `DRAFT_STATE_FILE`; nothing reads or writes the live `draft_state.json` from tests.
 - WS broadcasts carry the `evaluation` snapshot; loopback-only binding is preserved.
 

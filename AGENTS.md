@@ -16,17 +16,22 @@ npm test             # full suite via scripts/run_tests.js: engine, data, server
 npm run test:quick   # engine + data only
 ```
 
-- Runs sequentially via `scripts/run_tests.js` with Node.js built-in `assert`; `jsdom` is the only dev dependency. Supports subsets (`node scripts/run_tests.js <files>`), per-file timing, slow test warnings (`TEST_SLOW_MS`), and per-file timeouts (`TEST_TIMEOUT_MS`, default 120000ms). Full suite covers `test/test_gametheory.js`, `test/test_data.js`, `test/test_server.js`, `test/test_sync.js`, `test/test_app.js`, `test/test_mock_draft.js`, `test/test_docs.js`, and `test/test_mcp.js` (the `mcp/lib/` NHL stats MCP logic, offline from `test/fixtures/mcp/`).
+- Runs sequentially via `scripts/run_tests.js` with Node.js built-in `assert`; `jsdom` is the only dev dependency. Supports subsets (`node scripts/run_tests.js <files>`), per-file timing, slow test warnings (`TEST_SLOW_MS`), and per-file timeouts (`TEST_TIMEOUT_MS`, default 120000ms). Full suite covers `test/test_gametheory.js`, `test/test_data.js`, `test/test_server.js`, `test/test_sync.js`, `test/test_app.js`, `test/test_mock_draft.js`, `test/test_docs.js`, `test/test_mcp.js` (the `mcp/lib/` NHL stats MCP logic, offline from `test/fixtures/mcp/`), and `test/test_live_data_guard.js` (the live-data guard: server pick ingestion against a synthetic draft state — canonical-name matching, duplicate rejection, pick-number contiguity, `pickHistoryIntegrity` accuracy, and `/api/repair-pick` backfill without advancing `currentPick`; the matching draft-room fixture, a wrapper holding the Available Players list, lives in `test/test_sync.js`).
 - Strategy check: `node scripts/mock_draft.js --slots 1-8 --sims 12` (engine vs a pure-ADP drafter). Rerun it after any change to `gametheory.js` decision logic; `test/test_mock_draft.js` guards the basics.
 - Tests never read the live `draft_state.json` (the server tests use a temp file via `DRAFT_STATE_FILE`).
 
 ## Verifying a change
 
 - Run `npm install` first in a fresh clone or worktree; without `jsdom`, `test_sync.js` and `test_app.js` fail.
-- Run the full `npm test` and check that its `--- Test Summary ---` block shows `pass` for all eight files before calling anything done. A `TIMEOUT` / `timeout` line from `scripts/run_tests.js` is a failure, not a slow pass.
+- Run the full `npm test` and check that its `--- Test Summary ---` block shows `pass` for all nine files before calling anything done. A `TIMEOUT` / `timeout` line from `scripts/run_tests.js` is a failure, not a slow pass.
 - A subset run (`node scripts/run_tests.js <file>`) is for iteration only; it is not evidence that the suite passes.
 - After any `public/js/gametheory.js` decision-logic change, also rerun the strategy check above (`node scripts/mock_draft.js --slots 1-8 --sims 12`).
 - `npm test` cannot prove `yahoo-sync/` works in the real draft room (jsdom is not Chrome); see Extension changes under Conventions.
+
+## Claude Code automations
+
+- **Live-data guard:** `.claude/hooks/block_live_data.py` (PreToolUse hook wired in `.claude/settings.json`) protects live draft data from edits; `test/test_live_data_guard.js` plus the wrapper-with-available-list fixture in `test/test_sync.js` lock in the ingestion guards, so off-board, repeated, or gapped picks surface in `pickHistoryIntegrity` instead of slipping through.
+- **`api-reviewer` subagent:** `.claude/agents/api-reviewer.md`. Run it after any change to `server.js` endpoints or `yahoo-sync/`; it checks origin enforcement on non-GET requests and WebSocket handshakes, body-size limits, `pickHistoryIntegrity` upkeep on pick/undo/repair, and that no endpoint leaks draft state to foreign origins. It is read-only and reports findings.
 
 ## Test seams
 
@@ -56,7 +61,7 @@ npm run test:quick   # engine + data only
 - `public/js/gametheory.js`: Mathematical game-theory engine implementing survival odds ($P_{survive}$ via Abramowitz & Stegun normal CDF), snake schedule turn calculations, roster counting with a UTIL/bench flex pool and must-fill starters, diminishing returns ($Adj\_VORP$), automated target trade-offs (`computeTargetTradeoffs`), top matchup selector (`getTopMatchup`), survival-weighted fallbacks (`findNextAlt`), and 2-round EVONA comparator (`comparePlayersGameTheory`), plus the post-draft grader and Monte Carlo.
 - `public/js/app.js`: Client-side UI state controller, live search, reactive table rendering, automated trade-off advice cards, auto-comparator handler, and WebSocket receiver.
 - `yahoo-sync/`: Complete Manifest V3 Chrome Extension (`background.js` health monitor, polling only while an ESPN or Yahoo draft tab is open, `popup.html`/`popup.js` options UI, `content.js` pick stream + HUD supporting ESPN & Yahoo, `players_data.js` hand-maintained name resolver kept in sync with `draft_data.json` and guarded by `test/test_data.js`, and `status.css`).
-- `test/`: `test_gametheory.js`, `test_data.js`, `test_server.js`, `test_sync.js`, `test_app.js`, `test_mock_draft.js`, `test_docs.js`, `test_mcp.js`.
+- `test/`: `test_gametheory.js`, `test_data.js`, `test_server.js`, `test_sync.js`, `test_app.js`, `test_mock_draft.js`, `test_docs.js`, `test_mcp.js`, `test_live_data_guard.js`.
 - `mcp/`: local `nhl-stats` stdio MCP server (MoneyPuck xG + NHL API; general stats, not fantasy). Own `package.json`; only `mcp/server.js` imports the SDK, and `mcp/lib/` is Node built-ins only. Cache in `mcp/.cache/` (`NHL_MCP_CACHE_DIR`). Design: `docs/nhl-stats-mcp.md`.
 - `scripts/run_tests.js`: sequential test runner with per-file timing, per-file timeout (`TEST_TIMEOUT_MS`), slow budget warnings (`TEST_SLOW_MS`), and summary reporting.
 - `scripts/ingest_espn_adp.js`: ESPN ADP updater (Hashtag Hockey only; input is a saved-HTML path argument or the `HASHTAG_HTML` env var; rejects values that are not plain one-decimal numbers).
