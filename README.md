@@ -135,6 +135,7 @@ Plain Node `assert` executed sequentially via `scripts/run_tests.js`, reporting 
 | `test/test_app.js` | App UI in jsdom: untrusted text escaping / XSS protection across board, shortlist, comparator, reports, and Monte Carlo; live pick-history integrity banner, repair-pick control, and targeted undo; rejected requests surface an error, and stale HTTP state never rolls back newer WebSocket state |
 | `test/test_docs.js` | Documentation surface guard: asserts all server routes, test files, and environment variables are documented across README.md, AGENTS.md, and package.json; README Node version matches `engines`; README relative links and `#anchors` resolve; every `mock_draft.js` flag is documented |
 | `test/test_mcp.js` | NHL stats MCP server logic (`mcp/lib/`) offline from fixtures: CSV parsing, name/team normalization, each of the seven tools (GSAx math, filters, field selection, past seasons), `include_xg` only when asked, disk cache TTL and stale-on-error, and a guard that nothing reads the draft board |
+| `test/test_live_data_guard.js` | Live-data guard against the real server on a synthetic draft state: canonical-name matching, duplicate rejection, pick-number contiguity, `pickHistoryIntegrity` accuracy, and `/api/repair-pick` backfill without advancing `currentPick` |
 | `test/test_mock_draft.js` | Strategy regression: the engine beats a pure-ADP drafter, fills 2 goalies and a full lineup, and drafts are deterministic |
 
 ---

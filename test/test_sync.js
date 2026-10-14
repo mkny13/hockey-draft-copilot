@@ -134,6 +134,22 @@ const names = (w) => w.__posts.map((p) => p.name);
     console.log('✓ Extension: wrapper containing the available list records only the toast pick');
   }
 
+  // 1b. Live-data guard: a page-wide wrapper holding only the Available Players list (no toast yet)
+  // must never record its top player as a pick, however many scans run; once a toast appears only it posts.
+  {
+    const w = runExtension(`<div id="app"><div class="wrap"><div class="list"><div class="row">Juraj Slafkovsky / MTL, F</div><div class="row">Connor McDavid / EDM, C</div></div></div></div>`);
+    await settle(6);
+    assert.deepStrictEqual(names(w), [], 'The top available player is never recorded as a pick');
+    const t = w.document.createElement('div');
+    t.innerHTML = '<div>Nathan MacKinnon / COL, F</div><div>R1, P3 - Some Team</div>';
+    w.document.querySelector('.wrap').appendChild(t);
+    await waitFor(() => w.__posts.length >= 1);
+    await settle(6);
+    assert.deepStrictEqual(names(w), ['Nathan MacKinnon'], 'Only the toast player posts, exactly once');
+    w.close();
+    console.log('✓ Extension: wrapper with available list never records the top available player');
+  }
+
   // 2. A toast-shaped element inside the player pool is ignored
   {
     const w = runExtension(`<div class="playerPool"><div>Juraj Slafkovsky / MTL, F</div><div>R1, P9</div></div>`);
