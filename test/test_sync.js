@@ -41,6 +41,7 @@ function makeWindow(html) {
   const dom = new JSDOM(`<!doctype html><body>${html}</body>`, { url: 'https://fantasy.espn.com/hockey/draft', runScripts: 'outside-only', pretendToBeVisual: true, virtualConsole });
   const w = dom.window;
   w.__COPILOT_SCAN_MS = SCAN_INTERVAL_MS;
+  w.__COPILOT_RETRY_MS = SCAN_INTERVAL_MS;
   w.__posts = [];
   w.__sockets = [];
   w.__fetchMode = 'ok';
@@ -105,6 +106,10 @@ function makeWindow(html) {
     if (w.__copilotScanTimer) {
       origClearTimeout(w.__copilotScanTimer);
       w.__copilotScanTimer = null;
+    }
+    if (w.__copilotPendingRetryTimer) {
+      origClearTimeout(w.__copilotPendingRetryTimer);
+      w.__copilotPendingRetryTimer = null;
     }
     if (w.__copilotObserver) {
       w.__copilotObserver.disconnect();
@@ -314,8 +319,7 @@ const names = (w) => w.__posts.map((p) => p.name);
     w.__fetchMode = 'fail';
     w.eval(playersData);
     w.eval(contentJs);
-    await sleep(1400);
-    assert(w.__posts.length >= 1, 'Initial attempt was sent');
+    await waitFor(() => w.__posts.length >= 1);
     assert.strictEqual(w.__posts[0].name, 'Leon Draisaitl');
     const countBefore = w.__posts.length;
 
@@ -326,15 +330,16 @@ const names = (w) => w.__posts.map((p) => p.name);
 
     // Counters reflect pending
     const hudCount = w.document.getElementById('hud-count');
+    await waitFor(() => hudCount.textContent.includes('pending'));
     assert(hudCount.textContent.includes('pending'), 'Pending retry is visible in HUD counter');
 
     // Server comes back up
     w.__fetchMode = 'ok';
 
     // Wait for queue flush retry
-    await sleep(1500);
-    assert(w.__posts.length > countBefore, 'Pick was re-sent after server returned even though toast element was removed');
+    await waitFor(() => w.__posts.length > countBefore);
     assert.strictEqual(w.__posts[w.__posts.length - 1].name, 'Leon Draisaitl');
+    await waitFor(() => hudCount.textContent.includes('1 synced') && !hudCount.textContent.includes('pending'));
     assert(hudCount.textContent.includes('1 synced'), 'Pick is marked synced after retry');
     assert(!hudCount.textContent.includes('pending'), 'No pending picks remain');
     w.close();
@@ -347,11 +352,14 @@ const names = (w) => w.__posts.map((p) => p.name);
     w.__fetchMode = 'fail';
     w.eval(playersData);
     w.eval(contentJs);
-    await sleep(1400);
-    assert(w.__posts.length >= 1, 'Initial attempt was sent');
+    await waitFor(() => w.__posts.length >= 1);
     const countBefore = w.__posts.length;
 
+    const hudCount = w.document.getElementById('hud-count');
+    await waitFor(() => hudCount.textContent.includes('pending'));
+
     // Server reports that Cale Makar was already recorded via PICK_MADE
+    await waitFor(() => w.__sockets.length >= 1);
     const sock = w.__sockets[0];
     assert(sock, 'WebSocket is present');
     sock.onopen();
@@ -363,7 +371,7 @@ const names = (w) => w.__posts.map((p) => p.name);
 
     // Mode flips to 'ok'
     w.__fetchMode = 'ok';
-    await sleep(1500);
+    await settle(4);
 
     // No duplicate POST is sent
     assert.strictEqual(w.__posts.length, countBefore, 'No second POST made for pick server already recorded');
@@ -374,7 +382,7 @@ const names = (w) => w.__posts.map((p) => p.name);
   // 6d. HUD warning row renders from an INIT_STATE evaluation carrying missing/repeated pick numbers and clears when integrity is ok
   {
     const w = runExtension('<div></div>');
-    await sleep(300);
+    await waitFor(() => w.__sockets.length >= 1 && w.document.getElementById('hud-integrity-row'));
     const sock = w.__sockets[0];
     sock.onopen();
 
@@ -436,7 +444,7 @@ const names = (w) => w.__posts.map((p) => p.name);
       </div>
     `;
     const w = runExtension(html);
-    await sleep(300);
+    await waitFor(() => w.__sockets.length >= 1 && w.document.getElementById('copilot-btn-history'));
     const sock = w.__sockets[0];
     sock.onopen();
 
@@ -449,10 +457,11 @@ const names = (w) => w.__posts.map((p) => p.name);
     const historyBtn = w.document.getElementById('copilot-btn-history');
     assert(historyBtn, 'Deep Scan button exists');
     historyBtn.click();
-    await sleep(300);
 
     const msgEl = w.document.getElementById('hud-status-msg');
     assert(msgEl, 'HUD status line element exists');
+    await waitFor(() => msgEl.textContent.includes('Leon Draisaitl'));
+
     assert(msgEl.textContent.includes('Leon Draisaitl'), 'Missing draft-room player Leon Draisaitl is reported');
     assert(msgEl.textContent.toLowerCase().includes('missing from server history'), 'Reconciliation status line indicates missing from server history');
     w.close();
@@ -474,7 +483,7 @@ const names = (w) => w.__posts.map((p) => p.name);
       </div>
     `;
     const w = runExtension(html);
-    await sleep(300);
+    await waitFor(() => w.__sockets.length >= 1 && w.document.getElementById('copilot-btn-history'));
     const sock = w.__sockets[0];
     sock.onopen();
 
@@ -493,9 +502,10 @@ const names = (w) => w.__posts.map((p) => p.name);
 
     const historyBtn = w.document.getElementById('copilot-btn-history');
     historyBtn.click();
-    await sleep(300);
 
     const msgEl = w.document.getElementById('hud-status-msg');
+    await waitFor(() => msgEl.textContent.toLowerCase().includes('all room players match server history'));
+
     assert(!msgEl.textContent.includes('Leon Draisaitl'), 'Draisaitl was recorded via PICK_MADE and must not be reported missing');
     assert(msgEl.textContent.toLowerCase().includes('all room players match server history'), 'Reconciliation should find no discrepancy');
     w.close();
@@ -516,15 +526,19 @@ const names = (w) => w.__posts.map((p) => p.name);
     w.eval(contentJs);
 
     // Both picks fail their initial POST and land in the pending retry queue
-    await sleep(1400);
+    await waitFor(() => {
+      const hudCount = w.document.getElementById('hud-count');
+      return hudCount && hudCount.textContent.includes('2 pending');
+    });
     assert(w.document.getElementById('hud-count').textContent.includes('2 pending'), 'Both picks are pending after initial failures');
 
     // Switch to manual mode and kick off a flush: the retry for McDavid (queue head) starts
     // and its fetch is held open, simulating an in-flight request
     w.__fetchMode = 'manual';
+    await waitFor(() => w.__sockets.length >= 1);
     const sock = w.__sockets[0];
     sock.onopen();
-    await sleep(400);
+    await waitFor(() => w.__manualFetches.length >= 1);
     assert.strictEqual(w.__manualFetches.length, 1, 'Retry for the first pending pick (McDavid) is in flight');
     const mcDavidFetch = w.__manualFetches[0];
     assert.strictEqual(mcDavidFetch.body.name, 'Connor McDavid');
@@ -539,15 +553,15 @@ const names = (w) => w.__posts.map((p) => p.name);
 
     // Now McDavid's own in-flight retry resolves successfully too (a race, not an error)
     mcDavidFetch.resolve({ ok: true, json: () => Promise.resolve({}) });
-    await sleep(100);
 
     // Draisaitl must still be retried, not silently dropped along with McDavid
+    await waitFor(() => w.__manualFetches.length >= 2);
     assert.strictEqual(w.__manualFetches.length, 2, 'Draisaitl (unrelated pending pick) is still retried, not discarded');
     assert.strictEqual(w.__manualFetches[1].body.name, 'Leon Draisaitl');
 
     w.__manualFetches[1].resolve({ ok: true, json: () => Promise.resolve({}) });
-    await sleep(100);
 
+    await waitFor(() => w.document.getElementById('hud-count').textContent === '2 synced');
     assert.strictEqual(w.document.getElementById('hud-count').textContent, '2 synced', 'Both picks end up synced with none silently lost');
     w.close();
     console.log('✓ Extension: durable retry queue survives a mid-flight pendingQueue reassignment without dropping an unrelated pick');

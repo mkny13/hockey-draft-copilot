@@ -53,7 +53,10 @@
         console.log(`[Draft Co-Pilot] Connected to live server WebSocket: ${syncWsUrl}`);
         updateBadge({ connected: true, latency: null });
         retryBackoffMs = 1000;
-        scheduleQueueFlush(300);
+        const flushDelay = (typeof window !== "undefined" && typeof window.__COPILOT_RETRY_MS === "number" && Number.isFinite(window.__COPILOT_RETRY_MS) && window.__COPILOT_RETRY_MS > 0)
+          ? window.__COPILOT_RETRY_MS
+          : 300;
+        scheduleQueueFlush(flushDelay);
       };
 
       wsClient.onmessage = function(event) {
@@ -166,6 +169,7 @@
     if (pendingRetryTimer) {
       clearTimeout(pendingRetryTimer);
       pendingRetryTimer = null;
+      if (typeof window !== "undefined") window.__copilotPendingRetryTimer = null;
     }
     retryBackoffMs = 1000;
     lastInitStatePickHistory = [];
@@ -509,12 +513,20 @@
   }
 
   function scheduleQueueFlush(delayMs) {
-    if (pendingRetryTimer) clearTimeout(pendingRetryTimer);
-    const delay = typeof delayMs === "number" ? delayMs : retryBackoffMs;
+    if (pendingRetryTimer) {
+      clearTimeout(pendingRetryTimer);
+      if (typeof window !== "undefined") window.__copilotPendingRetryTimer = null;
+    }
+    const defaultDelay = (typeof window !== "undefined" && typeof window.__COPILOT_RETRY_MS === "number" && Number.isFinite(window.__COPILOT_RETRY_MS) && window.__COPILOT_RETRY_MS > 0)
+      ? window.__COPILOT_RETRY_MS
+      : retryBackoffMs;
+    const delay = typeof delayMs === "number" ? delayMs : defaultDelay;
     pendingRetryTimer = setTimeout(() => {
       pendingRetryTimer = null;
+      if (typeof window !== "undefined") window.__copilotPendingRetryTimer = null;
       flushPendingQueue();
     }, delay);
+    if (typeof window !== "undefined") window.__copilotPendingRetryTimer = pendingRetryTimer;
   }
 
   async function flushPendingQueue() {
