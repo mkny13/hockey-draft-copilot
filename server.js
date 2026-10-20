@@ -186,8 +186,9 @@ app.use((err, req, res, next) => {
   next(err);
 });
 
-// Origin allowlist: localhost/127.0.0.1 any port, or ESPN/Yahoo draft domains.
-const ALLOWED_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$|^https:\/\/([a-z0-9-]+\.)*(espn|yahoo)\.com$/i;
+// Origin allowlist: localhost/127.0.0.1 any port, or the fantasy draft hosts only
+// (fantasy.espn.com, *.fantasysports.yahoo.com), matching the extension's host_permissions.
+const ALLOWED_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$|^https:\/\/fantasy\.espn\.com$|^https:\/\/([a-z0-9-]+\.)*fantasysports\.yahoo\.com$/i;
 
 // Enable scoped CORS for ESPN & Yahoo Fantasy Draft integration & companion tools
 app.use((req, res, next) => {

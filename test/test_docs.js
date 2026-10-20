@@ -255,4 +255,22 @@ for (const flag of mockFlags) {
 }
 
 console.log('✓ README Node floor, links, anchors, and mock_draft flags match the repo');
+// 7. Every directory holding a package.json (outside node_modules) has a Dependabot npm entry.
+const dependabotYml = fs.readFileSync(path.join(repoRoot, '.github', 'dependabot.yml'), 'utf8');
+const dependabotNpmDirs = new Set();
+for (const block of dependabotYml.split(/\n\s*-\s+(?=package-ecosystem:)/).slice(1)) {
+  const eco = block.match(/package-ecosystem:\s*["']?([\w-]+)/);
+  const dir = block.match(/directory:\s*["']?([^"'\s]+)/);
+  if (eco && dir && eco[1] === 'npm') dependabotNpmDirs.add(dir[1].replace(/(.)\/$/, '$1'));
+}
+const packageDirs = repoFiles
+  .filter((f) => path.basename(f) === 'package.json')
+  .map((f) => '/' + path.dirname(f).split(path.sep).join('/'))
+  .map((d) => (d === '/.' ? '/' : d));
+assert(packageDirs.includes('/') && packageDirs.includes('/mcp'), 'expected package.json at / and /mcp');
+for (const dir of packageDirs) {
+  assert(dependabotNpmDirs.has(dir), `.github/dependabot.yml has no npm entry for ${dir} (holds a package.json)`);
+}
+console.log('✓ Dependabot npm entries cover every package.json directory');
+
 console.log('ALL DOCS TESTS PASSED!');
