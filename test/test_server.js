@@ -517,13 +517,20 @@ const json = async (p) => (await p).json();
     assert.strictEqual(evil.status, 403, 'Foreign origin cannot reset the draft');
     const lookalike = await post(base, '/api/reset', undefined, { Origin: 'https://espn.com.evil.io' });
     assert.strictEqual(lookalike.status, 403, 'Look-alike domain is rejected');
+    // Non-fantasy ESPN/Yahoo pages are outside the allowlist: no reset, no CORS read of state.
+    for (const origin of ['https://www.espn.com', 'https://sports.yahoo.com', 'https://fantasy.espn.com.evil.io']) {
+      const denied = await post(base, '/api/reset', undefined, { Origin: origin });
+      assert.strictEqual(denied.status, 403, `${origin} cannot reset the draft`);
+      const read = await fetch(`${base}/api/state`, { headers: { Origin: origin } });
+      assert.strictEqual(read.headers.get('access-control-allow-origin'), null, `${origin} gets no ACAO on /api/state`);
+    }
     for (const origin of ['https://fantasy.espn.com', 'https://draft.fantasysports.yahoo.com', `http://localhost:${port}`]) {
       const ok = await post(base, '/api/settings', { slot: 5 }, { Origin: origin });
       assert.strictEqual(ok.status, 200, `${origin} is allowed`);
     }
     st = await json(fetch(`${base}/api/state`));
     assert(st.pickHistory.length > 0, 'The rejected reset did not clear the draft');
-    console.log('✓ Origin check: foreign origins blocked, ESPN/Yahoo/localhost allowed');
+    console.log('✓ Origin check: foreign and non-fantasy ESPN/Yahoo origins blocked, fantasy hosts/localhost allowed');
 
     // Reset with no body (req.body undefined on Express 5) must not 500; last, since it clears the draft
     const resetNoBody = await fetch(`${base}/api/reset`, { method: 'POST' });
@@ -815,6 +822,23 @@ const json = async (p) => (await p).json();
       });
       wsEvil.on('close', (code) => {
         assert(rejected || code === 1008, 'WebSocket connection with foreign origin must be rejected');
+        resolve();
+      });
+    });
+
+    // 1b. Non-fantasy ESPN origin is rejected
+    await new Promise((resolve, reject) => {
+      const wsEspn = new WebSocket(`ws://localhost:${port}`, { headers: { Origin: 'https://www.espn.com' } });
+      let rejected = false;
+      wsEspn.on('error', () => {
+        rejected = true;
+      });
+      wsEspn.on('open', () => {
+        wsEspn.close();
+        reject(new Error('WebSocket from https://www.espn.com should not open'));
+      });
+      wsEspn.on('close', (code) => {
+        assert(rejected || code === 1008, 'WebSocket connection from https://www.espn.com must be rejected');
         resolve();
       });
     });
