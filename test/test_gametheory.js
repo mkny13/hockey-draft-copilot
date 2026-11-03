@@ -683,4 +683,109 @@ const adpMc = GT.runMonteCarlo(adpRows, { teams: 8, slot: 5, currentPick: 1, see
 assert.strictEqual(adpMc.targets[0].adp, 10, 'runMonteCarlo uses ESPN ADP');
 console.log('✓ evaluateBoard/gradeDraft/runMonteCarlo resolve the same (ESPN-first) ADP');
 
+// 19. Characterization: runMonteCarlo exact seeded output (behavior lock for the #124 refactor).
+//    Locks poolSize, myPicks and each target's full roundSurvival object, with defaults omitted
+//    and with options supplied. Must stay byte-identical after the behavior-preserving split.
+const mcBoard = [];
+for (let mcx = 0; mcx < 20; mcx++) {
+  mcBoard.push({ id: mcx + 1, name: 'Filler ' + (mcx + 1), pos: ['F'], adp: mcx + 1, vorp: 200 - mcx * 2 });
+}
+mcBoard.push({ id: 21, name: 'Target A', pos: ['F'], adp: 10, vorp: 100 });
+mcBoard.push({ id: 22, name: 'Target B', pos: ['F'], adp: 15, vorp: 90 });
+
+// Defaults omitted: no options argument, seed-driven RNG.
+const mcDefaults = GT.runMonteCarlo(mcBoard, { teams: 8, slot: 5, currentPick: 1, seed: 42, targets: ['Target A', 'Target B'] }, 3, 100);
+assert.strictEqual(mcDefaults.poolSize, 22, 'runMonteCarlo poolSize (defaults omitted)');
+assert.deepStrictEqual(mcDefaults.myPicks, { '1': 5, '2': 12, '3': 21 }, 'runMonteCarlo myPicks (defaults omitted)');
+assert.deepStrictEqual(mcDefaults.targets[0].roundSurvival, { '1': 0.83, '2': 0.49, '3': 0.06 }, 'runMonteCarlo Target A roundSurvival (defaults omitted)');
+assert.deepStrictEqual(mcDefaults.targets[1].roundSurvival, { '1': 0.98, '2': 0.73, '3': 0.11 }, 'runMonteCarlo Target B roundSurvival (defaults omitted)');
+assert.strictEqual(mcDefaults.noiseStd, 7, 'runMonteCarlo default noiseStd is 7');
+assert.strictEqual(mcDefaults.simulations, 100, 'runMonteCarlo simulations');
+
+// Options supplied: noiseStd override via the options argument.
+const mcOptions = GT.runMonteCarlo(mcBoard, { teams: 8, slot: 5, currentPick: 1, seed: 42, targets: ['Target A', 'Target B'], noiseStd: 3 }, 3, 100);
+assert.strictEqual(mcOptions.poolSize, 22, 'runMonteCarlo poolSize (options supplied)');
+assert.deepStrictEqual(mcOptions.myPicks, { '1': 5, '2': 12, '3': 21 }, 'runMonteCarlo myPicks (options supplied)');
+assert.deepStrictEqual(mcOptions.targets[0].roundSurvival, { '1': 0.99, '2': 0.39, '3': 0 }, 'runMonteCarlo Target A roundSurvival (options supplied)');
+assert.deepStrictEqual(mcOptions.targets[1].roundSurvival, { '1': 1, '2': 0.94, '3': 0.08 }, 'runMonteCarlo Target B roundSurvival (options supplied)');
+assert.strictEqual(mcOptions.noiseStd, 3, 'runMonteCarlo noiseStd override applied');
+console.log('✓ Characterization: runMonteCarlo exact seeded output locked (defaults omitted + options supplied)');
+
+// 20. Characterization: gradeDraft exact full output (behavior lock for the #124 refactor).
+//    Locks the complete returned object, with defaults omitted and with options supplied.
+const gdPlayers = [
+  { id: 1, name: 'Target A', pos: ['F'], adp: 5, vorp: 100 },
+  { id: 2, name: 'Filler 1', pos: ['F'], adp: 20, vorp: 80 },
+  { id: 3, name: 'Target B', pos: ['F'], adp: 12, vorp: 90 },
+];
+const gdHistory = [
+  { pickNumber: 1, name: 'Target A', team: 'EDM', pos: ['F'], isMine: true },
+  { pickNumber: 2, name: 'Filler 1', team: 'COL', pos: ['F'], isMine: false },
+  { pickNumber: 3, name: 'Target B', team: 'TBL', pos: ['F'], isMine: true },
+];
+function gdEntry(pickNumber, name, team, isMine, vorp, adp, expectedVorp, surplus, adpDelta) {
+  return {
+    pickNumber: pickNumber, name: name, team: team, pos: ['F'], posLabel: 'F',
+    isMine: isMine, vorp: vorp, adp: adp, expectedVorp: expectedVorp, surplus: surplus, adpDelta: adpDelta
+  };
+}
+const gdPicks = [
+  gdEntry(1, 'Target A', 'EDM', true, 100, 5, 100, 0, 4),
+  gdEntry(2, 'Filler 1', 'COL', false, 80, 20, 90, -10, 18),
+  gdEntry(3, 'Target B', 'TBL', true, 90, 12, 80, 10, 9),
+];
+const gdMyPicks = [gdPicks[0], gdPicks[2]];
+const gdSummary = {
+  totalCapturedVorp: 190, totalExpectedVorp: 180, totalSurplus: 10, picksCount: 2,
+  avgSurplusPerPick: 5, captureRatio: 1.0555555555555556, grade: 'A',
+  gradeLabel: 'Elite draft - beat the board'
+};
+const gdSteals = [
+  gdPicks[1], gdPicks[2], gdPicks[0]
+];
+
+// Defaults omitted: default rosterLimits { C: 3, F: 5, D: 4, G: 2 }.
+const gdDefaults = GT.gradeDraft(gdHistory, gdPlayers);
+assert.deepStrictEqual(gdDefaults, {
+  graded: true,
+  picks: gdPicks,
+  myPicks: gdMyPicks,
+  summary: gdSummary,
+  steals: gdSteals,
+  positionalBalance: {
+    counts: { C: 0, F: 2, D: 0, G: 0 },
+    slots: [
+      { pos: 'C', count: 0, limit: 3, status: 'EMPTY (critical)' },
+      { pos: 'F', count: 2, limit: 5, status: 'LIGHT' },
+      { pos: 'D', count: 0, limit: 4, status: 'EMPTY (critical)' },
+      { pos: 'G', count: 0, limit: 2, status: 'EMPTY (critical)' }
+    ],
+    fillRatio: 0.14285714285714285,
+    verdict: 'Unbalanced - at least one starting position empty'
+  }
+});
+console.log('✓ Characterization: gradeDraft full output locked (defaults omitted)');
+
+// Options supplied: distinct rosterLimits { C: 2, F: 6, D: 6, G: 2 } (teams/slot ignored by grader).
+const gdOptions = GT.gradeDraft(gdHistory, gdPlayers, { rosterLimits: { C: 2, F: 6, D: 6, G: 2 }, teams: 8, slot: 5 });
+assert.deepStrictEqual(gdOptions, {
+  graded: true,
+  picks: gdPicks,
+  myPicks: gdMyPicks,
+  summary: gdSummary,
+  steals: gdSteals,
+  positionalBalance: {
+    counts: { C: 0, F: 2, D: 0, G: 0 },
+    slots: [
+      { pos: 'C', count: 0, limit: 2, status: 'EMPTY (critical)' },
+      { pos: 'F', count: 2, limit: 6, status: 'LIGHT' },
+      { pos: 'D', count: 0, limit: 6, status: 'EMPTY (critical)' },
+      { pos: 'G', count: 0, limit: 2, status: 'EMPTY (critical)' }
+    ],
+    fillRatio: 0.125,
+    verdict: 'Unbalanced - at least one starting position empty'
+  }
+});
+console.log('✓ Characterization: gradeDraft full output locked (options supplied)');
+
 console.log('ALL GAMETHEORY TESTS PASSED!');
