@@ -73,7 +73,7 @@
       body: JSON.stringify({ name: clean, isMine: isMine, round: round, pickInRound: pickInRound })
     })
     .then(r => r.json())
-    .then(data => {
+    .then(() => {
       console.log('[' + platform + ' Draft Sync] ✓ Synced pick #' + pickCount + ': ' + clean);
     })
     .catch(err => console.error('[' + platform + ' Draft Sync] Failed to sync ' + clean + ':', err));

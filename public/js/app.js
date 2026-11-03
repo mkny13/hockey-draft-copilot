@@ -65,7 +65,7 @@
   var mcTargetSelect = document.getElementById("mc-target-select");
   var mcSimulationsInput = document.getElementById("mc-simulations");
   var mcSimLabel = document.getElementById("mc-sim-label");
-  var mcTargetSummary = document.getElementById("mc-target-summary");
+  
   var mcResults = document.getElementById("montecarlo-results");
   var btnRunMonteCarlo = document.getElementById("btn-run-montecarlo");
 

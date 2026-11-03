@@ -346,6 +346,27 @@ const names = (w) => w.__posts.map((p) => p.name);
     console.log('✓ Extension: pick whose POST fails is re-sent after server is back, even after toast element is gone');
   }
 
+  // 5b-2. A confirmed Reset while the server is unreachable still clears local state
+  // (pending retries, counters) and reports the local fallback in the HUD.
+  {
+    const w = makeWindow('<div class="wrap"><div class="toast"><div>Leon Draisaitl / EDM, F</div><div>R1, P3 - Team C</div></div></div>');
+    w.__fetchMode = 'fail';
+    w.eval(playersData);
+    w.eval(contentJs);
+    await waitFor(() => w.__posts.length >= 1);
+    w.document.querySelector('.toast').remove();
+    const hudCount = w.document.getElementById('hud-count');
+    await waitFor(() => hudCount.textContent.includes('pending'));
+
+    w.document.getElementById('copilot-btn-reset').click();
+    const msgEl = w.document.getElementById('hud-status-msg');
+    await waitFor(() => msgEl.textContent.includes('server unreachable'));
+    assert(msgEl.textContent.includes('Reset locally (server unreachable).'), 'Offline reset reports the local fallback');
+    assert(!hudCount.textContent.includes('pending'), 'Offline reset clears pending retries');
+    w.close();
+    console.log('✓ Extension: confirmed Reset with the server unreachable still clears local sync state');
+  }
+
   // 5c. Recovery never produces a duplicate POST for a pick the server already recorded
   {
     const w = makeWindow('<div class="wrap"><div class="toast"><div>Cale Makar / COL, D</div><div>R1, P4 - Team D</div></div></div>');

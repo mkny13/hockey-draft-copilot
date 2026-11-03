@@ -25,7 +25,6 @@
   let lastInitStatePickHistory = [];
   let pickCount = 0;
   let lastSyncedPick = "None";
-  let currentResetId = null;
   let currentSessionUrl = window.location.href;
 
   let wsClient = null;
@@ -137,7 +136,6 @@
 
   function syncFromServerState(state) {
     if (!state) return;
-    if (state.resetId) currentResetId = state.resetId;
 
     if (!state.pickHistory || state.pickHistory.length === 0) {
       resetLocalSyncState();
@@ -386,10 +384,10 @@
         if (!confirm("Are you sure you want to reset the draft board to Pick #1?")) return;
         fetch(`${syncBaseUrl}/api/reset`, { method: "POST" })
           .then((r) => r.json())
-          .then((res) => {
+          .then(() => {
             resetLocalSyncState("Draft board reset to Pick #1.");
           })
-          .catch((err) => {
+          .catch(() => {
             resetLocalSyncState("Reset locally (server unreachable).");
           });
       });
