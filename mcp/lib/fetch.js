@@ -69,4 +69,4 @@ function createFetcher(opts = {}) {
   return { fetchText, fetchJson, cachePath };
 }
 
-module.exports = { createFetcher, TTL, UA };
+module.exports = { createFetcher };
