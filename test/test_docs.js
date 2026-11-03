@@ -12,7 +12,8 @@ const runnerJs = fs.readFileSync(path.join(repoRoot, 'scripts', 'run_tests.js'),
 const { TEST_FILES: runnerTestFiles } = require(path.join(repoRoot, 'scripts', 'run_tests.js'));
 
 // 1. Every route literal matched by /app\.(get|post|put|delete)\('(\/[^']*)'/g in server.js
-// appears verbatim in README.md and in AGENTS.md.
+// appears verbatim in README.md and in AGENTS.md, and all endpoints mentioned in AGENTS.md
+// match registered routes in server.js bidirectionally.
 const routeRegex = /app\.(get|post|put|delete)\('(\/[^']*)'/g;
 const routes = [];
 let routeMatch;
@@ -23,6 +24,37 @@ while ((routeMatch = routeRegex.exec(serverJs)) !== null) {
   }
 }
 
+function extractAgentsEndpoints(agentsSource) {
+  const endpoints = new Set();
+  const serverLine = agentsSource.split('\n').find((line) => line.startsWith('- `server.js`:'));
+  if (serverLine) {
+    const endpointsClause = serverLine.match(/endpoints\s+(.+?)(?:,\s+and live WS broadcast|\.\s|\n|$)/);
+    if (endpointsClause) {
+      const listRoutes = endpointsClause[1].match(/\/[a-zA-Z0-9_./-]+/g) || [];
+      for (const r of listRoutes) endpoints.add(r.replace(/[`'"]+/g, ''));
+    }
+  }
+
+  const methodRouteRegex = /\b(?:GET|POST|PUT|DELETE|PATCH)\s+`?(\/[a-zA-Z0-9_./-]+)`?/g;
+  let m;
+  while ((m = methodRouteRegex.exec(agentsSource)) !== null) {
+    endpoints.add(m[1].replace(/[`'"]+/g, ''));
+  }
+
+  const apiRouteRegex = /(?:^|[\s`("'<])(\/(?:api\/[a-zA-Z0-9_/-]+(?:\.[a-z]+)?|draft_data\.json))(?=[`)"'\s,.<]|$)/g;
+  while ((m = apiRouteRegex.exec(agentsSource)) !== null) {
+    endpoints.add(m[1].replace(/[.,;:!]+$/, '').replace(/[`'"]+/g, ''));
+  }
+
+  return [...endpoints];
+}
+
+const serverLine = agentsMd.split('\n').find((line) => line.startsWith('- `server.js`:'));
+assert(serverLine, 'AGENTS.md is missing the "- `server.js`:" section');
+const endpointsClause = serverLine.match(/endpoints\s+(.+?)(?:,\s+and live WS broadcast|\.\s|\n|$)/);
+assert(endpointsClause, 'AGENTS.md server.js entry is missing the "endpoints ..." clause');
+const agentsServerEntryRoutes = (endpointsClause[1].match(/\/[a-zA-Z0-9_./-]+/g) || []).map((r) => r.replace(/[`'"]+/g, ''));
+
 for (const route of routes) {
   assert(
     readmeMd.includes(route),
@@ -31,6 +63,30 @@ for (const route of routes) {
   assert(
     agentsMd.includes(route),
     `AGENTS.md is missing route "${route}" from server.js`
+  );
+  assert(
+    agentsServerEntryRoutes.includes(route),
+    `AGENTS.md server.js endpoints list is missing route "${route}"`
+  );
+}
+
+// Bidirectional check: every endpoint mentioned in AGENTS.md must be a registered route in server.js.
+const agentsEndpoints = extractAgentsEndpoints(agentsMd);
+for (const endpoint of agentsEndpoints) {
+  assert(
+    routes.includes(endpoint),
+    `AGENTS.md mentions endpoint "${endpoint}" which is not registered in server.js`
+  );
+}
+
+// Bidirectional check: every endpoint mentioned in README.md must be a registered route in server.js.
+const readmeApiRouteRegex = /(?:^|[\s`("'<])(\/(?:api\/[a-zA-Z0-9_/-]+(?:\.[a-z]+)?|draft_data\.json))(?=[`)"'\s,.<]|$)/g;
+let rm;
+while ((rm = readmeApiRouteRegex.exec(readmeMd)) !== null) {
+  const endpoint = rm[1].replace(/[.,;:!]+$/, '').replace(/[`'"]+/g, '');
+  assert(
+    routes.includes(endpoint),
+    `README.md mentions endpoint "${endpoint}" which is not registered in server.js`
   );
 }
 
@@ -56,7 +112,8 @@ for (const file of testFiles) {
   );
 }
 
-// 3. Every process.env.X name read by server.js appears in README.md.
+// 3. Every process.env.X name read by server.js appears in README.md and AGENTS.md,
+// and all env-var default values mentioned in AGENTS.md match server.js bidirectionally.
 const envRegex = /process\.env\.([A-Z0-9_]+)/g;
 const envVars = [];
 let envMatch;
@@ -67,6 +124,44 @@ while ((envMatch = envRegex.exec(serverJs)) !== null) {
   }
 }
 
+function extractServerEnvDefaults(serverSource, vars) {
+  const defaults = {};
+  for (const name of vars) {
+    const re = new RegExp(
+      `process\\.env\\.${name}[^;\\n]*?\\|\\|\\s*(?:path\\.join\\([^)]*?['"]([^'"]+)['"]\\)|['"]?([^;\\s'"]+)['"]?)`
+    );
+    const m = serverSource.match(re);
+    if (m) {
+      defaults[name] = m[1] || m[2];
+    }
+  }
+  return defaults;
+}
+
+function extractAgentsEnvDefaults(agentsSource) {
+  const defaults = {};
+  const sLine = agentsSource.split('\n').find((line) => line.startsWith('- `server.js`:'));
+  if (sLine) {
+    const envClause = sLine.match(/Reads env vars\s+(.+?)\.\s+Manages/);
+    const textToScan = envClause ? envClause[1] : sLine;
+    const re = /`?([A-Z0-9_]+)`?\s*\(default\s*`?([^\s,`)]+)`?/g;
+    let m;
+    while ((m = re.exec(textToScan)) !== null) {
+      defaults[m[1]] = m[2];
+    }
+  }
+
+  const globalDefaultRegex = /`([A-Z0-9_]+)`\s*\(default\s*`([^`]+)`/g;
+  let gm;
+  while ((gm = globalDefaultRegex.exec(agentsSource)) !== null) {
+    defaults[gm[1]] = gm[2];
+  }
+  return defaults;
+}
+
+const serverEnvDefaults = extractServerEnvDefaults(serverJs, envVars);
+const agentsEnvDefaults = extractAgentsEnvDefaults(agentsMd);
+
 for (const envVar of envVars) {
   assert(
     readmeMd.includes(envVar),
@@ -76,7 +171,54 @@ for (const envVar of envVars) {
     agentsMd.includes(envVar),
     `AGENTS.md is missing environment variable "${envVar}" read by server.js`
   );
+  assert(
+    agentsEnvDefaults[envVar] !== undefined,
+    `AGENTS.md is missing documented default value for environment variable "${envVar}"`
+  );
+  assert.strictEqual(
+    agentsEnvDefaults[envVar],
+    serverEnvDefaults[envVar],
+    `Default value for "${envVar}" in AGENTS.md ("${agentsEnvDefaults[envVar]}") does not match server.js ("${serverEnvDefaults[envVar]}")`
+  );
 }
+
+for (const envVar of Object.keys(agentsEnvDefaults)) {
+  assert(
+    envVars.includes(envVar),
+    `AGENTS.md documents default for environment variable "${envVar}" which is not read by server.js`
+  );
+}
+
+// Invariant self-checks: verify that guard assertions catch unregistered endpoints or inaccurate defaults
+assert.throws(
+  () => {
+    const tamperedEndpoints = extractAgentsEndpoints(agentsMd.replace('endpoints `/api/pick`', 'endpoints `/api/unregistered_endpoint`, `/api/pick`'));
+    for (const ep of tamperedEndpoints) {
+      assert(routes.includes(ep), `AGENTS.md mentions endpoint "${ep}" which is not registered in server.js`);
+    }
+  },
+  /AGENTS\.md mentions endpoint "\/api\/unregistered_endpoint" which is not registered in server\.js/
+);
+
+assert.throws(
+  () => {
+    const tamperedDefaults = extractAgentsEnvDefaults(agentsMd.replace('default `3333`', 'default `9999`'));
+    for (const v of envVars) {
+      assert.strictEqual(tamperedDefaults[v], serverEnvDefaults[v]);
+    }
+  },
+  /AssertionError/
+);
+
+assert.throws(
+  () => {
+    const tamperedDefaults = extractAgentsEnvDefaults(agentsMd.replace('`PORT` (default `3333`)', '`PORT` (default `3333`), `UNREGISTERED_ENV` (default `123`)'));
+    for (const v of Object.keys(tamperedDefaults)) {
+      assert(envVars.includes(v), `AGENTS.md documents default for environment variable "${v}" which is not read by server.js`);
+    }
+  },
+  /AGENTS\.md documents default for environment variable "UNREGISTERED_ENV" which is not read by server\.js/
+);
 
 console.log('✓ Docs surface matches server routes, test files, and environment variables');
 
