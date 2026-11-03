@@ -53,7 +53,7 @@ After pulling new code, click **Reload** on the extension and refresh the draft 
 ### 1. Automated Game Theory Decision Engine (EVONA)
 - **Closed-Form 2-Round Expected Value ($\Delta EV$)**:
   Calculates the expected point gain of drafting any target $B$ compared to the board's top VORP anchor $A$:
-  $$\Delta EV(B \text{ over } A) = (1 - S(B)) \cdot \text{Cliff}(B) - (1 - S(A)) \cdot \text{Cliff}(A) - [VORP(A) - VORP(B)]$$
+  $$\Delta EV(B \text{ over } A) = (1 - S(B)) \cdot \text{Cliff}(B) - (1 - S(A)) \cdot \text{Cliff}(A) $$
   - Measures the **Expected Cliff Loss** saved by drafting $B$ immediately versus letting them slide to your next snake turn ($T_{next}$).
   - Automatically identifies whether taking an urgent cliff target (e.g. Leon Draisaitl at Pick 5) yields higher net portfolio value than taking a high-survival anchor (e.g. Quinn Hughes at 65% survival).
 - **Survival-weighted fallbacks**: every comparison asks "what do I get if I miss him?" The fallback is the survival-weighted expected best remaining player at that position, never the other side of the matchup (two centers are not each other's fallback), and never assumed to survive when he won't.
