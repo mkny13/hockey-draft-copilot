@@ -847,13 +847,15 @@
    * @param {Array}  players      master board rows (draft_data.json players)
    * @param {Object} options      { rosterLimits, teams, slot }
    */
-  function gradeDraft(pickHistory, players, options) {
+  // Option normalization for gradeDraft.
+  function normalizeGradeDraftOptions(options) {
     options = options || {};
     var rosterLimits = options.rosterLimits || { C: 3, F: 5, D: 4, G: 2 };
-    if (!pickHistory) pickHistory = [];
-    if (!players) players = [];
+    return { rosterLimits: rosterLimits };
+  }
 
-    /* Player lookup by name */
+  // Player lookup by name.
+  function buildPlayerLookup(players) {
     var byName = {};
     for (var i = 0; i < players.length; i++) {
       var pl = players[i];
@@ -869,26 +871,30 @@
         posLabel: pl.posLabel || posArr.join("/")
       };
     }
+    return byName;
+  }
 
-    /* Expected board: every player with a usable ADP, ordered by ADP */
+  // Expected board: every player with a usable ADP, ordered by ADP.
+  function buildExpectedBoard(byName) {
     var board = [];
     for (var key in byName) {
       if (byName.hasOwnProperty(key) && byName[key].adp < 900) board.push(byName[key]);
     }
     board.sort(function (a, b) { return (a.adp - b.adp) || (b.vorp - a.vorp); });
-
     function expectedVorpAt(pickNumber) {
       if (!board.length || pickNumber < 1) return 0;
       var idx = Math.min(pickNumber, board.length) - 1;
       return board[idx].vorp;
     }
+    return { expectedVorpAt: expectedVorpAt };
+  }
 
-    /* Grade every recorded pick */
+  // Score every recorded pick against the expected board.
+  function scorePickHistory(pickHistory, byName, expectedVorpAt) {
     var picks = [];
     var myPicks = [];
     var totalCaptured = 0;
     var totalExpected = 0;
-
     for (var p = 0; p < pickHistory.length; p++) {
       var h = pickHistory[p];
       var info = byName[h.name] || {
@@ -901,7 +907,6 @@
       var hasAdp = info.adp !== null && info.adp !== undefined && info.adp < 900;
       var adpDelta = hasAdp ? (info.adp - h.pickNumber) : 0;
       var surplus = info.vorp - expectedVorp;
-
       var entry = {
         pickNumber: h.pickNumber,
         name: h.name,
@@ -922,13 +927,14 @@
         totalExpected += entry.expectedVorp;
       }
     }
+    return { picks: picks, myPicks: myPicks, totalCaptured: totalCaptured, totalExpected: totalExpected };
+  }
 
+  // Letter grade and derived summary stats from capture ratio.
+  function computeGradeSummary(picksCount, totalCaptured, totalExpected) {
     var totalSurplus = totalCaptured - totalExpected;
-    var picksCount = myPicks.length;
     var avgSurplus = picksCount ? totalSurplus / picksCount : 0;
     var captureRatio = totalExpected > 0 ? totalCaptured / totalExpected : null;
-
-    /* Letter grade from capture ratio (captured / expected) */
     var grade = null;
     var gradeLabel = "No picks recorded";
     if (picksCount > 0 && captureRatio !== null) {
@@ -938,17 +944,29 @@
       else if (captureRatio >= 0.78) { grade = "D"; gradeLabel = "Below expectation - too many reaches"; }
       else { grade = "F"; gradeLabel = "Poor draft - significant value left behind"; }
     }
+    return {
+      totalCapturedVorp: totalCaptured,
+      totalExpectedVorp: totalExpected,
+      totalSurplus: totalSurplus,
+      picksCount: picksCount,
+      avgSurplusPerPick: avgSurplus,
+      captureRatio: captureRatio,
+      grade: grade,
+      gradeLabel: gradeLabel
+    };
+  }
 
-    /* Best value steals across the entire draft, ranked by ADP Delta.
-     * Tiebreak on captured VORP so ordering is deterministic. */
-    var steals = picks
+  // Best value steals across the draft, ranked by ADP Delta (tiebreak on VORP).
+  function computeSteals(picks) {
+    return picks
       .filter(function (x) { return x.adpDelta > 0; })
       .sort(function (a, b) { return (b.adpDelta - a.adpDelta) || (b.vorp - a.vorp); })
       .slice(0, 10);
+  }
 
-
-    /* Positional balance of my roster (mirrors app.js flex logic:
-     * C-only and dual C,F players fill C first, then flex to F). */
+  // Positional balance of my roster (mirrors app.js flex logic: C-only and
+  // dual C,F players fill C first, then flex to F).
+  function computePositionalBalance(myPicks, rosterLimits, picksCount) {
     var counts = { C: 0, F: 0, D: 0, G: 0 };
     for (var m = 0; m < myPicks.length; m++) {
       var mp = myPicks[m];
@@ -966,7 +984,6 @@
         }
       }
     }
-
     var balanceSlots = [];
     var posOrder = ["C", "F", "D", "G"];
     var filledTotal = 0;
@@ -985,35 +1002,51 @@
       slotsTotal += bLimit;
       balanceSlots.push({ pos: bp, count: bCount, limit: bLimit, status: status });
     }
-
     var fillRatio = slotsTotal > 0 ? filledTotal / slotsTotal : null;
     var balanceVerdict;
     if (hasEmpty && picksCount > 0) balanceVerdict = "Unbalanced - at least one starting position empty";
     else if (fillRatio === null) balanceVerdict = "No roster to grade";
     else if (fillRatio >= 0.98) balanceVerdict = "Balanced - all starting slots filled";
     else balanceVerdict = "Mostly balanced - " + (slotsTotal - filledTotal) + " starting slot(s) still open";
+    return {
+      counts: counts,
+      slots: balanceSlots,
+      fillRatio: fillRatio,
+      verdict: balanceVerdict
+    };
+  }
+
+  function gradeDraft(pickHistory, players, options) {
+    if (!pickHistory) pickHistory = [];
+    if (!players) players = [];
+    var limits = normalizeGradeDraftOptions(options).rosterLimits;
+
+    var byName = buildPlayerLookup(players);
+    var expected = buildExpectedBoard(byName);
+
+    /* Grade every recorded pick */
+    var scored = scorePickHistory(pickHistory, byName, expected.expectedVorpAt);
+    var picks = scored.picks;
+    var myPicks = scored.myPicks;
+    var totalCaptured = scored.totalCaptured;
+    var totalExpected = scored.totalExpected;
+
+    var picksCount = myPicks.length;
+    var summary = computeGradeSummary(picksCount, totalCaptured, totalExpected);
+
+    /* Best value steals across the entire draft, ranked by ADP Delta. */
+    var steals = computeSteals(picks);
+
+
+    var balance = computePositionalBalance(myPicks, limits, picksCount);
 
     return {
       graded: picksCount > 0,
       picks: picks,
       myPicks: myPicks,
-      summary: {
-        totalCapturedVorp: totalCaptured,
-        totalExpectedVorp: totalExpected,
-        totalSurplus: totalSurplus,
-        picksCount: picksCount,
-        avgSurplusPerPick: avgSurplus,
-        captureRatio: captureRatio,
-        grade: grade,
-        gradeLabel: gradeLabel
-      },
+      summary: summary,
       steals: steals,
-      positionalBalance: {
-        counts: counts,
-        slots: balanceSlots,
-        fillRatio: fillRatio,
-        verdict: balanceVerdict
-      }
+      positionalBalance: balance
     };
   }
 
@@ -1084,10 +1117,10 @@
    *   myPicks: { [round]: pickNumber },
    *   targets: [{ name, id, adp, drafted, roundSurvival: { [round]: prob|null } }] }
    */
-  function runMonteCarlo(players, draftOrder, rounds, simulations, options) {
+  // Config normalization for runMonteCarlo (pure; no RNG consumed here).
+  function normalizeMonteCarloConfig(draftOrder, rounds, simulations, options) {
     options = options || {};
     var cfg = (draftOrder && typeof draftOrder === "object") ? draftOrder : {};
-
     var teams = parseInt(cfg.teams || draftOrder, 10) || 8;
     var slot = parseInt(cfg.slot || options.slot, 10) || 1;
     rounds = parseInt(rounds, 10) || 10;
@@ -1100,13 +1133,21 @@
       (options.stdDev !== undefined ? options.stdDev : undefined)
     );
     if (isNaN(noiseStd) || noiseStd <= 0) noiseStd = 7.0;
-
     var draftedSet = cfg.drafted || options.drafted || {};
     var mineSet = cfg.mine || options.mine || {};
     var seed = (cfg.seed !== undefined) ? cfg.seed : options.seed;
     var rng = (seed !== undefined && seed !== null) ? mulberry32(seed) : Math.random;
+    return {
+      teams: teams, slot: slot, rounds: rounds, simulations: simulations,
+      currentPick: currentPick, noiseStd: noiseStd,
+      draftedSet: draftedSet, mineSet: mineSet, seed: seed, rng: rng
+    };
+  }
 
-    /* Targets: array of player names or ids */
+  // Resolve the de-duplicated list of target names from the flexible signature.
+  function resolveMonteCarloTargets(draftOrder, options) {
+    options = options || {};
+    var cfg = (draftOrder && typeof draftOrder === "object") ? draftOrder : {};
     var requestedTargets = cfg.targets || options.targets || [];
     if (!Array.isArray(requestedTargets)) requestedTargets = [requestedTargets];
     var targetNames = [];
@@ -1116,8 +1157,11 @@
         : requestedTargets[t];
       if (reqName && targetNames.indexOf(reqName) === -1) targetNames.push(reqName);
     }
+    return targetNames;
+  }
 
-    /* Build the pool of REMAINING players (drafted & mine excluded) */
+  // Pool of remaining players (drafted & mine excluded) + missing targets.
+  function buildMonteCarloPool(players, targetNames, draftedSet, mineSet) {
     var rows = players || [];
     var pool = [];
     var nameSet = {};
@@ -1126,11 +1170,9 @@
       var name = row.name || row.n;
       if (!name || nameSet[name]) continue;
       nameSet[name] = true;
-
       var adp = resolveAdp(row);
       if (adp === null) continue;
       if (draftedSet[name] || mineSet[name]) continue;
-
       pool.push({
         name: name,
         id: row.id !== undefined ? row.id : i,
@@ -1140,8 +1182,6 @@
         isTarget: targetNames.indexOf(name) !== -1
       });
     }
-
-    /* Targets missing from the pool (already drafted / mine) */
     var missingTargets = [];
     for (var m = 0; m < targetNames.length; m++) {
       var found = false;
@@ -1150,77 +1190,60 @@
       }
       if (!found) missingTargets.push(targetNames[m]);
     }
+    return { pool: pool, missingTargets: missingTargets };
+  }
 
-    var maxPick = teams * rounds;
-    var myPicks = {};
-    for (var r = 1; r <= rounds; r++) {
-      var pickNo = snakePickNumber(r, slot, teams);
-      if (pickNo >= currentPick && pickNo <= maxPick) myPicks[r] = pickNo;
-    }
-
+  // One simulated draft walk (fixed RNG call order for seeded stability).
+  function simulateOneDraft(pool, rng, noiseStd, slot, teams, currentPick, maxPick, targetNames, perTargetHits) {
     var n = pool.length;
     var nadp = new Float64Array(n);
     var taken = new Uint8Array(n);
     var order = new Int32Array(n);
-    var perTargetHits = {};
-    for (var h = 0; h < targetNames.length; h++) {
-      perTargetHits[targetNames[h]] = {};
+    for (var a = 0; a < n; a++) {
+      nadp[a] = Math.max(1, sampleNormalNoise(pool[a].adp, noiseStd, rng));
+      taken[a] = 0;
     }
-
-    for (var sim = 0; sim < simulations; sim++) {
-      /* 1. Sample noisy ADPs: N(base ADP, noiseStd^2), clamped to >= 1 */
-      for (var a = 0; a < n; a++) {
-        nadp[a] = Math.max(1, sampleNormalNoise(pool[a].adp, noiseStd, rng));
-        taken[a] = 0;
-      }
-
-      /* 2. Rebuild the board: every drafter takes the best available
-       *    player according to their own noisy ADP observation. */
-      for (var o = 0; o < n; o++) order[o] = o;
-      Array.prototype.sort.call(order, function (x, y) {
-        var d = nadp[x] - nadp[y];
-        if (d !== 0) return d;
-        d = pool[x].adp - pool[y].adp;
-        if (d !== 0) return d;
-        return pool[y].vorp - pool[x].vorp;
-      });
-
-      /* 3. Walk the draft from currentPick to the final pick */
-      var head = 0;
-      var simTaken = {};
-      var takenTargets = 0;
-      for (var pick = currentPick; pick <= maxPick; pick++) {
-        var details = getPickDetails(pick, teams);
-        if (details.ownerSlot === slot) {
-          /* My turn: record which targets are still on the board, then
-           * proxy-pick the best available NON-target (I am waiting on the
-           * sleeper, so I never draft the target myself in the sim). */
-          for (var ti = 0; ti < targetNames.length; ti++) {
-            var tName = targetNames[ti];
-            if (!simTaken[tName]) {
-              perTargetHits[tName][details.round] = (perTargetHits[tName][details.round] || 0) + 1;
-            }
-          }
-          var my = head;
-          while (my < n && (taken[order[my]] || pool[order[my]].isTarget)) my++;
-          if (my < n) taken[order[my]] = 1;
-        } else {
-          while (head < n && taken[order[head]]) head++;
-          if (head < n) {
-            var idx = order[head];
-            taken[idx] = 1;
-            if (pool[idx].isTarget && !simTaken[pool[idx].name]) {
-              simTaken[pool[idx].name] = true;
-              takenTargets++;
-            }
-            head++;
+    for (var o = 0; o < n; o++) order[o] = o;
+    Array.prototype.sort.call(order, function (x, y) {
+      var d = nadp[x] - nadp[y];
+      if (d !== 0) return d;
+      d = pool[x].adp - pool[y].adp;
+      if (d !== 0) return d;
+      return pool[y].vorp - pool[x].vorp;
+    });
+    var head = 0;
+    var simTaken = {};
+    var takenTargets = 0;
+    for (var pick = currentPick; pick <= maxPick; pick++) {
+      var details = getPickDetails(pick, teams);
+      if (details.ownerSlot === slot) {
+        for (var ti = 0; ti < targetNames.length; ti++) {
+          var tName = targetNames[ti];
+          if (!simTaken[tName]) {
+            perTargetHits[tName][details.round] = (perTargetHits[tName][details.round] || 0) + 1;
           }
         }
-        if (takenTargets >= targetNames.length) break;
+        var my = head;
+        while (my < n && (taken[order[my]] || pool[order[my]].isTarget)) my++;
+        if (my < n) taken[order[my]] = 1;
+      } else {
+        while (head < n && taken[order[head]]) head++;
+        if (head < n) {
+          var idx = order[head];
+          taken[idx] = 1;
+          if (pool[idx].isTarget && !simTaken[pool[idx].name]) {
+            simTaken[pool[idx].name] = true;
+            takenTargets++;
+          }
+          head++;
+        }
       }
+      if (takenTargets >= targetNames.length) break;
     }
+  }
 
-    /* 4. Aggregate survival probabilities per target per round */
+  // Aggregate per-target survival probabilities from the simulation hits.
+  function aggregateMonteCarloResults(pool, targetNames, missingTargets, perTargetHits, simulations, rounds, myPicks) {
     var targetResults = [];
     for (var g = 0; g < pool.length; g++) {
       if (!pool[g].isTarget) continue;
@@ -1242,17 +1265,50 @@
       var missRs = {};
       for (var mr = 1; mr <= rounds; mr++) missRs[mr] = 0;
       targetResults.push({
-        name: missingTargets[mi],
-        id: null,
-        adp: null,
-        pos: [],
-        drafted: true,
-        roundSurvival: missRs
+        name: missingTargets[mi], id: null, adp: null, pos: [],
+        drafted: true, roundSurvival: missRs
       });
     }
     targetResults.sort(function (x, y) {
       return targetNames.indexOf(x.name) - targetNames.indexOf(y.name);
     });
+    return targetResults;
+  }
+
+  function runMonteCarlo(players, draftOrder, rounds, simulations, options) {
+    var cfg = normalizeMonteCarloConfig(draftOrder, rounds, simulations, options);
+    var teams = cfg.teams;
+    var slot = cfg.slot;
+    rounds = cfg.rounds;
+    simulations = cfg.simulations;
+    var currentPick = cfg.currentPick;
+    var noiseStd = cfg.noiseStd;
+    var draftedSet = cfg.draftedSet;
+    var mineSet = cfg.mineSet;
+    var rng = cfg.rng;
+    var targetNames = resolveMonteCarloTargets(draftOrder, options);
+
+    var built = buildMonteCarloPool(players, targetNames, draftedSet, mineSet);
+    var pool = built.pool;
+    var missingTargets = built.missingTargets;
+
+    var maxPick = teams * rounds;
+    var myPicks = {};
+    for (var r = 1; r <= rounds; r++) {
+      var pickNo = snakePickNumber(r, slot, teams);
+      if (pickNo >= currentPick && pickNo <= maxPick) myPicks[r] = pickNo;
+    }
+
+    var perTargetHits = {};
+    for (var h = 0; h < targetNames.length; h++) {
+      perTargetHits[targetNames[h]] = {};
+    }
+
+    for (var sim = 0; sim < simulations; sim++) {
+      simulateOneDraft(pool, rng, noiseStd, slot, teams, currentPick, maxPick, targetNames, perTargetHits);
+    }
+
+    var targetResults = aggregateMonteCarloResults(pool, targetNames, missingTargets, perTargetHits, simulations, rounds, myPicks);
 
     return {
       simulations: simulations,
@@ -1261,7 +1317,7 @@
       currentPick: currentPick,
       slot: slot,
       noiseStd: noiseStd,
-      poolSize: n,
+      poolSize: pool.length,
       myPicks: myPicks,
       targets: targetResults
     };
