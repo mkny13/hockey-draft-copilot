@@ -72,16 +72,16 @@ async function checkHealth(force = false) {
     error: null
   };
 
+  let timeoutId = null;
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
+    timeoutId = setTimeout(() => controller.abort(), 3000);
 
     const res = await fetch(`${syncUrl}/api/state`, {
       method: "GET",
       headers: { "Accept": "application/json" },
       signal: controller.signal
     });
-    clearTimeout(timeoutId);
 
     if (res.ok) {
       const latency = Date.now() - startTime;
@@ -94,6 +94,9 @@ async function checkHealth(force = false) {
     }
   } catch (err) {
     status.error = err.name === "AbortError" ? "Timeout (3s)" : (err.message || "Connection refused");
+  } finally {
+    // Clear the abort timer on every path, including a rejected fetch (server down).
+    clearTimeout(timeoutId);
   }
 
   // Persist latest health status in local storage

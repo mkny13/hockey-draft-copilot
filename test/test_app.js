@@ -243,6 +243,10 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
       w.clearTimeout(w.__copilotSearchTimer);
       w.__copilotSearchTimer = null;
     }
+    if (w.__copilotAppWsReconnectTimer) {
+      w.clearTimeout(w.__copilotAppWsReconnectTimer);
+      w.__copilotAppWsReconnectTimer = null;
+    }
     return origClose();
   };
 
@@ -1056,6 +1060,42 @@ function makeAppWindow(customPlayers, customState, customReport, customFetchResp
       w.close();
       console.log('✓ stale HTTP state never rolls back newer WS state; restart (new bootId) is applied');
     }
+  }
+
+  // WS reconnect: repeated onclose keeps exactly one pending reconnect timer, exposed on
+  // window.__copilotAppWsReconnectTimer so the harness can cancel it.
+  {
+    const w = makeAppWindow();
+    const pending = new Map();
+    const origSetTimeout = w.setTimeout.bind(w);
+    const origClearTimeout = w.clearTimeout.bind(w);
+    w.setTimeout = (fn, ms, ...args) => {
+      let id;
+      id = origSetTimeout((...a) => { pending.delete(id); fn(...a); }, ms, ...args);
+      pending.set(id, ms);
+      return id;
+    };
+    w.clearTimeout = (id) => { pending.delete(id); return origClearTimeout(id); };
+    const reconnectTimers = () => [...pending.entries()].filter(([, ms]) => ms === 3000).map(([id]) => id);
+
+    w.eval(gametheoryJs);
+    w.eval(appJs);
+    await waitFor(() => w.__sockets.length > 0, { message: 'socket opened' });
+    const sock = w.__sockets[0];
+    sock.readyState = 3; // CLOSED
+    sock.onclose();
+    sock.onclose();
+    const timers = reconnectTimers();
+    assert.strictEqual(timers.length, 1, 'Exactly one reconnect timer pending after two onclose events');
+    assert(w.__copilotAppWsReconnectTimer, 'window.__copilotAppWsReconnectTimer is set');
+    assert.strictEqual(w.__copilotAppWsReconnectTimer, timers[0], 'Exposed handle is the pending timer');
+
+    assert.strictEqual(w.__sockets.length, 1, 'No extra socket opened before the reconnect fires');
+
+    w.clearTimeout(w.__copilotAppWsReconnectTimer);
+    assert.strictEqual(reconnectTimers().length, 0, 'Reconnect timer cleared by harness');
+    w.close();
+    console.log('✓ WS reconnect keeps a single timer handle on window.__copilotAppWsReconnectTimer');
   }
 
   console.log('ALL APP TESTS PASSED!');

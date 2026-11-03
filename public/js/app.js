@@ -39,6 +39,7 @@
   };
 
   var ws = null;
+  var wsReconnectTimer = null;
   var tableTbody = document.getElementById("board-tbody");
   var shortlistContainer = document.getElementById("shortlist-container");
   var safeSleepersContainer = document.getElementById("safe-sleepers-container");
@@ -102,7 +103,19 @@
     }
   }
 
+  function clearWsReconnectTimer() {
+    if (wsReconnectTimer) {
+      clearTimeout(wsReconnectTimer);
+      wsReconnectTimer = null;
+    }
+    window.__copilotAppWsReconnectTimer = null;
+  }
+
   function setupWebSocket() {
+    clearWsReconnectTimer();
+    if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) {
+      return;
+    }
     var protocol = location.protocol === "https:" ? "wss:" : "ws:";
     var wsUrl = protocol + "//" + location.host;
     ws = new WebSocket(wsUrl);
@@ -118,7 +131,9 @@
     ws.onclose = function () {
       indicator.style.background = "var(--red)";
       statusText.textContent = "Live Sync: Disconnected";
-      setTimeout(setupWebSocket, 3000);
+      clearWsReconnectTimer();
+      wsReconnectTimer = setTimeout(setupWebSocket, 3000);
+      window.__copilotAppWsReconnectTimer = wsReconnectTimer;
     };
 
     ws.onmessage = function (event) {

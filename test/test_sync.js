@@ -816,7 +816,7 @@ const names = (w) => w.__posts.map((p) => p.name);
     const vm = require('vm');
     const bgJs = fs.readFileSync(path.join(SYNC, 'background.js'), 'utf8');
 
-    function createBackgroundHarness({ queryTabs = [], storedStatus = null, fetchResponse = null } = {}) {
+    function createBackgroundHarness({ queryTabs = [], storedStatus = null, fetchResponse = null, timers = null } = {}) {
       let fetchCalls = [];
       let tabMessages = [];
       let runtimeMessages = [];
@@ -878,8 +878,8 @@ const names = (w) => w.__posts.map((p) => p.name);
         fetch: fakeFetch,
         setInterval: () => 12345,
         clearInterval: () => {},
-        setTimeout,
-        clearTimeout,
+        setTimeout: timers ? timers.setTimeout : setTimeout,
+        clearTimeout: timers ? timers.clearTimeout : clearTimeout,
         AbortController,
         URL,
         Date,
@@ -962,6 +962,35 @@ const names = (w) => w.__posts.map((p) => p.name);
     assert.strictEqual(popupRecentStatus.currentPick, 7);
 
     console.log('✓ Background: health check gates on draft tabs, omits currentPick from tab fan-out, and refreshes for popup');
+
+  // 14. Background health check clears its 3s abort timer even when fetch rejects (server down).
+  {
+    const live = new Set();
+    let created = 0;
+    const timers = {
+      setTimeout: (fn, ms) => {
+        const id = setTimeout(() => { live.delete(id); fn(); }, ms);
+        live.add(id);
+        created++;
+        return id;
+      },
+      clearTimeout: (id) => { live.delete(id); clearTimeout(id); }
+    };
+    const harness = createBackgroundHarness({
+      queryTabs: [{ id: 7, url: 'https://fantasy.espn.com/hockey/draft' }],
+      fetchResponse: async () => { throw new TypeError('Failed to fetch'); },
+      timers
+    });
+    await settle(1, 20);
+    const status = await harness.sandbox.checkHealth();
+    assert.strictEqual(status.connected, false);
+    assert.strictEqual(status.error, 'Failed to fetch');
+    assert(created >= 1, 'checkHealth created an abort timer');
+    const leaked = live.size;
+    live.forEach((id) => clearTimeout(id));
+    assert.strictEqual(leaked, 0, 'No abort timer left pending after a rejected fetch');
+    console.log('✓ Background: health check clears its abort timer when fetch rejects');
+  }
   }
 
   console.log('ALL SYNC TESTS PASSED!');
