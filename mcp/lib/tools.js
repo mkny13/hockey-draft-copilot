@@ -463,6 +463,4 @@ async function standings(args = {}, deps) {
 module.exports = {
   goalie_stats: goalieStats, skater_stats: skaterStats, team_stats: teamStats,
   player_game_log: playerGameLog, player_lookup: playerLookup, schedule, standings,
-  // exported for tests
-  coerce, flatten, SITUATIONS,
 };

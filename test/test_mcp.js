@@ -342,6 +342,21 @@ function makeDeps() {
     assert.deepStrictEqual(Object.keys(rootPkg.dependencies).sort(), ['express', 'ws']);
   }
 
+  // ---- tool-name parity: code (SPECS), README, docs ----
+  {
+    const fs2 = require('fs');
+    const serverSrc = fs2.readFileSync(path.join(root, 'mcp', 'server.js'), 'utf8');
+    const specksMatch = serverSrc.match(/const SPECS = \{([\s\S]*?)\};/);
+    const codeNames = [...specksMatch[1].matchAll(/^\s*(\w+):/gm)].map((m) => m[1]).sort();
+    const toolNames = Object.keys(tools).sort();
+    assert.deepStrictEqual(codeNames, toolNames, 'SPECS keys match tools exports');
+    // README backticked first-column names in ## Tools table
+    const readme = fs2.readFileSync(path.join(root, 'mcp', 'README.md'), 'utf8');
+    const readmeNames = [...readme.matchAll(/\|\s*`(\w+)`/g)].map((m) => m[1]).sort();
+    assert.deepStrictEqual(readmeNames, toolNames, 'README tool names match code');
+    const docs = fs2.readFileSync(path.join(root, 'docs', 'nhl-stats-mcp.md'), 'utf8');
+    for (const n of toolNames) assert(docs.includes(n), `docs mention ${n}`);
+  }
   console.log('test_mcp.js: all tests passed');
 })().catch((e) => {
   console.error(e);

@@ -85,4 +85,4 @@ function lookup(index, query, { team, limit = 5 } = {}) {
   return { matches, warnings, ambiguous: warnings.length > 0 };
 }
 
-module.exports = { normalize, normalizeTeam, lastTeam, buildIndex, lookup, TEAM_ALIASES, NICKNAMES };
+module.exports = { normalize, normalizeTeam, lastTeam, buildIndex, lookup };
