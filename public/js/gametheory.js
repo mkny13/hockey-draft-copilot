@@ -1037,7 +1037,6 @@
     /* Best value steals across the entire draft, ranked by ADP Delta. */
     var steals = computeSteals(picks);
 
-
     var balance = computePositionalBalance(myPicks, limits, picksCount);
 
     return {
