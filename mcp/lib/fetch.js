@@ -12,12 +12,11 @@ function defaultCacheDir() {
 }
 
 // Creates fetchText/fetchJson with an on-disk cache.
-// opts: { cacheDir, now(), fetchImpl, memo }
+// opts: { cacheDir, now(), fetchImpl }
 function createFetcher(opts = {}) {
   const cacheDir = opts.cacheDir || defaultCacheDir();
   const now = opts.now || (() => Date.now());
   const fetchImpl = opts.fetchImpl || ((...a) => fetch(...a));
-  const memo = new Map();
 
   function cachePath(url) {
     return path.join(cacheDir, crypto.createHash('sha1').update(url).digest('hex') + '.json');
