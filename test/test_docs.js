@@ -24,16 +24,22 @@ while ((routeMatch = routeRegex.exec(serverJs)) !== null) {
   }
 }
 
+// Locate the AGENTS.md code-map bullet for server.js. Tolerates `-` or `*` bullets and a `:`, `—`
+// or `-` separator, so rewording the sentence after it does not break the checks.
+function findServerEntry(agentsSource) {
+  return agentsSource.split('\n').find((line) => /^\s*[-*]\s+`server\.js`\s*[:—–-]/.test(line));
+}
+
+// Every backticked path token (`/api/...`, `/draft_data.json`) in the server.js entry, wherever it
+// sits in the sentence. URLs (`https://...`) and non-path tokens are ignored.
+function extractAgentsServerEntryRoutes(agentsSource) {
+  const entry = findServerEntry(agentsSource);
+  if (!entry) return [];
+  return [...new Set([...entry.matchAll(/`(\/[a-zA-Z0-9_./-]+)`/g)].map((m) => m[1]))];
+}
+
 function extractAgentsEndpoints(agentsSource) {
-  const endpoints = new Set();
-  const serverLine = agentsSource.split('\n').find((line) => line.startsWith('- `server.js`:'));
-  if (serverLine) {
-    const endpointsClause = serverLine.match(/endpoints\s+(.+?)(?:,\s+and live WS broadcast|\.\s|\n|$)/);
-    if (endpointsClause) {
-      const listRoutes = endpointsClause[1].match(/\/[a-zA-Z0-9_./-]+/g) || [];
-      for (const r of listRoutes) endpoints.add(r.replace(/[`'"]+/g, ''));
-    }
-  }
+  const endpoints = new Set(extractAgentsServerEntryRoutes(agentsSource));
 
   const methodRouteRegex = /\b(?:GET|POST|PUT|DELETE|PATCH)\s+`?(\/[a-zA-Z0-9_./-]+)`?/g;
   let m;
@@ -49,11 +55,8 @@ function extractAgentsEndpoints(agentsSource) {
   return [...endpoints];
 }
 
-const serverLine = agentsMd.split('\n').find((line) => line.startsWith('- `server.js`:'));
-assert(serverLine, 'AGENTS.md is missing the "- `server.js`:" section');
-const endpointsClause = serverLine.match(/endpoints\s+(.+?)(?:,\s+and live WS broadcast|\.\s|\n|$)/);
-assert(endpointsClause, 'AGENTS.md server.js entry is missing the "endpoints ..." clause');
-const agentsServerEntryRoutes = (endpointsClause[1].match(/\/[a-zA-Z0-9_./-]+/g) || []).map((r) => r.replace(/[`'"]+/g, ''));
+assert(findServerEntry(agentsMd), 'AGENTS.md is missing the "- `server.js`:" code-map entry');
+const agentsServerEntryRoutes = extractAgentsServerEntryRoutes(agentsMd);
 
 for (const route of routes) {
   assert(
@@ -124,29 +127,35 @@ while ((envMatch = envRegex.exec(serverJs)) !== null) {
   }
 }
 
+// Reads the fallback for each process.env.X in server.js. Supported forms, after `||` or `??` on the
+// same statement: a number/string literal, or path.join(..., 'file') (reported as 'file').
+// Anything else lands in `unparsed`, which the checks below fail on with a pointer here.
 function extractServerEnvDefaults(serverSource, vars) {
   const defaults = {};
+  const unparsed = [];
   for (const name of vars) {
     const re = new RegExp(
-      `process\\.env\\.${name}[^;\\n]*?\\|\\|\\s*(?:path\\.join\\([^)]*?['"]([^'"]+)['"]\\)|['"]?([^;\\s'"]+)['"]?)`
+      `process\\.env\\.${name}\\b[^;\\n]*?(?:\\|\\||\\?\\?)\\s*` +
+      `(?:path\\.join\\([^)]*?['"]([^'"]+)['"]\\s*\\)|['"]([^'"]*)['"]|(-?\\d+(?:\\.\\d+)?)\\b)`
     );
     const m = serverSource.match(re);
     if (m) {
-      defaults[name] = m[1] || m[2];
+      defaults[name] = m[1] ?? m[2] ?? m[3];
+    } else {
+      unparsed.push(name);
     }
   }
-  return defaults;
+  return { defaults, unparsed };
 }
 
 function extractAgentsEnvDefaults(agentsSource) {
   const defaults = {};
-  const sLine = agentsSource.split('\n').find((line) => line.startsWith('- `server.js`:'));
+  // Anywhere in the server.js entry: `X` (default `v`) or X (default v).
+  const sLine = findServerEntry(agentsSource);
   if (sLine) {
-    const envClause = sLine.match(/Reads env vars\s+(.+?)\.\s+Manages/);
-    const textToScan = envClause ? envClause[1] : sLine;
     const re = /`?([A-Z0-9_]+)`?\s*\(default\s*`?([^\s,`)]+)`?/g;
     let m;
-    while ((m = re.exec(textToScan)) !== null) {
+    while ((m = re.exec(sLine)) !== null) {
       defaults[m[1]] = m[2];
     }
   }
@@ -159,8 +168,16 @@ function extractAgentsEnvDefaults(agentsSource) {
   return defaults;
 }
 
-const serverEnvDefaults = extractServerEnvDefaults(serverJs, envVars);
+const { defaults: serverEnvDefaults, unparsed: unparsedServerEnv } = extractServerEnvDefaults(serverJs, envVars);
 const agentsEnvDefaults = extractAgentsEnvDefaults(agentsMd);
+
+assert.deepStrictEqual(
+  unparsedServerEnv,
+  [],
+  `test_docs.js could not read the default for ${unparsedServerEnv.join(', ')} in server.js; ` +
+  'write it as `process.env.X || <literal>` / `?? <literal>` / `|| path.join(..., \'file\')`, ' +
+  'or extend extractServerEnvDefaults in test/test_docs.js'
+);
 
 for (const envVar of envVars) {
   assert(
@@ -219,6 +236,39 @@ assert.throws(
   },
   /AGENTS\.md documents default for environment variable "UNREGISTERED_ENV" which is not read by server\.js/
 );
+
+// Parser robustness self-checks: rewording the AGENTS.md server.js entry must not break the
+// endpoint/default extraction, and a server.js default the parser cannot read must be reported
+// rather than silently skipped.
+{
+  const reworded = agentsMd
+    .replace('- `server.js`:', '* `server.js` —')
+    .replace('Reads env vars', 'Environment:')
+    .replace('. Manages', '. It keeps')
+    .replace('endpoints `/api/pick`', 'routes `/api/pick`')
+    .replace(', and live WS broadcast', ', plus a live WS broadcast');
+  assert.notStrictEqual(reworded, agentsMd, 'reworded fixture must differ from AGENTS.md');
+  assert.deepStrictEqual(
+    [...extractAgentsServerEntryRoutes(reworded)].sort(),
+    [...extractAgentsServerEntryRoutes(agentsMd)].sort(),
+    'rewording the AGENTS.md server.js entry changed the extracted endpoint list'
+  );
+  for (const route of routes) {
+    assert(extractAgentsServerEntryRoutes(reworded).includes(route), `reworded entry lost route ${route}`);
+  }
+  assert.deepStrictEqual(extractAgentsEnvDefaults(reworded), extractAgentsEnvDefaults(agentsMd));
+
+  const fakeServer = [
+    "const A = process.env.A_VAR || 3333;",
+    "const B = process.env.B_VAR ?? 'x.json';",
+    "const C = Number(process.env.C_VAR ?? 42);",
+    "const D = process.env.D_VAR || path.join(__dirname, 'd.json');",
+    "const E = process.env.E_VAR ? 1 : 2;",
+  ].join('\n');
+  const parsed = extractServerEnvDefaults(fakeServer, ['A_VAR', 'B_VAR', 'C_VAR', 'D_VAR', 'E_VAR']);
+  assert.deepStrictEqual(parsed.defaults, { A_VAR: '3333', B_VAR: 'x.json', C_VAR: '42', D_VAR: 'd.json' });
+  assert.deepStrictEqual(parsed.unparsed, ['E_VAR']);
+}
 
 console.log('✓ Docs surface matches server routes, test files, and environment variables');
 
