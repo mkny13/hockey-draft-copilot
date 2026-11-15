@@ -17,10 +17,28 @@ const REQUIRED_FIELDS = [
   'registry',
 ];
 
-const KNOWN_BASELINE_ADVISORIES = new Set([
-  'body-parser',
-  'qs',
-]);
+const KNOWN_BASELINE_ADVISORIES = {
+  'body-parser': ['GHSA-27r3-jxmh-p828'],
+  'qs': ['GHSA-6pq8-jhm2-2vcw'],
+};
+
+/**
+ * Extracts parsed GHSA IDs from a vulnerability entry's `via` list.
+ * Only object entries with advisory URLs are considered; string dependency names are ignored.
+ */
+function extractGhsaIds(vulnInfo) {
+  if (!vulnInfo || !Array.isArray(vulnInfo.via)) return [];
+  const ghsas = [];
+  for (const item of vulnInfo.via) {
+    if (item && typeof item === 'object' && typeof item.url === 'string') {
+      const match = item.url.match(/github\.com\/advisories\/(GHSA-[a-z0-9-]+)/i);
+      if (match) {
+        ghsas.push(match[1]);
+      }
+    }
+  }
+  return [...new Set(ghsas)];
+}
 
 /**
  * Extracts normalized packages map { name: version } from package-lock.json
@@ -54,6 +72,28 @@ function validateVettingReport(lockPackages, vettingData, auditData) {
   assert(packagesList.length > 0, 'Vetting report must not be empty');
 
   const baselinePackages = vettingData.baselinePackages || {};
+
+  // Verify that all known baseline advisory packages are present in baselinePackages and package-lock.json at matching versions
+  for (const [pkgName, acceptedAdvisories] of Object.entries(KNOWN_BASELINE_ADVISORIES)) {
+    assert(
+      baselinePackages[pkgName] !== undefined,
+      `Known baseline advisory package "${pkgName}" is not present in docs/dependency-vetting.json baselinePackages`
+    );
+    assert(
+      lockPackages[pkgName] !== undefined,
+      `Known baseline advisory package "${pkgName}" is not present in package-lock.json`
+    );
+    assert.strictEqual(
+      lockPackages[pkgName],
+      baselinePackages[pkgName],
+      `Known baseline advisory package "${pkgName}" version in package-lock.json ("${lockPackages[pkgName]}") does not match baselinePackages ("${baselinePackages[pkgName]}")`
+    );
+    assert(
+      Array.isArray(acceptedAdvisories) && acceptedAdvisories.length > 0,
+      `Known baseline advisory package "${pkgName}" must have a non-empty list of accepted advisories`
+    );
+  }
+
   const vettedMap = new Map();
 
   for (const entry of packagesList) {
@@ -145,7 +185,26 @@ function validateVettingReport(lockPackages, vettingData, auditData) {
   for (const [vulnName, vulnInfo] of Object.entries(auditData.vulnerabilities)) {
     if (vettedMap.has(vulnName)) {
       unreviewedVulnerabilities.push(`Vetted package "${vulnName}" has an active advisory: ${JSON.stringify(vulnInfo.via || vulnInfo)}`);
-    } else if (!KNOWN_BASELINE_ADVISORIES.has(vulnName)) {
+    } else if (Object.prototype.hasOwnProperty.call(KNOWN_BASELINE_ADVISORIES, vulnName)) {
+      const acceptedList = KNOWN_BASELINE_ADVISORIES[vulnName] || [];
+      const ghsaIds = extractGhsaIds(vulnInfo);
+      if (acceptedList.length === 0) {
+        unreviewedVulnerabilities.push(
+          `Unreviewed advisory for baseline package "${vulnName}": no accepted advisories configured`
+        );
+      } else if (ghsaIds.length === 0) {
+        unreviewedVulnerabilities.push(
+          `Unreviewed advisory for baseline package "${vulnName}": no parseable advisory URL in via: ${JSON.stringify(vulnInfo.via || vulnInfo)}`
+        );
+      } else {
+        const unaccepted = [...new Set(ghsaIds.filter((id) => !acceptedList.includes(id)))];
+        if (unaccepted.length > 0) {
+          unreviewedVulnerabilities.push(
+            `Unreviewed advisory for baseline package "${vulnName}": ${unaccepted.join(', ')}`
+          );
+        }
+      }
+    } else {
       unreviewedVulnerabilities.push(`Unreviewed advisory for non-baseline package "${vulnName}": ${JSON.stringify(vulnInfo.via || vulnInfo)}`);
     }
   }
@@ -204,11 +263,15 @@ function runSelfChecks() {
     'jsdom': '31.0.1',
     'bcp-47': '2.1.2',
     'express': '5.3.0',
+    'body-parser': '2.3.0',
+    'qs': '6.16.0',
   };
 
   const validVetting = {
     baselinePackages: {
       'express': '5.3.0',
+      'body-parser': '2.3.0',
+      'qs': '6.16.0',
     },
     packages: [
       {
@@ -232,7 +295,17 @@ function runSelfChecks() {
     ],
   };
 
-  const cleanAudit = { vulnerabilities: { 'body-parser': {} } };
+  const cleanAudit = {
+    vulnerabilities: {
+      'body-parser': {
+        via: [
+          {
+            url: 'https://github.com/advisories/GHSA-27r3-jxmh-p828',
+          },
+        ],
+      },
+    },
+  };
 
   // Valid report passes
   assert.doesNotThrow(() => {
@@ -310,6 +383,96 @@ function runSelfChecks() {
       });
     },
     /Unreviewed advisory for non-baseline package "unknown-malware"/
+  );
+
+  // Accepted qs advisory passes
+  assert.doesNotThrow(() => {
+    validateVettingReport(dummyLock, validVetting, {
+      vulnerabilities: {
+        'qs': {
+          via: [{ url: 'https://github.com/advisories/GHSA-6pq8-jhm2-2vcw' }],
+        },
+      },
+    });
+  });
+
+  // body-parser with accepted GHSA plus unknown extra GHSA fails
+  assert.throws(
+    () => {
+      validateVettingReport(dummyLock, validVetting, {
+        vulnerabilities: {
+          'body-parser': {
+            via: [
+              { url: 'https://github.com/advisories/GHSA-27r3-jxmh-p828' },
+              { url: 'https://github.com/advisories/GHSA-xxxx-xxxx-xxxx' },
+            ],
+          },
+        },
+      });
+    },
+    /Unreviewed advisory for baseline package "body-parser": GHSA-xxxx-xxxx-xxxx/
+  );
+
+  // body-parser whose only advisory is an unknown GHSA fails
+  assert.throws(
+    () => {
+      validateVettingReport(dummyLock, validVetting, {
+        vulnerabilities: {
+          'body-parser': {
+            via: [{ url: 'https://github.com/advisories/GHSA-9999-9999-9999' }],
+          },
+        },
+      });
+    },
+    /Unreviewed advisory for baseline package "body-parser": GHSA-9999-9999-9999/
+  );
+
+  // body-parser with a via list that has no parseable advisory URL fails
+  assert.throws(
+    () => {
+      validateVettingReport(dummyLock, validVetting, {
+        vulnerabilities: {
+          'body-parser': {
+            via: [{ title: 'no parseable url' }],
+          },
+        },
+      });
+    },
+    /Unreviewed advisory for baseline package "body-parser"/
+  );
+
+  // qs with a different GHSA fails
+  assert.throws(
+    () => {
+      validateVettingReport(dummyLock, validVetting, {
+        vulnerabilities: {
+          'qs': {
+            via: [{ url: 'https://github.com/advisories/GHSA-yyyy-yyyy-yyyy' }],
+          },
+        },
+      });
+    },
+    /Unreviewed advisory for baseline package "qs": GHSA-yyyy-yyyy-yyyy/
+  );
+
+  // Missing or typo'd known baseline package in baselinePackages fails
+  assert.throws(
+    () => {
+      const invalid = JSON.parse(JSON.stringify(validVetting));
+      delete invalid.baselinePackages['body-parser'];
+      validateVettingReport(dummyLock, invalid, cleanAudit);
+    },
+    /Known baseline advisory package "body-parser" is not present in docs\/dependency-vetting\.json baselinePackages/
+  );
+
+  // Mismatched version between package-lock.json and baselinePackages fails
+  assert.throws(
+    () => {
+      const invalid = JSON.parse(JSON.stringify(validVetting));
+      invalid.baselinePackages['body-parser'] = '2.4.0';
+      validateVettingReport(dummyLock, invalid, cleanAudit);
+    },
+    /Known baseline advisory package "body-parser" version in package-lock\.json \("2\.3\.0"\) does not match baselinePackages \("2\.4\.0"\)/
   );
 
   // Missing or null audit data must throw, not skip advisory verification
