@@ -42,8 +42,12 @@ function extractLockPackages(lockData) {
 /**
  * Validates dependency vetting data against package-lock.json and npm audit results.
  */
-function validateVettingReport(lockPackages, vettingData, auditData = null) {
+function validateVettingReport(lockPackages, vettingData, auditData) {
   assert(vettingData && typeof vettingData === 'object', 'Vetting report must be an object');
+  assert(
+    auditData && typeof auditData === 'object' && auditData.vulnerabilities && typeof auditData.vulnerabilities === 'object',
+    'auditData with a vulnerabilities object is required to verify dependencies'
+  );
 
   const packagesList = Array.isArray(vettingData) ? vettingData : vettingData.packages;
   assert(Array.isArray(packagesList), 'Vetting report must contain a packages array');
@@ -140,48 +144,61 @@ function validateVettingReport(lockPackages, vettingData, auditData = null) {
     `Missing vetting entries in docs/dependency-vetting.json for packages: ${missingVetting.join(', ')}`
   );
 
-  // If audit data is supplied, verify no advisories exist for vetted packages and
-  // all vulnerabilities are within the known acceptable baseline dependencies.
-  if (auditData && auditData.vulnerabilities) {
-    const unreviewedVulnerabilities = [];
-    for (const [vulnName, vulnInfo] of Object.entries(auditData.vulnerabilities)) {
-      if (vettedMap.has(vulnName)) {
-        unreviewedVulnerabilities.push(`Vetted package "${vulnName}" has an active advisory: ${JSON.stringify(vulnInfo.via || vulnInfo)}`);
-      } else if (!KNOWN_BASELINE_ADVISORIES.has(vulnName)) {
-        unreviewedVulnerabilities.push(`Unreviewed advisory for non-baseline package "${vulnName}": ${JSON.stringify(vulnInfo.via || vulnInfo)}`);
-      }
+  // Verify no advisories exist for vetted packages and all vulnerabilities
+  // are within the known acceptable baseline dependencies.
+  const unreviewedVulnerabilities = [];
+  for (const [vulnName, vulnInfo] of Object.entries(auditData.vulnerabilities)) {
+    if (vettedMap.has(vulnName)) {
+      unreviewedVulnerabilities.push(`Vetted package "${vulnName}" has an active advisory: ${JSON.stringify(vulnInfo.via || vulnInfo)}`);
+    } else if (!KNOWN_BASELINE_ADVISORIES.has(vulnName)) {
+      unreviewedVulnerabilities.push(`Unreviewed advisory for non-baseline package "${vulnName}": ${JSON.stringify(vulnInfo.via || vulnInfo)}`);
     }
-    assert.strictEqual(
-      unreviewedVulnerabilities.length,
-      0,
-      `npm audit found unreviewed vulnerabilities:\n${unreviewedVulnerabilities.join('\n')}`
-    );
   }
+  assert.strictEqual(
+    unreviewedVulnerabilities.length,
+    0,
+    `npm audit found unreviewed vulnerabilities:\n${unreviewedVulnerabilities.join('\n')}`
+  );
 }
 
 /**
  * Runs npm audit programmatically and returns the parsed report.
  */
-function runNpmAudit(cwd) {
+function runNpmAudit(cwd, exec = execSync) {
+  let stdout;
   try {
-    const stdout = execSync('npm audit --json', {
+    stdout = exec('npm audit --json', {
       cwd,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
       timeout: 30000,
     });
-    return JSON.parse(stdout);
   } catch (err) {
-    if (err.stdout) {
-      try {
-        return JSON.parse(err.stdout);
-      } catch (_) {
-        // Fall through
-      }
+    if (err.stdout && String(err.stdout).trim()) {
+      stdout = String(err.stdout);
+    } else {
+      const exitInfo = err.status !== undefined && err.status !== null ? `exit code ${err.status}` : (err.signal ? `signal ${err.signal}` : 'failure without exit code');
+      throw new Error(`npm audit execution failed without parseable stdout (${exitInfo}): ${err.message}${err.stderr ? `\n${err.stderr}` : ''}`);
     }
-    // If npm audit failed due to network / registry connectivity, return null
-    return null;
   }
+
+  let report;
+  try {
+    report = JSON.parse(stdout);
+  } catch (parseErr) {
+    throw new Error(`Failed to parse npm audit output as JSON: ${parseErr.message}\nRaw output: ${stdout}`);
+  }
+
+  if (report && report.error) {
+    throw new Error(`npm audit reported error: ${report.error.summary || report.error.detail || JSON.stringify(report.error)}`);
+  }
+
+  assert(
+    report && typeof report === 'object' && report.vulnerabilities && typeof report.vulnerabilities === 'object',
+    'npm audit report missing vulnerabilities object'
+  );
+
+  return report;
 }
 
 // ---------------------------------------------------------------------------
@@ -220,9 +237,11 @@ function runSelfChecks() {
     ],
   };
 
+  const cleanAudit = { vulnerabilities: { 'body-parser': {} } };
+
   // Valid report passes
   assert.doesNotThrow(() => {
-    validateVettingReport(dummyLock, validVetting, { vulnerabilities: { 'body-parser': {} } });
+    validateVettingReport(dummyLock, validVetting, cleanAudit);
   });
 
   // Missing required field fails
@@ -230,7 +249,7 @@ function runSelfChecks() {
     () => {
       const invalid = JSON.parse(JSON.stringify(validVetting));
       delete invalid.packages[0].publisher;
-      validateVettingReport(dummyLock, invalid);
+      validateVettingReport(dummyLock, invalid, cleanAudit);
     },
     /missing required field "publisher"/
   );
@@ -240,7 +259,7 @@ function runSelfChecks() {
     () => {
       const invalid = JSON.parse(JSON.stringify(validVetting));
       invalid.packages.pop(); // remove bcp-47
-      validateVettingReport(dummyLock, invalid);
+      validateVettingReport(dummyLock, invalid, cleanAudit);
     },
     /Missing vetting entries in docs\/dependency-vetting\.json for packages: bcp-47@2\.1\.2/
   );
@@ -250,7 +269,7 @@ function runSelfChecks() {
     () => {
       const invalid = JSON.parse(JSON.stringify(validVetting));
       invalid.packages[0].published = '2011-11-21';
-      validateVettingReport(dummyLock, invalid);
+      validateVettingReport(dummyLock, invalid, cleanAudit);
     },
     /must record version publication date \(2026-11-13\), not 2011 package creation date/
   );
@@ -260,7 +279,7 @@ function runSelfChecks() {
     () => {
       const invalid = JSON.parse(JSON.stringify(validVetting));
       invalid.packages[0].version = '31.0.0';
-      validateVettingReport(dummyLock, invalid);
+      validateVettingReport(dummyLock, invalid, cleanAudit);
     },
     /version "31\.0\.0" does not match package-lock\.json \("31\.0\.1"\)/
   );
@@ -288,6 +307,95 @@ function runSelfChecks() {
     },
     /Unreviewed advisory for non-baseline package "unknown-malware"/
   );
+
+  // Missing or null audit data must throw, not skip advisory verification
+  assert.throws(
+    () => {
+      validateVettingReport(dummyLock, validVetting, null);
+    },
+    /auditData with a vulnerabilities object is required/i
+  );
+
+  // auditData missing vulnerabilities property must throw
+  assert.throws(
+    () => {
+      validateVettingReport(dummyLock, validVetting, {});
+    },
+    /auditData with a vulnerabilities object is required/i
+  );
+
+  // Failing npm execution without parseable stdout must throw, not return null
+  assert.throws(
+    () => {
+      runNpmAudit(repoRoot, () => {
+        const err = new Error('Command failed: npm audit --json');
+        err.status = 1;
+        throw err;
+      });
+    },
+    /npm audit execution failed without parseable stdout/i
+  );
+
+  // Failing npm execution with empty/whitespace stdout must throw, not return null
+  assert.throws(
+    () => {
+      runNpmAudit(repoRoot, () => {
+        const err = new Error('Command failed: npm audit --json');
+        err.status = 1;
+        err.stdout = '   \n';
+        throw err;
+      });
+    },
+    /npm audit execution failed without parseable stdout/i
+  );
+
+  // Unparseable stdout from failing npm execution must throw, not return null
+  assert.throws(
+    () => {
+      runNpmAudit(repoRoot, () => {
+        const err = new Error('Command failed: npm audit --json');
+        err.status = 1;
+        err.stdout = 'npm ERR! code ENOTFOUND\n';
+        throw err;
+      });
+    },
+    /Failed to parse npm audit output as JSON/i
+  );
+
+  // npm audit output with error object must throw
+  assert.throws(
+    () => {
+      runNpmAudit(repoRoot, () => {
+        return JSON.stringify({ error: { code: 'ENOTFOUND', summary: 'network error' } });
+      });
+    },
+    /npm audit reported error/i
+  );
+
+  // npm audit output missing vulnerabilities property must throw
+  assert.throws(
+    () => {
+      runNpmAudit(repoRoot, () => {
+        return JSON.stringify({ metadata: {} });
+      });
+    },
+    /npm audit report missing vulnerabilities object/i
+  );
+
+  // Valid audit JSON from exec returns parsed object
+  const parsedGood = runNpmAudit(repoRoot, () => {
+    return JSON.stringify({ vulnerabilities: {} });
+  });
+  assert.deepStrictEqual(parsedGood, { vulnerabilities: {} });
+
+  // Valid audit JSON from non-zero exit code (advisories present) returns parsed object
+  const parsedWithVulns = runNpmAudit(repoRoot, () => {
+    const err = new Error('Command failed');
+    err.status = 1;
+    err.stdout = JSON.stringify({ vulnerabilities: { 'body-parser': {} } });
+    throw err;
+  });
+  assert.deepStrictEqual(parsedWithVulns, { vulnerabilities: { 'body-parser': {} } });
 }
 
 // Run self-checks first
