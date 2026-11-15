@@ -103,12 +103,7 @@ function validateVettingReport(lockPackages, vettingData, auditData) {
     if (pkgName === 'jsdom' && entry.version.startsWith('31.')) {
       assert(
         !entry.published.startsWith('2011'),
-        `jsdom@${entry.version} must record version publication date (2026-11-13), not 2011 package creation date`
-      );
-      assert.strictEqual(
-        entry.published,
-        '2026-11-13',
-        `jsdom@${entry.version} version publication date must be "2026-11-13", got "${entry.published}"`
+        `jsdom@${entry.version} must record its version publication date, not the 2011 package creation date`
       );
     }
 
@@ -244,6 +239,15 @@ function runSelfChecks() {
     validateVettingReport(dummyLock, validVetting, cleanAudit);
   });
 
+  // A later jsdom 31.x patch may have a different version publication date.
+  const futurePatchLock = { ...dummyLock, jsdom: '31.0.2' };
+  const futurePatchVetting = JSON.parse(JSON.stringify(validVetting));
+  futurePatchVetting.packages[0].version = '31.0.2';
+  futurePatchVetting.packages[0].published = '2026-12-01';
+  assert.doesNotThrow(() => {
+    validateVettingReport(futurePatchLock, futurePatchVetting, cleanAudit);
+  });
+
   // Missing required field fails
   assert.throws(
     () => {
@@ -267,11 +271,11 @@ function runSelfChecks() {
   // Package creation date (2011) instead of version publication date fails
   assert.throws(
     () => {
-      const invalid = JSON.parse(JSON.stringify(validVetting));
+      const invalid = JSON.parse(JSON.stringify(futurePatchVetting));
       invalid.packages[0].published = '2011-11-21';
-      validateVettingReport(dummyLock, invalid, cleanAudit);
+      validateVettingReport(futurePatchLock, invalid, cleanAudit);
     },
-    /must record version publication date \(2026-11-13\), not 2011 package creation date/
+    /must record its version publication date, not the 2011 package creation date/
   );
 
   // Version mismatch fails
