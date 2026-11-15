@@ -14,6 +14,7 @@ const TEST_FILES = [
   'test_docs.js',
   'test_mcp.js',
   'test_live_data_guard.js',
+  'test_dependencies.js',
 ];
 
 const DEFAULT_TIMEOUT_MS = 120000;
