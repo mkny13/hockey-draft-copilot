@@ -190,6 +190,21 @@ app.use((err, req, res, next) => {
 // (fantasy.espn.com, *.fantasysports.yahoo.com), matching the extension's host_permissions.
 const ALLOWED_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$|^https:\/\/fantasy\.espn\.com$|^https:\/\/([a-z0-9-]+\.)*fantasysports\.yahoo\.com$/i;
 
+// Loopback Host allowlist: localhost, 127.0.0.1, [::1] (any port).
+// Enforced only when bound to a loopback address (the default) to prevent DNS rebinding.
+const IS_LOOPBACK_HOST = ['127.0.0.1', 'localhost', '::1'].includes(String(HOST).toLowerCase());
+const ALLOWED_LOOPBACK_HOST = /^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/i;
+
+if (IS_LOOPBACK_HOST) {
+  app.use((req, res, next) => {
+    const host = req.headers.host;
+    if (!host || !ALLOWED_LOOPBACK_HOST.test(host)) {
+      return res.status(403).json({ error: 'Host not allowed' });
+    }
+    next();
+  });
+}
+
 // Enable scoped CORS for ESPN & Yahoo Fantasy Draft integration & companion tools
 app.use((req, res, next) => {
   res.header('Vary', 'Origin');
@@ -372,6 +387,12 @@ server.on('error', (err) => {
 const wss = new WebSocketServer({
   server,
   verifyClient: (info, callback) => {
+    if (IS_LOOPBACK_HOST) {
+      const host = info.req && info.req.headers && info.req.headers.host;
+      if (!host || !ALLOWED_LOOPBACK_HOST.test(host)) {
+        return callback(false, 403, 'Host not allowed');
+      }
+    }
     const origin = info.origin || (info.req && info.req.headers && info.req.headers.origin);
     if (origin && !ALLOWED_ORIGIN.test(origin)) {
       return callback(false, 403, 'Origin not allowed');
@@ -483,6 +504,13 @@ wss.on('connection', (ws, req) => {
   if (origin && !ALLOWED_ORIGIN.test(origin)) {
     ws.close(1008, 'Origin not allowed');
     return;
+  }
+  if (IS_LOOPBACK_HOST) {
+    const host = req && req.headers && req.headers.host;
+    if (!host || !ALLOWED_LOOPBACK_HOST.test(host)) {
+      ws.close(1008, 'Host not allowed');
+      return;
+    }
   }
   let evaluation = null;
   try {
