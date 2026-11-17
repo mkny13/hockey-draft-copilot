@@ -252,7 +252,7 @@ function makeDeps() {
 
   // ---- schedule ----
   {
-    const { deps } = makeDeps();
+    const { deps, calls } = makeDeps();
     const byDate = await tools.schedule({ date: '2026-03-10' }, deps);
     assert.strictEqual(byDate.games.length, 3);
     assert.strictEqual(byDate.games[0].away, 'LAK');
@@ -267,6 +267,23 @@ function makeDeps() {
     assert.strictEqual(both.games[0].away, 'VAN');
     assert.strictEqual((await tools.schedule({ team: 'EDM', season: 2025, limit: 2 }, deps)).games.length, 2);
     await assert.rejects(() => tools.schedule({ date: 'March 10' }, deps), /YYYY-MM-DD/);
+
+    // Invalid team abbreviations are rejected without calling fetch
+    for (const badTeam of ['../x', 'TOR/../x', 'ABCD']) {
+      const callsBefore = calls.length;
+      await assert.rejects(
+        () => tools.schedule({ team: badTeam, season: 2025 }, deps),
+        /team must be a 2-3 letter NHL abbreviation/
+      );
+      assert.strictEqual(calls.length, callsBefore, `${badTeam} should not call fetch`);
+    }
+
+    // Valid team and alias resolve
+    const torSched = await tools.schedule({ team: 'TOR', season: 2025 }, deps);
+    assert.strictEqual(torSched.games.length, 3);
+    const aliasSched = await tools.schedule({ team: 'tb', season: 2025 }, deps);
+    assert.strictEqual(aliasSched.games.length, 3);
+
     const f = await tools.schedule({ date: '2026-03-10', fields: ['away'] }, deps);
     assert.deepStrictEqual(Object.keys(f.games[0]), ['id', 'away']);
   }

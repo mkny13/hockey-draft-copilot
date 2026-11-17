@@ -411,6 +411,7 @@ async function schedule(args = {}, deps) {
   const t = track(deps);
   const warnings = [];
   const team = N.normalizeTeam(args.team);
+  if (team && !/^[A-Z]{2,3}$/.test(team)) throw new Error('team must be a 2-3 letter NHL abbreviation');
   const date = args.date || null;
   if (date && !/^\d{4}-\d{2}-\d{2}$/.test(date)) throw new Error('date must be YYYY-MM-DD');
   const dateSeason = date && args.season == null ? Number(date.slice(0, 4)) - (Number(date.slice(5, 7)) >= 9 ? 0 : 1) : null;
