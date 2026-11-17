@@ -110,6 +110,66 @@ const state = async (base) => (await fetch(base + '/api/state')).json();
     assert.deepStrictEqual(ev.pickHistoryIntegrity.missing, [3]);
     console.log('✓ Guard: integrity snapshot follows undo and /api/evaluation');
 
+    // 6. PreToolUse hook and settings: block_live_data.py protects files from Bash write/removal
+    const settingsPath = path.join(ROOT, '.claude/settings.json');
+    assert(fs.existsSync(settingsPath), '.claude/settings.json must exist');
+    const settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    const preToolHooks = (settings.hooks && settings.hooks.PreToolUse) || [];
+    const hookConfig = preToolHooks.find((h) => h.hooks && h.hooks.some((hk) => hk.command && hk.command.includes('block_live_data.py')));
+    assert(hookConfig, 'PreToolUse configuration for block_live_data.py must exist');
+    assert(hookConfig.matcher.split('|').includes('Bash'), 'PreToolUse matcher must include Bash');
+
+    function runHook(payload) {
+      return new Promise((resolve, reject) => {
+        const proc = spawn('python3', [path.join(ROOT, '.claude/hooks/block_live_data.py')], {
+          cwd: ROOT,
+          stdio: ['pipe', 'pipe', 'pipe']
+        });
+        let stderr = '';
+        let stdout = '';
+        proc.stderr.on('data', (d) => { stderr += d; });
+        proc.stdout.on('data', (d) => { stdout += d; });
+        proc.on('error', (err) => reject(new Error(`Failed to spawn python3: ${err.message}`)));
+        proc.on('close', (code) => resolve({ code, stdout, stderr }));
+        if (payload !== null) {
+          proc.stdin.write(typeof payload === 'string' ? payload : JSON.stringify(payload));
+        }
+        proc.stdin.end();
+      });
+    }
+
+    // exit 2 for write/remove bash commands targeting protected files
+    const blockedBashCommands = [
+      'echo x > draft_state.json',
+      'rm draft_data.local.json',
+      "sed -i '' s/a/b/ draft_state.json",
+      'cp /tmp/x draft_state.json'
+    ];
+    for (const cmd of blockedBashCommands) {
+      const res = await runHook({ tool_name: 'Bash', tool_input: { command: cmd } });
+      assert.strictEqual(res.code, 2, `Command '${cmd}' must exit 2 (got ${res.code}, stderr: ${res.stderr})`);
+    }
+
+    // exit 0 for read-only or unrelated commands
+    const allowedBashCommands = [
+      'cat draft_state.json',
+      'grep foo draft_data.local.json',
+      'ls'
+    ];
+    for (const cmd of allowedBashCommands) {
+      const res = await runHook({ tool_name: 'Bash', tool_input: { command: cmd } });
+      assert.strictEqual(res.code, 0, `Command '${cmd}' must exit 0 (got ${res.code}, stderr: ${res.stderr})`);
+    }
+
+    // existing Edit path case exits 2
+    const editRes = await runHook({ tool_name: 'Edit', tool_input: { file_path: 'draft_state.json' } });
+    assert.strictEqual(editRes.code, 2, `Edit on draft_state.json must exit 2 (got ${editRes.code})`);
+
+    // malformed stdin exits 0 (fails open)
+    const malformedRes = await runHook('not valid json {]');
+    assert.strictEqual(malformedRes.code, 0, `Malformed input must exit 0 (got ${malformedRes.code})`);
+    console.log('✓ Guard: block_live_data.py blocks Bash modifications and Edit, allows reads and fails open');
+
     console.log('ALL LIVE-DATA GUARD TESTS PASSED!');
   } finally {
     child.kill('SIGKILL');
