@@ -3,6 +3,7 @@ const assert = require('assert');
 const fs = require('fs');
 const os = require('os');
 const net = require('net');
+const http = require('http');
 const path = require('path');
 const { spawn } = require('child_process');
 const WebSocket = require('ws');
@@ -129,6 +130,21 @@ const post = (base, url, body, headers) => fetch(base + url, {
   body: body === undefined ? undefined : JSON.stringify(body)
 });
 const json = async (p) => (await p).json();
+const httpGet = (port, pathName, headers = {}, host = '127.0.0.1') => new Promise((resolve, reject) => {
+  const req = http.request({
+    host,
+    port,
+    path: pathName,
+    method: 'GET',
+    headers
+  }, (res) => {
+    let body = '';
+    res.on('data', (c) => { body += c; });
+    res.on('end', () => resolve({ status: res.statusCode, headers: res.headers, body }));
+  });
+  req.on('error', reject);
+  req.end();
+});
 
 (async () => {
   let tmp = null;
@@ -179,6 +195,8 @@ const json = async (p) => (await p).json();
         assert(hostSrv.getStdout().includes('Host:          0.0.0.0'), 'Startup banner logs HOST=0.0.0.0');
         const res0 = await fetch(`http://127.0.0.1:${hostSrv.port}/api/state`);
         assert.strictEqual(res0.status, 200);
+        const resForeign = await httpGet(hostSrv.port, '/api/state', { Host: `evil.example:${hostSrv.port}` });
+        assert.strictEqual(resForeign.status, 200, 'Non-loopback HOST skips Host header check');
         if (nonLoopbackIp) {
           await new Promise((resolve, reject) => {
             const sock = net.connect({ host: nonLoopbackIp, port: hostSrv.port }, () => {
@@ -582,6 +600,38 @@ const json = async (p) => (await p).json();
     }
     console.log('✓ Preflight OPTIONS returns 200 for allowed origins and 403 for foreign/missing origins');
 
+    // Loopback Host header protection (DNS rebinding prevention)
+    // 1. Foreign host header on GET /draft_data.json and /api/state is rejected with 403
+    for (const route of ['/draft_data.json', '/api/state']) {
+      const evilHostRes = await httpGet(port, route, { Host: `evil.example:${port}` });
+      assert.strictEqual(evilHostRes.status, 403, `GET ${route} with foreign Host must return 403`);
+    }
+
+    // 2. Loopback host variations are served
+    for (const hostHeader of [`localhost:${port}`, `127.0.0.1:${port}`, `[::1]:${port}`]) {
+      const okState = await httpGet(port, '/api/state', { Host: hostHeader });
+      assert.strictEqual(okState.status, 200, `GET /api/state with Host: ${hostHeader} must return 200`);
+      const okData = await httpGet(port, '/draft_data.json', { Host: hostHeader });
+      assert.strictEqual(okData.status, 200, `GET /draft_data.json with Host: ${hostHeader} must return 200`);
+    }
+
+    // 3. Missing host header (HTTP/1.0 without Host) is refused with 403
+    const missingHostRes = await new Promise((resolve, reject) => {
+      const client = net.connect({ host: '127.0.0.1', port }, () => {
+        client.write('GET /api/state HTTP/1.0\r\n\r\n');
+      });
+      let data = '';
+      client.on('data', (c) => { data += c; });
+      client.on('end', () => {
+        const statusLine = data.split('\r\n')[0] || '';
+        const match = statusLine.match(/HTTP\/\d\.\d\s+(\d+)/);
+        resolve(match ? parseInt(match[1], 10) : null);
+      });
+      client.on('error', reject);
+    });
+    assert.strictEqual(missingHostRes, 403, 'Request without Host header must return 403');
+    console.log('✓ Host check: foreign Host rejected with 403, loopback variations served');
+
     // Board caching: GET /draft_data.json returns an ETag and Cache-Control: no-cache; 304 on match, 200 on change
     const boardRes1 = await fetch(`${base}/draft_data.json`);
     assert.strictEqual(boardRes1.status, 200);
@@ -869,6 +919,24 @@ const json = async (p) => (await p).json();
       });
     });
     console.log('✓ WebSocket origin check: foreign origin rejected, allowed and no-origin receive INIT_STATE');
+
+    // WebSocket foreign Host rejection
+    await new Promise((resolve, reject) => {
+      const wsEvil = new WebSocket(`ws://localhost:${port}`, { headers: { Host: 'evil.example' } });
+      let rejected = false;
+      wsEvil.on('error', () => {
+        rejected = true;
+      });
+      wsEvil.on('open', () => {
+        wsEvil.close();
+        reject(new Error('WebSocket with Host: evil.example should not open'));
+      });
+      wsEvil.on('close', (code) => {
+        assert(rejected || code === 1008, 'WebSocket connection with foreign Host must be rejected');
+        resolve();
+      });
+    });
+    console.log('✓ WebSocket host check: foreign Host handshake rejected');
 
     // Reset changes the reset id
     const before = (await json(fetch(`${base}/api/state`))).resetId;
