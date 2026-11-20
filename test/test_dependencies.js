@@ -147,6 +147,14 @@ function validateVettingReport(lockPackages, vettingData, auditData) {
       );
     }
 
+    // Reject 2011 package creation date for ws (version 8.x was published in 2021-2026)
+    if (pkgName === 'ws' && entry.version.startsWith('8.')) {
+      assert(
+        !entry.published.startsWith('2011'),
+        `ws@${entry.version} must record its version publication date, not the 2011 package creation date`
+      );
+    }
+
     // Verify advisories field
     if (Array.isArray(entry.advisories)) {
       assert(
@@ -341,7 +349,7 @@ function runSelfChecks() {
     /Missing vetting entries in docs\/dependency-vetting\.json for packages: bcp-47@2\.1\.2/
   );
 
-  // Package creation date (2011) instead of version publication date fails
+  // Package creation date (2011) instead of version publication date fails for jsdom
   assert.throws(
     () => {
       const invalid = JSON.parse(JSON.stringify(futurePatchVetting));
@@ -350,6 +358,41 @@ function runSelfChecks() {
     },
     /must record its version publication date, not the 2011 package creation date/
   );
+
+  // Package creation date (2011) instead of version publication date fails for ws
+  assert.throws(
+    () => {
+      const wsLock = { ...dummyLock, ws: '8.23.0' };
+      const wsVetting = JSON.parse(JSON.stringify(validVetting));
+      wsVetting.packages.push({
+        package: 'ws',
+        version: '8.23.0',
+        publisher: 'lpinca',
+        repository: 'https://github.com/websockets/ws',
+        published: '2011-12-04T10:32:12.839Z',
+        advisories: 'none',
+        registry: 'https://registry.npmjs.org',
+      });
+      validateVettingReport(wsLock, wsVetting, cleanAudit);
+    },
+    /ws@8\.23\.0 must record its version publication date, not the 2011 package creation date/
+  );
+
+  // Exact version timestamp or ISO date passes for ws
+  assert.doesNotThrow(() => {
+    const wsLock = { ...dummyLock, ws: '8.23.0' };
+    const wsVetting = JSON.parse(JSON.stringify(validVetting));
+    wsVetting.packages.push({
+      package: 'ws',
+      version: '8.23.0',
+      publisher: 'lpinca',
+      repository: 'https://github.com/websockets/ws',
+      published: '2026-11-12T21:39:13.861Z',
+      advisories: 'none',
+      registry: 'https://registry.npmjs.org',
+    });
+    validateVettingReport(wsLock, wsVetting, cleanAudit);
+  });
 
   // Version mismatch fails
   assert.throws(
