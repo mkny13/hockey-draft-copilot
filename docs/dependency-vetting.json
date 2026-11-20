@@ -205,6 +205,15 @@
       "published": "2026-10-14",
       "advisories": "none",
       "registry": "https://registry.npmjs.org"
+    },
+    {
+      "package": "ws",
+      "version": "8.23.0",
+      "publisher": "lpinca",
+      "repository": "https://github.com/websockets/ws",
+      "published": "2026-11-12",
+      "advisories": "none",
+      "registry": "https://registry.npmjs.org"
     }
   ]
 }
