@@ -211,7 +211,7 @@
       "version": "8.23.0",
       "publisher": "lpinca",
       "repository": "https://github.com/websockets/ws",
-      "published": "2026-11-12",
+      "published": "2026-11-12T21:39:13.861Z",
       "advisories": "none",
       "registry": "https://registry.npmjs.org"
     }
